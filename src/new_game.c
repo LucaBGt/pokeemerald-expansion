@@ -234,6 +234,8 @@ void NewGameInitData(void)
     ResetItemFlags();
     ResetDexNav();
     ClearFollowerNPCData();
+    FlagSet(FLAG_SCALE_WILD_POKEMON);
+    FlagSet(FLAG_SCALE_TRAINER_POKEMON);
 }
 
 static void ResetMiniGamesRecords(void)

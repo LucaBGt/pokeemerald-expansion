@@ -510,11 +510,76 @@ static u8 PickWildMonNature(enum Species species)
     return GetSynchronizedNature(WILDMON_ORIGIN, species);
 }
 
+u16 ReturnHighestPlayerPartyLevel_Wild(){
+    u16 level = 1;
+    u32 i = 0;
+
+    for (i = 0; i < CalculatePlayerPartyCount(); i++)
+    {
+        u32 currentLevel = GetMonData(&gPlayerParty[i], MON_DATA_LEVEL);
+        if(currentLevel > level){
+            level = currentLevel;
+        }
+    }
+
+    return level;
+}
+
+u16 ReturnBackEvolution_Wild(u16 baseSpecies, u8 level, u8 nonLevelEvolution){
+
+    u16 returnSpecies = baseSpecies;
+    u16 i;
+    u16 j;
+
+    for (i = 0; i < SPECIES_CUSTOM_END; i++)
+    {
+
+        if(i == SPECIES_LUGIA_SHADOW){
+            //return baseSpecies;
+            continue;
+        } 
+
+        const struct Evolution *evolutions = GetSpeciesEvolutions(i);
+        if (evolutions == NULL)
+            continue;
+
+        for (j = 0; evolutions[j].method != EVOLUTIONS_END; j++)
+        {
+            if (evolutions[j].targetSpecies == baseSpecies)
+            {
+                if(evolutions[j].method == EVO_LEVEL)
+                {
+                    
+                    if(level < evolutions[j].param){
+                        returnSpecies = ReturnBackEvolution_Wild(i,level,nonLevelEvolution-15);
+                    }
+
+                } else if(level < nonLevelEvolution){
+                    returnSpecies = ReturnBackEvolution_Wild(i,level,nonLevelEvolution-15);
+                }
+
+                break;
+            }
+        }
+    }
+
+    return returnSpecies;
+}
+
 void CreateWildMon(enum Species species, u8 level)
 {
+
+    u16 dynamicLevel = level;
+    u16 dynamicSpecies = species;
+
+    if(FlagGet(FLAG_SCALE_WILD_POKEMON)){
+        dynamicLevel = ReturnHighestPlayerPartyLevel_Wild();
+        dynamicSpecies = ReturnBackEvolution_Wild(species, dynamicLevel, 35);
+    }
+
     ZeroEnemyPartyMons();
     u32 personality = GetMonPersonality(species, GetSynchronizedGender(WILDMON_ORIGIN, species), PickWildMonNature(species), RANDOM_UNOWN_LETTER);
-    CreateMonWithIVs(&gParties[B_TRAINER_OPPONENT_A][0], species, level, personality, OTID_STRUCT_PLAYER_ID, USE_RANDOM_IVS);
+    CreateMonWithIVs(&gParties[B_TRAINER_OPPONENT_A][0], dynamicSpecies, dynamicLevel, personality, OTID_STRUCT_PLAYER_ID, USE_RANDOM_IVS);
     GiveMonInitialMoveset(&gParties[B_TRAINER_OPPONENT_A][0]);
 }
 

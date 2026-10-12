@@ -8617,6 +8617,7 @@ const struct SpeciesInfo gSpeciesInfoGen2[] =
         .levelUpLearnset = sLugiaLevelUpLearnset,
         .teachableLearnset = sLugiaTeachableLearnset,
     },
+
 #endif //P_FAMILY_LUGIA
 
 #if P_FAMILY_HO_OH

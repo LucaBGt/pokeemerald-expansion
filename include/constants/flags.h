@@ -54,8 +54,8 @@
 #define FLAG_SEARCHING_DEXNAV    0x20 // Unused Flag
 #define FLAG_DEXNAV_GET    0x21 // Unused Flag
 #define FLAG_DETECTOR_MODE_DEXNAV    0x22 // Unused Flag
-#define FLAG_UNUSED_0x023    0x23 // Unused Flag
-#define FLAG_UNUSED_0x024    0x24 // Unused Flag
+#define FLAG_SCALE_WILD_POKEMON    0x23 // Unused Flag
+#define FLAG_SCALE_TRAINER_POKEMON    0x24 // Unused Flag
 #define FLAG_UNUSED_0x025    0x25 // Unused Flag
 #define FLAG_UNUSED_0x026    0x26 // Unused Flag
 #define FLAG_UNUSED_0x027    0x27 // Unused Flag
