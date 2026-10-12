@@ -850,11 +850,79 @@ void CreateRandomMonWithIVs(struct Pokemon *mon, enum Species species, u8 level,
     GiveMonInitialMoveset(mon);
 }
 
+u16 ReturnHighestPlayerPartyLevel_Trainer(){
+    u16 level = 1;
+    u32 i = 0;
+
+    for (i = 0; i < CalculatePlayerPartyCount(); i++)
+    {
+        u32 currentLevel = GetMonData(&gPlayerParty[i], MON_DATA_LEVEL);
+        if(currentLevel > level){
+            level = currentLevel;
+        }
+    }
+
+    return level;
+}
+
+u16 ReturnBackEvolution_Trainer(u16 baseSpecies, u8 level, u8 nonLevelEvolution){
+
+    u16 returnSpecies = baseSpecies;
+    u16 i;
+    u16 j;
+
+    for (i = 0; i < NUM_SPECIES; i++)
+    {
+
+        if(i == SPECIES_LUGIA_SHADOW)
+            continue;
+
+        const struct Evolution *evolutions = GetSpeciesEvolutions(i);
+        if (evolutions == NULL)
+            continue;
+
+        for (j = 0; evolutions[j].method != EVOLUTIONS_END; j++)
+        {
+            if (evolutions[j].targetSpecies == baseSpecies)
+            {
+                if(evolutions[j].method == EVO_LEVEL)
+                    {
+                    
+                    if(level < evolutions[j].param){
+                        returnSpecies = ReturnBackEvolution_Trainer(i,level,nonLevelEvolution-15);
+                    }
+
+                } else if(level < nonLevelEvolution){
+                    returnSpecies = ReturnBackEvolution_Trainer(i,level,nonLevelEvolution-15);
+                }
+
+                break;
+            }
+        }
+    }
+
+    return returnSpecies;
+}
+
 void CreateMon(struct Pokemon *mon, enum Species species, u8 level, u32 personality, struct OriginalTrainerId trainerId)
 {
     u32 mail;
+    u16 dynamicLevel;
+    u16 dynamicSpecies;
+
+    if(FlagGet(FLAG_SCALE_TRAINER_POKEMON)){
+        dynamicLevel = ReturnHighestPlayerPartyLevel_Trainer();
+        dynamicSpecies = ReturnBackEvolution_Trainer(species, dynamicLevel, 35);
+    }
+    else
+    {
+        dynamicLevel = level;
+        dynamicSpecies = species;
+    }
+
     ZeroMonData(mon);
-    CreateBoxMon(&mon->box, species, level, personality, trainerId);
+    CreateBoxMon(&mon->box, dynamicSpecies, dynamicLevel, personality, trainerId);
+
     SetMonData(mon, MON_DATA_LEVEL, &level);
     mail = MAIL_NONE;
     SetMonData(mon, MON_DATA_MAIL, &mail);
