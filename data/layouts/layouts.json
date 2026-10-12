@@ -9323,6 +9323,16 @@
       "border_height": 2,
       "border_width": 2,
       "layout_version": "frlg"
+    },
+    {
+      "id": "LAYOUT_PHIL_KSE_HOUSE_1",
+      "name": "PhilKseHouse_1_Layout",
+      "width": 20,
+      "height": 20,
+      "primary_tileset": "gTileset_Building",
+      "secondary_tileset": "gTileset_BrendansMaysHouse",
+      "border_filepath": "data/layouts/PhilKseHouse_1/border.bin",
+      "blockdata_filepath": "data/layouts/PhilKseHouse_1/map.bin"
     }
   ]
 }
