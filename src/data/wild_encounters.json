@@ -36577,6 +36577,75 @@
               }
             ]
           }
+        },
+        {
+          "map": "MAP_GEROPARK_1",
+          "base_label": "gGeropark_1",
+          "land_mons": {
+            "encounter_rate": 7,
+            "mons": [
+              {
+                "min_level": 100,
+                "max_level": 100,
+                "species": "SPECIES_RATICATE_ALOLA"
+              },
+              {
+                "min_level": 100,
+                "max_level": 100,
+                "species": "SPECIES_UNFEZANT"
+              },
+              {
+                "min_level": 100,
+                "max_level": 100,
+                "species": "SPECIES_GARBODOR"
+              },
+              {
+                "min_level": 100,
+                "max_level": 100,
+                "species": "SPECIES_RATICATE_ALOLA"
+              },
+              {
+                "min_level": 100,
+                "max_level": 100,
+                "species": "SPECIES_UNFEZANT"
+              },
+              {
+                "min_level": 100,
+                "max_level": 100,
+                "species": "SPECIES_GARBODOR"
+              },
+              {
+                "min_level": 100,
+                "max_level": 100,
+                "species": "SPECIES_LEDIAN"
+              },
+              {
+                "min_level": 100,
+                "max_level": 100,
+                "species": "SPECIES_LEDIAN"
+              },
+              {
+                "min_level": 100,
+                "max_level": 100,
+                "species": "SPECIES_RATICATE"
+              },
+              {
+                "min_level": 100,
+                "max_level": 100,
+                "species": "SPECIES_RATICATE"
+              },
+              {
+                "min_level": 100,
+                "max_level": 100,
+                "species": "SPECIES_RAICHU"
+              },
+              {
+                "min_level": 100,
+                "max_level": 100,
+                "species": "SPECIES_RAICHU"
+              }
+            ]
+          }
         }
       ]
     },

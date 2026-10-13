@@ -133,7 +133,8 @@
     "Underwater_Route128",
     "Underwater_Route129",
     "Underwater_Route105",
-    "Underwater_Route125"
+    "Underwater_Route125",
+    "Geropark_1"
   ],
   "gMapGroup_IndoorLittleroot": [
     "LittlerootTown_BrendansHouse_1F",
@@ -141,7 +142,8 @@
     "LittlerootTown_MaysHouse_1F",
     "LittlerootTown_MaysHouse_2F",
     "LittlerootTown_ProfessorBirchsLab",
-    "PhilKseHouse_1"
+    "PhilKseHouse_1",
+    "PhilKseHouse_2"
   ],
   "gMapGroup_IndoorOldale": [
     "OldaleTown_House1",
@@ -156,7 +158,8 @@
     "DewfordTown_PokemonCenter_2F",
     "DewfordTown_Gym",
     "DewfordTown_Hall",
-    "DewfordTown_House2"
+    "DewfordTown_House2",
+    "Lidl"
   ],
   "gMapGroup_IndoorLavaridge": [
     "LavaridgeTown_HerbShop",

@@ -1740,3 +1740,9 @@ EventScript_PalletTown_PlayersHouse_2F_TurnOnPC::
 	.include "data/scripts/wild_encounter.inc"
 
 	.include "data/maps/PhilKseHouse_1/scripts.inc"
+
+	.include "data/maps/PhilKseHouse_2/scripts.inc"
+
+	.include "data/maps/Geropark_1/scripts.inc"
+
+	.include "data/maps/Lidl/scripts.inc"

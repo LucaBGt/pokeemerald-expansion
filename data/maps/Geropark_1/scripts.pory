@@ -1,0 +1,10 @@
+mapscripts Geropark_1_MapScripts{
+}
+
+script Geropark_1_Sign{
+	msgbox("- GASTHAUSSTRASSE- \nI don't know what you're on about.\lIt's always looked like this.",MSGBOX_SIGN)
+}
+
+script Geropark_1_Sign_2{
+	msgbox("LIDL\nInhaber: Frank Ewert\lManager: Peter Schlumpert",MSGBOX_SIGN)
+}

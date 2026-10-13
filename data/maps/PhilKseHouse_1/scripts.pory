@@ -1,4 +1,30 @@
-raw `
-PhilKseHouse_1_MapScripts::
-	.byte 0
-`
+mapscripts PhilKseHouse_1_MapScripts{
+	MAP_SCRIPT_ON_TRANSITION: PhilKseHouse_1_MapScripts_OnTransition
+
+}
+
+script PhilKseHouse_1_MapScripts_OnTransition{
+	call(Common_EventScript_SetupRivalGfxId)
+	end
+}
+
+script PhilKseHouse_1_MapScripts_PartnerInteraction{
+	lock
+	faceplayer
+	msgbox("How about taking these?",MSGBOX_DEFAULT)
+	setflag(FLAG_RECEIVED_RUNNING_SHOES)
+	setflag(FLAG_SYS_B_DASH)
+	release
+	end
+}
+
+script PhilKseHouse_1_MapScripts_GotBike{
+	lock
+	faceplayer
+	msgbox("Better take my bike...",MSGBOX_DEFAULT)
+	giveitem(ITEM_MACH_BIKE)
+	removeobject(2)
+	setflag(FLAG_RECEIVED_BIKE)
+	release
+	end
+}

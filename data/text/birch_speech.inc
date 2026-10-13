@@ -1,9 +1,9 @@
 gText_Birch_Welcome::
 	.string "Hi! Sorry to keep you waiting!\p"
 	.string "Welcome to the world of POKéMON!\p"
-	.string "My name is BIRCH.\p"
-	.string "But everyone calls me the POKéMON\n"
-	.string "PROFESSOR.\p"
+	.string "My name is P. SCHLUMPERT.\p"
+	.string "That's of course short for\n"
+	.string "PROFESSOR SCHLUMPERT.\p"
 	.string "$"
 
 gText_Birch_Pokemon::
@@ -14,18 +14,11 @@ gText_Birch_Pokemon::
 gText_Birch_MainSpeech::
 	.string "This world is widely inhabited by\n"
 	.string "creatures known as POKéMON.\p"
-	.string "We humans live alongside POKéMON,\n"
-	.string "at times as friendly playmates, and\l"
-	.string "at times as cooperative workmates.\p"
-	.string "And sometimes, we band together\n"
-	.string "and battle others like us.\p"
-	.string "But despite our closeness, we don't\n"
-	.string "know everything about POKéMON.\p"
-	.string "In fact, there are many, many\n"
-	.string "secrets surrounding POKéMON.\p"
-	.string "To unravel POKéMON mysteries,\n"
-	.string "I've been undertaking research.\l"
-	.string "That's what I do.\p"
+	.string "Even if your wife leaves you,\n"
+	.string "your kids never call and no-one at\l"
+	.string "your job respects you even though\l"
+	.string "you're the manager, POKéMON will\l"
+	.string "always be there for you.\p"
 	.string "$"
 
 gText_Birch_AndYouAre::

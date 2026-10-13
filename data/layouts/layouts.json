@@ -9333,6 +9333,36 @@
       "secondary_tileset": "gTileset_BrendansMaysHouse",
       "border_filepath": "data/layouts/PhilKseHouse_1/border.bin",
       "blockdata_filepath": "data/layouts/PhilKseHouse_1/map.bin"
+    },
+    {
+      "id": "LAYOUT_PHIL_KSE_HOUSE_2",
+      "name": "PhilKseHouse_2_Layout",
+      "width": 20,
+      "height": 20,
+      "primary_tileset": "gTileset_Building",
+      "secondary_tileset": "gTileset_BrendansMaysHouse",
+      "border_filepath": "data/layouts/PhilKseHouse_2/border.bin",
+      "blockdata_filepath": "data/layouts/PhilKseHouse_2/map.bin"
+    },
+    {
+      "id": "LAYOUT_GEROPARK_1",
+      "name": "Geropark_1_Layout",
+      "width": 48,
+      "height": 20,
+      "primary_tileset": "gTileset_General_2",
+      "secondary_tileset": "gTileset_GeroparkStreet",
+      "border_filepath": "data/layouts/Geropark_1/border.bin",
+      "blockdata_filepath": "data/layouts/Geropark_1/map.bin"
+    },
+    {
+      "id": "LAYOUT_LIDL",
+      "name": "Lidl_Layout",
+      "width": 20,
+      "height": 20,
+      "primary_tileset": "gTileset_Building",
+      "secondary_tileset": "gTileset_BrendansMaysHouse",
+      "border_filepath": "data/layouts/Lidl/border.bin",
+      "blockdata_filepath": "data/layouts/Lidl/map.bin"
     }
   ]
 }

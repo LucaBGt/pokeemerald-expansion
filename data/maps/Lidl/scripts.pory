@@ -1,0 +1,78 @@
+const LOCALID_ENTRANCE_SIGN = 1
+const LOCALID_EXIT_SIGN = 2
+
+mapscripts Lidl_MapScripts{
+}
+
+script Lidl_EntranceTrigger{
+	lock
+	removeobject(LOCALID_ENTRANCE_SIGN)
+	setflag(FLAG_TEMP_1)
+	delay(16)
+	applymovement(OBJ_EVENT_ID_PLAYER, Movement_Lidl_Enter)
+	waitmovement(0)
+	clearflag(FLAG_TEMP_1)
+	showobjectat(LOCALID_ENTRANCE_SIGN,MAP_LIDL)
+	applymovement(OBJ_EVENT_ID_PLAYER, Movement_Lidl_Enter_2)
+	waitmovement(0)
+	delay(16)
+    release
+	end
+}
+
+script Lidl_ShopGiver{
+	lock
+	faceplayer
+
+	if(flag(FLAG_FIRST_POTION) == false){
+		msgbox("Welcome to LIDL.",MSGBOX_DEFAULT)
+		msgbox("We're running a special promotion.\nHere, a free sample for you!\p",MSGBOX_DEFAULT)
+        giveitem(ITEM_POTION)		
+		msgbox("Also...\p",MSGBOX_DEFAULT)
+		setflag(FLAG_FIRST_POTION)
+	}
+
+	msgbox("Please check out our sortiment.",MSGBOX_DEFAULT)
+	waitmessage
+	pokemart(Lidl_MartItems)
+	msgbox("Come again soon.", MSGBOX_AUTOCLOSE)
+	release
+	end
+}
+
+script Lidl_Schlumpert_1{
+	if(flag(FLAG_GOT_FIRST_MON) == false){
+		msgbox("{SPEAKER NAME_SCHLUMPERT}Welcome to LIDL.",MSGBOX_DEFAULT)
+		givemon(SPECIES_PSYDUCK, 5, ITEM_NONE)
+		playfanfare(MUS_OBTAIN_ITEM)
+		msgbox(Text_RecievedPsyduck, MSGBOX_DEFAULT)
+		waitfanfare
+		msgbox("{SPEAKER NAME_SCHLUMPERT}Have fun with that.",MSGBOX_AUTOCLOSE)
+		setflag(FLAG_GOT_FIRST_MON)
+		setflag(FLAG_SYS_POKEMON_GET)
+		setflag(FLAG_SYS_POKEDEX_GET)
+		setflag(FLAG_SYS_POKENAV_GET)
+		#setflag(FLAG_DEXNAV_GET)
+	}
+}
+
+mart Lidl_MartItems {
+	ITEM_LEMONADE
+	ITEM_FRESH_WATER
+	ITEM_MOOMOO_MILK
+	ITEM_LAVA_COOKIE
+	ITEM_POKE_BALL
+}
+
+movement Movement_Lidl_Enter {
+    walk_up
+	walk_up
+}
+
+movement Movement_Lidl_Enter_2 {
+    walk_up
+}
+
+text  Text_RecievedPsyduck{
+	"{SPEAKER NAME_NONE}{PLAYER} received a Psyduck!!"
+}
