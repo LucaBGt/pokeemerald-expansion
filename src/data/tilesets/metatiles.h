@@ -414,3 +414,6 @@ const u16 gMetatileAttributes_General_2[] = INCBIN_U16("data/tilesets/primary/ge
 
 const u16 gMetatiles_GeroparkStreet[] = INCBIN_U16("data/tilesets/secondary/geropark_street/metatiles.bin");
 const u16 gMetatileAttributes_GeroparkStreet[] = INCBIN_U16("data/tilesets/secondary/geropark_street/metatile_attributes.bin");
+
+const u16 gMetatiles_Lidl[] = INCBIN_U16("data/tilesets/secondary/lidl/metatiles.bin");
+const u16 gMetatileAttributes_Lidl[] = INCBIN_U16("data/tilesets/secondary/lidl/metatile_attributes.bin");

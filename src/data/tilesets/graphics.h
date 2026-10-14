@@ -3076,3 +3076,22 @@ const u16 gTilesetPalettes_GeroparkStreet[][16] =
 };
 
 const u32 gTilesetTiles_GeroparkStreet[] = INCBIN_U32("data/tilesets/secondary/geropark_street/tiles.4bpp.lz");
+
+const u16 gTilesetPalettes_Lidl[][16] =
+{
+    INCBIN_U16("data/tilesets/secondary/lidl/palettes/00.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/lidl/palettes/01.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/lidl/palettes/02.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/lidl/palettes/03.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/lidl/palettes/04.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/lidl/palettes/05.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/lidl/palettes/06.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/lidl/palettes/07.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/lidl/palettes/08.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/lidl/palettes/09.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/lidl/palettes/10.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/lidl/palettes/11.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/lidl/palettes/12.gbapal"),
+};
+
+const u32 gTilesetTiles_Lidl[] = INCBIN_U32("data/tilesets/secondary/lidl/tiles.4bpp.lz");
