@@ -117,7 +117,7 @@ SINGLE_BATTLE_TEST("Terapagos reverts to the correct form upon fainting after te
 #if MAX_MON_TRAITS > 1
 DOUBLE_BATTLE_TEST("Causing a Forecast or Flower Gift Pokémon to faint should not cause a message (Traits)") // issue 7795
 {
-    u32 species;
+    enum Species species;
     PARAMETRIZE { species = SPECIES_CASTFORM; }
     PARAMETRIZE { species = SPECIES_CHERRIM; }
     GIVEN {
@@ -143,7 +143,8 @@ DOUBLE_BATTLE_TEST("Causing a Forecast or Flower Gift Pokémon to faint should n
 #if MAX_MON_ITEMS > 1
 SINGLE_BATTLE_TEST("Ogerpon reverts to the correct form upon fainting after terastallizing (Items)")
 {
-    u32 species, item;
+    enum Species species;
+    enum Item item;
     PARAMETRIZE { species = SPECIES_OGERPON_TEAL;        item = ITEM_NONE; }
     PARAMETRIZE { species = SPECIES_OGERPON_WELLSPRING;  item = ITEM_WELLSPRING_MASK; }
     PARAMETRIZE { species = SPECIES_OGERPON_HEARTHFLAME; item = ITEM_HEARTHFLAME_MASK; }

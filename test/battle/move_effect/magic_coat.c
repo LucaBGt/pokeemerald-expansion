@@ -170,3 +170,37 @@ SINGLE_BATTLE_TEST("Magic Coat reflection doesn't activate Protean/Libero")
         EXPECT_EQ(player->types[1], TYPE_PSYCHIC);
     }
 }
+
+
+#if MAX_MON_TRAITS > 1
+SINGLE_BATTLE_TEST("Magic Coat reflection doesn't activate Protean/Libero (Traits)")
+{
+    enum Species species;
+    enum Ability ability;
+
+    PARAMETRIZE { species = SPECIES_GRENINJA; ability = ABILITY_PROTEAN; }
+    PARAMETRIZE { species = SPECIES_CINDERACE; ability = ABILITY_LIBERO; }
+
+    GIVEN {
+        ASSUME(GetMoveEffect(MOVE_SPIKES) == EFFECT_SPIKES);
+        ASSUME(GetMoveType(MOVE_MAGIC_COAT) == TYPE_PSYCHIC);
+        ASSUME(GetMoveType(MOVE_SPIKES) != TYPE_PSYCHIC);
+        PLAYER(species) { Ability(ABILITY_LIGHT_METAL); Innates(ability); }
+        OPPONENT(SPECIES_ZIGZAGOON);
+    } WHEN {
+        TURN { MOVE(player, MOVE_MAGIC_COAT); MOVE(opponent, MOVE_SPIKES); }
+    } SCENE {
+        ABILITY_POPUP(player, ability);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_MAGIC_COAT, player);
+        ONE_OF {
+            MESSAGE("Greninja bounced the Spikes back!");
+            MESSAGE("Cinderace bounced the Spikes back!");
+        }
+        NOT ABILITY_POPUP(player, ability);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_SPIKES, player);
+    } THEN {
+        EXPECT_EQ(player->types[0], TYPE_PSYCHIC);
+        EXPECT_EQ(player->types[1], TYPE_PSYCHIC);
+    }
+}
+#endif

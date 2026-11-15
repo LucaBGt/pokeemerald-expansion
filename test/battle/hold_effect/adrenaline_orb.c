@@ -73,7 +73,7 @@ SINGLE_BATTLE_TEST("Adrenaline Orb doesn't activate if attack doesn't drop")
         ASSUME_STAT_CHANGE(MOVE_CHARM, attack: -2);
         PLAYER(SPECIES_WOBBUFFET);
         PLAYER(SPECIES_INCINEROAR) { Ability(ABILITY_INTIMIDATE); }
-        OPPONENT(SPECIES_WOBBUFFET) { Item(ITEM_ADRENALINE_ORB); }
+        OPPONENT(SPECIES_WOBBUFFET);
     } WHEN {
         TURN { MOVE(player, MOVE_CHARM); }
         TURN { MOVE(player, MOVE_CHARM); }

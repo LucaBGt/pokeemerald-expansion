@@ -28,7 +28,7 @@ static const enum Species speciesToCheck[] = {
 
 SINGLE_BATTLE_TEST("Light Ball doubles Pikachu's Special Attack", s16 damage)
 {
-    enum Species species = SPECIES_NONE;
+enum Species species = SPECIES_NONE;
     enum Item item = ITEM_NONE;
 
     for (u32 j = 0; j < ARRAY_COUNT(speciesToCheck); j++) {
@@ -104,7 +104,8 @@ SINGLE_BATTLE_TEST("Light Ball doubles Pikachu's Attack (Gen4+)", s16 damage)
 #if MAX_MON_ITEMS > 1
 SINGLE_BATTLE_TEST("Light Ball doubles Pikachu's Special Attack (Items)", s16 damage)
 {
-    u32 species = 0, item = 0;
+enum Species species = SPECIES_NONE;
+    enum Item item = ITEM_NONE;
 
     for (u32 j = 0; j < ARRAY_COUNT(speciesToCheck); j++) {
         PARAMETRIZE { item = ITEM_NONE;       species = speciesToCheck[j]; }
@@ -138,7 +139,9 @@ SINGLE_BATTLE_TEST("Light Ball doubles Pikachu's Special Attack (Items)", s16 da
 
 SINGLE_BATTLE_TEST("Light Ball doubles Pikachu's Attack (Gen4+) (Items)", s16 damage)
 {
-    u32 species = 0, item = 0, config = 0;
+    enum Species species = SPECIES_NONE;
+    enum Item item = ITEM_NONE;
+    u32 config = 0;
 
     for (u32 j = 0; j < ARRAY_COUNT(speciesToCheck); j++) {
         PARAMETRIZE { item = ITEM_NONE;       config = GEN_3; species = speciesToCheck[j]; }

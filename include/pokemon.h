@@ -536,7 +536,7 @@ struct SpeciesInfo /*0xC4*/
 struct PokemonTemplate
 {
     u16 species;
-    u16 heldItem;
+    u16 heldItem[MAX_MON_ITEMS_INTERNAL];
     u16 level;
     u16 ball;
     u16 gender;
@@ -556,7 +556,7 @@ struct PokemonTemplate
     u8 doNotUseDefaultBall:1;
     u8 doNotUseDefaultAbility:1;
     u8 doNotUseDefaultTeraType:1;
-    u8 padding:3;
+    u8 padding:1;
 };
 
 struct EggData

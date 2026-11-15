@@ -333,7 +333,8 @@ SINGLE_BATTLE_TEST("Psychic Seed raises the holder's Sp. Defense on Psychic Terr
 
 SINGLE_BATTLE_TEST("Seeds get consumed in Terrain even if holder is not affected by Terrain (Traits)")
 {
-    u32 species, item;
+    enum Species species;
+    enum Item item;
     enum Ability ability;
     PARAMETRIZE { species = SPECIES_TAPU_KOKO; ability = ABILITY_ELECTRIC_SURGE; item = ITEM_ELECTRIC_SEED; }
     PARAMETRIZE { species = SPECIES_TAPU_BULU; ability = ABILITY_GRASSY_SURGE; item = ITEM_GRASSY_SEED; }
@@ -522,7 +523,8 @@ SINGLE_BATTLE_TEST("Psychic Seed raises the holder's Sp. Defense on Psychic Terr
 
 SINGLE_BATTLE_TEST("Seeds get consumed in Terrain even if holder is not affected by Terrain (Items)")
 {
-    u32 species, item;
+    enum Species species;
+    enum Item item;
     enum Ability ability;
     PARAMETRIZE { species = SPECIES_TAPU_KOKO; ability = ABILITY_ELECTRIC_SURGE; item = ITEM_ELECTRIC_SEED; }
     PARAMETRIZE { species = SPECIES_TAPU_BULU; ability = ABILITY_GRASSY_SURGE; item = ITEM_GRASSY_SEED; }

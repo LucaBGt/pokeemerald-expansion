@@ -3206,7 +3206,7 @@ u32 BattleStringExpandPlaceholders(const u8 *src, u8 *dst, u32 dstSize)
                 HANDLE_NICKNAME_STRING_CASE(gBattlerAttacker)
                 break;
             case B_TXT_ATK_PARTNER_NAME_WITH_PREFIX: // attacker partner name with prefix
-                HANDLE_NICKNAME_STRING_CASE(BATTLE_PARTNER(gBattlerAttacker))
+                HANDLE_NICKNAME_STRING_CASE(GetPartnerBattler(gBattlerAttacker))
                 break;
             case B_TXT_DEF_NAME_WITH_PREFIX: // target name with prefix
                 HANDLE_NICKNAME_STRING_CASE(gBattlerTarget)

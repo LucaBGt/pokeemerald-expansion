@@ -88,3 +88,50 @@ SINGLE_BATTLE_TEST("Foul Play uses the user's burn Attack modifier", s16 damage)
         EXPECT_MUL_EQ(results[1].damage, Q_4_12(2.0), results[0].damage);
     }
 }
+
+
+#if MAX_MON_TRAITS > 1
+SINGLE_BATTLE_TEST("Foul Play uses the user's Ability Attack modifier (Traits)", s16 damage)
+{
+    enum Ability ability;
+
+    PARAMETRIZE { ability = ABILITY_PICKUP; }
+    PARAMETRIZE { ability = ABILITY_HUGE_POWER; }
+
+    GIVEN {
+        PLAYER(SPECIES_DIGGERSBY) { Ability(ABILITY_PICKUP); Innates(ability); }
+        OPPONENT(SPECIES_WOBBUFFET) { Attack(150); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_FOUL_PLAY); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_FOUL_PLAY, player);
+        HP_BAR(opponent, captureDamage: &results[i].damage);
+    } FINALLY {
+        EXPECT_MUL_EQ(results[0].damage, Q_4_12(2.0), results[1].damage);
+    }
+}
+#endif
+
+
+#if MAX_MON_ITEMS > 1
+SINGLE_BATTLE_TEST("Foul Play uses the user's held item Attack modifier (Items)", s16 damage)
+{
+    enum Item item;
+
+    PARAMETRIZE { item = ITEM_NONE; }
+    PARAMETRIZE { item = ITEM_CHOICE_BAND; }
+
+    GIVEN {
+        ASSUME(GetItemHoldEffect(ITEM_CHOICE_BAND) == HOLD_EFFECT_CHOICE_BAND);
+        PLAYER(SPECIES_WOBBUFFET) { Items(ITEM_PECHA_BERRY, item); }
+        OPPONENT(SPECIES_WOBBUFFET) { Attack(150); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_FOUL_PLAY); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_FOUL_PLAY, player);
+        HP_BAR(opponent, captureDamage: &results[i].damage);
+    } FINALLY {
+        EXPECT_MUL_EQ(results[0].damage, Q_4_12(1.5), results[1].damage);
+    }
+}
+#endif

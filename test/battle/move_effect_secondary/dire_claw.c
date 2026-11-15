@@ -128,7 +128,7 @@ SINGLE_BATTLE_TEST("Dire Claw cannot poison/paralyze/cause to fall asleep Pokém
 {
     KNOWN_FAILING;
     u8 statusAnim;
-    u16 species;
+    enum Species species;
     enum Ability ability;
     u32 rng;
     if (B_REDIRECT_ABILITY_IMMUNITY >= GEN_5)
@@ -144,7 +144,7 @@ SINGLE_BATTLE_TEST("Dire Claw cannot poison/paralyze/cause to fall asleep Pokém
         PLAYER(SPECIES_WOBBUFFET);
         OPPONENT(species) { Ability(ABILITY_LIGHT_METAL); Innates(ability); }
     } WHEN {
-        TURN { MOVE(player, MOVE_DIRE_CLAW, WITH_RNG(RNG_DIRE_CLAW, rng)); }
+        TURN { MOVE(player, MOVE_DIRE_CLAW, WITH_RNG(RNG_RANDOM_FROM_LIST, rng)); }
         TURN {}
     } SCENE {
         ANIMATION(ANIM_TYPE_MOVE, MOVE_DIRE_CLAW, player);

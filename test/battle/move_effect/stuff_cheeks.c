@@ -135,12 +135,13 @@ SINGLE_BATTLE_TEST("Stuff Cheeks can be used even if Unnerve is present (Traits)
 #endif
 
 #if MAX_MON_ITEMS > 1
-SINGLE_BATTLE_TEST("Stuff Cheeks cannot be used if the user doesn't hold a berry (Items)")
+SINGLE_BATTLE_TEST("Stuff Cheeks cannot be used if the user doesn't hold a berry (Gen8-9) (Items)")
 {
     enum Item item = ITEM_NONE;
     PARAMETRIZE { item = ITEM_NONE; }
     PARAMETRIZE { item = ITEM_LIECHI_BERRY; }
     GIVEN {
+        WITH_CONFIG(B_STUFF_CHEEKS_SELECTABLE, GEN_9);
         PLAYER(SPECIES_SKWOVET) { Items(item, ITEM_PECHA_BERRY); }
         OPPONENT(SPECIES_WOBBUFFET);
     } WHEN {

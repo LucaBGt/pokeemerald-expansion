@@ -88,17 +88,18 @@ SINGLE_BATTLE_TEST("Sand Stream sets up sandstorm for 8 turns with Smooth Rock (
 {
     GIVEN {
         WITH_CONFIG(B_ABILITY_WEATHER, GEN_6);
-        PLAYER(SPECIES_HIPPOWDON) { Moves(MOVE_CELEBRATE); Ability(ABILITY_SAND_STREAM); Items(ITEM_PECHA_BERRY, ITEM_SMOOTH_ROCK); }
-        OPPONENT(SPECIES_SANDSLASH) { Moves(MOVE_CELEBRATE); }
+        ASSUME(gItemsInfo[ITEM_SMOOTH_ROCK].holdEffect == HOLD_EFFECT_SMOOTH_ROCK);
+        PLAYER(SPECIES_HIPPOWDON) { Ability(ABILITY_SAND_STREAM); Items(ITEM_PECHA_BERRY, ITEM_SMOOTH_ROCK); }
+        OPPONENT(SPECIES_SANDSLASH);
     } WHEN {
-        TURN { MOVE(player, MOVE_CELEBRATE); MOVE(opponent, MOVE_CELEBRATE); }
-        TURN { MOVE(player, MOVE_CELEBRATE); MOVE(opponent, MOVE_CELEBRATE); }
-        TURN { MOVE(player, MOVE_CELEBRATE); MOVE(opponent, MOVE_CELEBRATE); }
-        TURN { MOVE(player, MOVE_CELEBRATE); MOVE(opponent, MOVE_CELEBRATE); }
-        TURN { MOVE(player, MOVE_CELEBRATE); MOVE(opponent, MOVE_CELEBRATE); }
-        TURN { MOVE(player, MOVE_CELEBRATE); MOVE(opponent, MOVE_CELEBRATE); }
-        TURN { MOVE(player, MOVE_CELEBRATE); MOVE(opponent, MOVE_CELEBRATE); }
-        TURN { MOVE(player, MOVE_CELEBRATE); MOVE(opponent, MOVE_CELEBRATE); }
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
     } SCENE {
         ABILITY_POPUP(player, ABILITY_SAND_STREAM);
         MESSAGE("The sandstorm is raging.");

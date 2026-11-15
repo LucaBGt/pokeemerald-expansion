@@ -76,7 +76,7 @@ SINGLE_BATTLE_TEST("Toxic cannot miss if used by a Poison-type (Gen6+)")
 
 AI_SINGLE_BATTLE_TEST("AI avoids toxic when it can not poison target")
 {
-    u32 species;
+    enum Species species;
     enum Ability ability;
 
     PARAMETRIZE { species = SPECIES_SNORLAX; ability = ABILITY_IMMUNITY; }
@@ -96,7 +96,7 @@ AI_SINGLE_BATTLE_TEST("AI avoids toxic when it can not poison target")
 #if MAX_MON_TRAITS > 1
 AI_SINGLE_BATTLE_TEST("AI avoids toxic when it can not poison target (Traits)")
 {
-    u32 species;
+    enum Species species;
     enum Ability ability;
 
     PARAMETRIZE { species = SPECIES_SNORLAX; ability = ABILITY_IMMUNITY; }

@@ -597,8 +597,8 @@ TEST("Pokémon level up learnsets fit within MAX_RELEARNER_MOVES")
     {
         if (IsSpeciesEnabled(j))
         {
-            PARAMETRIZE { species = j; }
-        }
+        PARAMETRIZE { species = j; }
+    }
     }
 
     learnset = GetSpeciesLevelUpLearnset(species);

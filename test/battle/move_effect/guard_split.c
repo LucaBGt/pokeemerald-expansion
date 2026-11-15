@@ -98,3 +98,33 @@ SINGLE_BATTLE_TEST("Eviolite boosts Guard Split's altered Defense and Sp. Def st
         EXPECT_MUL_EQ(results[2].damage, Q_4_12(1.5), results[3].damage);
     }
 }
+
+
+#if MAX_MON_ITEMS > 1
+SINGLE_BATTLE_TEST("Eviolite boosts Guard Split's altered Defense and Sp. Def stats (Items)", s16 damage)
+{
+    enum Item item;
+    enum Move move;
+    PARAMETRIZE { move = MOVE_SCRATCH;   item = ITEM_EVIOLITE; }
+    PARAMETRIZE { move = MOVE_SCRATCH;   item = ITEM_NONE; }
+    PARAMETRIZE { move = MOVE_WATER_GUN; item = ITEM_EVIOLITE; }
+    PARAMETRIZE { move = MOVE_WATER_GUN; item = ITEM_NONE; }
+    GIVEN {
+        ASSUME(GetItemHoldEffect(ITEM_EVIOLITE) == HOLD_EFFECT_EVIOLITE);
+        ASSUME(GetMoveCategory(MOVE_SCRATCH) == DAMAGE_CATEGORY_PHYSICAL);
+        ASSUME(GetMoveCategory(MOVE_WATER_GUN) == DAMAGE_CATEGORY_SPECIAL);
+        PLAYER(SPECIES_PORYGON) { Defense(20); SpDefense(20); Items(ITEM_PECHA_BERRY, item); }
+        OPPONENT(SPECIES_WOBBUFFET) { Attack(100); Defense(200); SpAttack(100); SpDefense(200); }
+    } WHEN {
+        TURN { MOVE(opponent, MOVE_GUARD_SPLIT); }
+        TURN { MOVE(opponent, move); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_GUARD_SPLIT, opponent);
+        ANIMATION(ANIM_TYPE_MOVE, move, opponent);
+        HP_BAR(player, captureDamage: &results[i].damage);
+    } FINALLY {
+        EXPECT_MUL_EQ(results[0].damage, Q_4_12(1.5), results[1].damage);
+        EXPECT_MUL_EQ(results[2].damage, Q_4_12(1.5), results[3].damage);
+    }
+}
+#endif

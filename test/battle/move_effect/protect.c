@@ -1061,6 +1061,127 @@ SINGLE_BATTLE_TEST("Protect doesn't fail if used consecutively if broken by Fein
     }
 }
 
+SINGLE_BATTLE_TEST("Protect: Contact effects from certain protect moves do not apply if the attacker's contact move fails")
+{
+    enum Move move;
+
+    PARAMETRIZE { move = MOVE_BANEFUL_BUNKER; }
+    PARAMETRIZE { move = MOVE_BURNING_BULWARK; }
+    PARAMETRIZE { move = MOVE_OBSTRUCT; }
+    PARAMETRIZE { move = MOVE_SILK_TRAP; }
+    PARAMETRIZE { move = MOVE_KINGS_SHIELD; }
+    PARAMETRIZE { move = MOVE_SPIKY_SHIELD; }
+
+    GIVEN {
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(player, move); MOVE(opponent, MOVE_SUCKER_PUNCH); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, move, player);
+    } THEN {
+        EXPECT_EQ(player->status1, STATUS1_NONE);
+        EXPECT_EQ(player->hp, player->maxHP);
+        EXPECT_EQ(opponent->statStages[STAT_ATK], DEFAULT_STAT_STAGE);
+        EXPECT_EQ(opponent->statStages[STAT_DEF], DEFAULT_STAT_STAGE);
+        EXPECT_EQ(opponent->statStages[STAT_SPEED], DEFAULT_STAT_STAGE);
+    }
+}
+
+SINGLE_BATTLE_TEST("Protect: Contact effects from certain protect moves do not apply if the attacker fails to attack")
+{
+    enum Move move;
+
+    PARAMETRIZE { move = MOVE_OBSTRUCT; }
+    PARAMETRIZE { move = MOVE_SILK_TRAP; }
+    PARAMETRIZE { move = MOVE_KINGS_SHIELD; }
+    PARAMETRIZE { move = MOVE_SPIKY_SHIELD; }
+
+    GIVEN {
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET) { Status1(STATUS1_SLEEP_TURN(3)); }
+    } WHEN {
+        TURN { MOVE(player, move); MOVE(opponent, MOVE_SCRATCH); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, move, player);
+    } THEN {
+        EXPECT_EQ(player->hp, player->maxHP);
+        EXPECT_EQ(opponent->statStages[STAT_ATK], DEFAULT_STAT_STAGE);
+        EXPECT_EQ(opponent->statStages[STAT_DEF], DEFAULT_STAT_STAGE);
+        EXPECT_EQ(opponent->statStages[STAT_SPEED], DEFAULT_STAT_STAGE);
+    }
+}
+
+SINGLE_BATTLE_TEST("Protect: Contact effects from certain protect moves do not apply if the attacker's contact move fails (Unseen Fist)")
+{
+    enum Move move;
+
+    PARAMETRIZE { move = MOVE_BANEFUL_BUNKER; }
+    PARAMETRIZE { move = MOVE_BURNING_BULWARK; }
+    PARAMETRIZE { move = MOVE_OBSTRUCT; }
+    PARAMETRIZE { move = MOVE_SILK_TRAP; }
+    PARAMETRIZE { move = MOVE_KINGS_SHIELD; }
+    PARAMETRIZE { move = MOVE_SPIKY_SHIELD; }
+
+    GIVEN {
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_URSHIFU);
+    } WHEN {
+        TURN { MOVE(player, move); MOVE(opponent, MOVE_SUCKER_PUNCH); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, move, player);
+        NOT MESSAGE("Wobbuffet couldn't fully protect itself and got hurt!");
+    } THEN {
+        EXPECT_EQ(player->status1, STATUS1_NONE);
+        EXPECT_EQ(player->hp, player->maxHP);
+        EXPECT_EQ(opponent->statStages[STAT_ATK], DEFAULT_STAT_STAGE);
+        EXPECT_EQ(opponent->statStages[STAT_DEF], DEFAULT_STAT_STAGE);
+        EXPECT_EQ(opponent->statStages[STAT_SPEED], DEFAULT_STAT_STAGE);
+    }
+}
+
+SINGLE_BATTLE_TEST("Protect: Mat Block, King's Shield, Obstruct, Burning Bulwark and Silk Trap do not protect the user from status moves")
+{
+    enum Move move;
+
+    PARAMETRIZE { move = MOVE_BURNING_BULWARK; }
+    PARAMETRIZE { move = MOVE_OBSTRUCT; }
+    PARAMETRIZE { move = MOVE_KINGS_SHIELD; }
+    PARAMETRIZE { move = MOVE_SILK_TRAP; }
+    PARAMETRIZE { move = MOVE_MAT_BLOCK; }
+
+    GIVEN {
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(player, move); MOVE(opponent, MOVE_LEER); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, move, player);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_LEER, opponent);
+        NOT MESSAGE("Wobbuffet protected itself!");
+    }
+}
+
+SINGLE_BATTLE_TEST("Protect: Wide Guard protects user from spread moves even in Single Battles")
+{
+    enum Move move;
+
+    PARAMETRIZE { move = MOVE_LEER; }
+    PARAMETRIZE { move = MOVE_DAZZLING_GLEAM; }
+    PARAMETRIZE { move = MOVE_EARTHQUAKE; }
+
+    GIVEN {
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(player, MOVE_WIDE_GUARD); MOVE(opponent, move); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_WIDE_GUARD, player);
+        NOT ANIMATION(ANIM_TYPE_MOVE, move, opponent);
+        MESSAGE("Wobbuffet protected itself!");
+    }
+}
+
 #if MAX_MON_TRAITS > 1
 DOUBLE_BATTLE_TEST("Protect is not transferred to a mon that is switched in due to Eject Button (Traits)")
 {

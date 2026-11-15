@@ -74,7 +74,7 @@ SINGLE_BATTLE_TEST("Hunger Switch does not switch Morpeko's form after switching
 #if MAX_MON_TRAITS > 1
 SINGLE_BATTLE_TEST("Hunger Switch switches Morpeko's forms at the end of the turn (Traits)")
 {
-    u16 species;
+    enum Species species;
     PARAMETRIZE { species = SPECIES_MORPEKO_FULL_BELLY; }
     PARAMETRIZE { species = SPECIES_MORPEKO_HANGRY; }
     GIVEN {

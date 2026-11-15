@@ -249,6 +249,15 @@ SINGLE_BATTLE_TEST("Bide has +1 priority on following turns if called via a diff
         ANIMATION(ANIM_TYPE_MOVE, MOVE_METRONOME, player);
         ANIMATION(ANIM_TYPE_MOVE, MOVE_BIDE, player);
 
+        // On the following turns, Bide's +1 priority overrides the speed order.
+        MESSAGE("Wobbuffet is storing energy!");
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_SCRATCH, opponent);
+        MESSAGE("Wobbuffet unleashed its energy!");
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_BIDE, player);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_CELEBRATE, opponent);
+    }
+}
+
 #if MAX_MON_TRAITS > 1
 SINGLE_BATTLE_TEST("Bide is blocked by Dazzling when it unleashes the attack (Traits)")
 {

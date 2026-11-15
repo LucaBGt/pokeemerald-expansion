@@ -35,3 +35,34 @@ SINGLE_BATTLE_TEST("Damp Rock extends rain created by Rain Dance to 8 turns")
         MESSAGE("The rain stopped.");
     }
 }
+
+
+#if MAX_MON_ITEMS > 1
+SINGLE_BATTLE_TEST("Damp Rock extends rain created by Rain Dance to 8 turns (Items)")
+{
+    GIVEN {
+        PLAYER(SPECIES_WOBBUFFET) { Items(ITEM_PECHA_BERRY, ITEM_DAMP_ROCK); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(player, MOVE_RAIN_DANCE); }
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_RAIN_DANCE, player);
+        MESSAGE("It started to rain!");
+        MESSAGE("Rain continues to fall.");
+        MESSAGE("Rain continues to fall.");
+        MESSAGE("Rain continues to fall.");
+        MESSAGE("Rain continues to fall.");
+        MESSAGE("Rain continues to fall.");
+        MESSAGE("Rain continues to fall.");
+        MESSAGE("Rain continues to fall.");
+        MESSAGE("The rain stopped.");
+    }
+}
+#endif

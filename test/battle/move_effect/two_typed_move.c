@@ -33,3 +33,32 @@ TO_DO_BATTLE_TEST("Coba Berry doesn't trigger when the user is attacked by Flyin
 TO_DO_BATTLE_TEST("Flying Press triggers Chople Berry, even when it wouldn't be super effective with regular Fighting-type moves")
 TO_DO_BATTLE_TEST("Flying Press under Electrify does both Electric and Flying-type for type effectiveness") // Check Electric 1/4 effectiveness
 TO_DO_BATTLE_TEST("Flying Press under Normalize does both Normal and Flying-type for type effectiveness") // Check Rock/Steel 1/4 effectiveness
+
+TO_DO_BATTLE_TEST("B_FLYING_PRESS_RESIST expanded to items") //Multi
+
+#if MAX_MON_ITEMS > 1
+SINGLE_BATTLE_TEST("Sky Plate doesn't boost Flying Press' power (Items)", s16 damage)
+{
+    enum Item item;
+
+    PARAMETRIZE { item = ITEM_NONE; }
+    PARAMETRIZE { item = ITEM_SKY_PLATE; }
+
+    GIVEN {
+        ASSUME(GetMoveEffect(MOVE_FLYING_PRESS) == EFFECT_TWO_TYPED_MOVE);
+        ASSUME(GetMoveType(MOVE_FLYING_PRESS) == TYPE_FIGHTING);
+        ASSUME(GetMoveArgType(MOVE_FLYING_PRESS) == TYPE_FLYING);
+        ASSUME(gItemsInfo[ITEM_SKY_PLATE].holdEffect == HOLD_EFFECT_PLATE);
+        ASSUME(gItemsInfo[ITEM_SKY_PLATE].secondaryId == TYPE_FLYING);
+        PLAYER(SPECIES_WOBBUFFET) { Items(ITEM_PECHA_BERRY, item); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(player, MOVE_FLYING_PRESS); }
+    } SCENE {
+        HP_BAR(opponent, captureDamage: &results[i].damage);
+    } FINALLY {
+        EXPECT_EQ(results[0].damage, results[1].damage);
+    }
+}
+
+#endif

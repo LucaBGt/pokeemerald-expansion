@@ -1074,7 +1074,7 @@ static enum CancelerResult CancelerPPDeduction(struct BattleCalcValues *cv)
             gBattleScripting.animTargetsHit = 0;
 
             // Possibly better to just move type setting and redirection to attackcanceler as a new case at this point
-            SetTypeBeforeUsingMove(cv->move, cv->battlerAtk, cv->abilities[cv->battlerAtk], cv->holdEffects[cv->battlerAtk]);
+            SetTypeBeforeUsingMove(cv->move, cv->battlerAtk);
             gBattlescriptCurrInstr = GetMoveBattleScript(cv->move);
             return CANCELER_RESULT_RUN_SCRIPT_AND_INCREMENT;
         }
@@ -1725,9 +1725,9 @@ static enum CancelerResult CancelerProtean(struct BattleCalcValues *cv)
     return CANCELER_RESULT_SUCCESS;
 }
 
-static bool32 IsBattlerWeatherAffectedTemp(enum HoldEffect holdEffect, u32 weather, u32 weatherFlags)
+static bool32 IsBattlerWeatherAffectedTemp(enum BattlerId battler, u32 weather, u32 weatherFlags)
 {
-    if (weather & (B_WEATHER_SUN | B_WEATHER_RAIN) && holdEffect == HOLD_EFFECT_UTILITY_UMBRELLA)
+    if (weather & (B_WEATHER_SUN | B_WEATHER_RAIN) && BattlerHasHoldItemEffect(battler, HOLD_EFFECT_UTILITY_UMBRELLA, TRUE))
         return FALSE;
 
     if (weather == B_WEATHER_NONE || !(GetBattleWeather(gBattleWeather) & weatherFlags))
@@ -1802,7 +1802,7 @@ static enum CancelerResult HandleSkyDropResult(struct BattleCalcValues *cv)
         gBattlescriptCurrInstr = BattleScript_ButItFailed;
         return CANCELER_RESULT_FAILURE;
     }
-    else if (GetBattlerWeight(cv->battlerDef, cv->abilities[cv->battlerDef], cv->holdEffects[cv->battlerDef]) >= 2000)
+    else if (GetBattlerWeight(cv->battlerDef) >= 2000)
     {
         gBattlescriptCurrInstr = BattleScript_SkyDropTargetTooHeavy;
         return CANCELER_RESULT_FAILURE;
@@ -2677,12 +2677,6 @@ static enum CancelerResult CancelerDamageCalc(struct BattleCalcValues *cv)
         .useStoredTypeEffectiveness = TRUE,
     };
 
-    for (enum BattlerId battler = B_BATTLER_0; battler < gBattlersCount; battler++)
-    {
-        ctx.abilities[battler] = cv->abilities[battler];
-        ctx.holdEffects[battler] = cv->holdEffects[battler];
-    }
-
     for (enum BattlerId battlerDef = 0; battlerDef < gBattlersCount; battlerDef++)
     {
         if (ShouldSkipBattlerForDamage(cv->battlerAtk, battlerDef))
@@ -3206,7 +3200,7 @@ static enum MoveEndResult MoveEndSetValues(struct BattleCalcValues *cv)
     return MOVEEND_RESULT_CONTINUE;
 }
 
-static bool32 GetProtectBypassMethod(enum BattlerId battlerDef, enum Ability abilityAtk)
+static bool32 GetProtectBypassMethod(enum BattlerId battlerDef)
 {
     if (IsBattlerUnaffectedByMove(battlerDef))
         return PROTECT_BYPASS_NONE;
@@ -3225,8 +3219,7 @@ static bool32 GetProtectBypassMethod(enum BattlerId battlerDef, enum Ability abi
 static enum MoveEndResult MoveEndProtectBypassEffects(struct BattleCalcValues *cv)
 {
     enum MoveEndResult result = MOVEEND_RESULT_CONTINUE;
-    enum Ability abilityAtk = cv->abilities[cv->battlerAtk];
-    enum ProtectBypass protectBypassMethod = GetProtectBypassMethod(cv->battlerDef, abilityAtk);
+    enum ProtectBypass protectBypassMethod = GetProtectBypassMethod(cv->battlerDef);
 
     switch (protectBypassMethod)
     {
@@ -3629,7 +3622,7 @@ static enum MoveEndResult MoveEndSymbiosis(struct BattleCalcValues *cv)
             for (i = 0; i < MAX_MON_ITEMS; i++)
             {
                 if(gBattleMons[battler].items[i] == ITEM_NONE
-                && gBattleMons[BATTLE_PARTNER(battler)].items[i] != ITEM_NONE
+                && gBattleMons[GetPartnerBattler(battler)].items[i] != ITEM_NONE
                 && CanBattlerGetOrLoseItem(battler, GetPartnerBattler(battler), gBattleMons[GetPartnerBattler(battler)].items[i])
                 && CanBattlerGetOrLoseItem(GetPartnerBattler(battler), GetPartnerBattler(battler), gBattleMons[GetPartnerBattler(battler)].items[i]))
                 {
@@ -4369,7 +4362,7 @@ static enum MoveEndResult MoveEndMoveBlock(struct BattleCalcValues *cv)
             if (IsBattlerTurnDamaged(battlerDef, EXCLUDING_SUBSTITUTES)
                 && gBattleMons[cv->battlerAtk].items[i] == ITEM_NONE
                 && gBattleMons[battlerDef].items[i] != ITEM_NONE
-                && (IsBattlerAlive(cv->battlerAtk) && !GetConfig(B_FAINT_MOVE_EFFECT_TIMING) < GEN_CHAMPIONS)
+                && (IsBattlerAlive(cv->battlerAtk) && !(GetConfig(B_FAINT_MOVE_EFFECT_TIMING) < GEN_CHAMPIONS))
                 && CanStealItem(cv->battlerAtk, battlerDef, gBattleMons[battlerDef].items[i]))
             {
                 if (targetableSlots[0] != MAX_MON_ITEMS)
@@ -4393,7 +4386,7 @@ static enum MoveEndResult MoveEndMoveBlock(struct BattleCalcValues *cv)
         {
             slot = gLastItemSlot = GetSlot(targetableSlots, index);
 
-            StealTargetItem(cv->battlerAtk, battlerDef, slot);  // Attacker steals target item
+            StealTargetItem(cv->battlerAtk, battlerDef, ITEM_NONE, slot);  // Attacker steals target item
 
             if (!(GetConfig(B_STEAL_WILD_ITEMS) >= GEN_9
                 && !(gBattleTypeFlags & (BATTLE_TYPE_TRAINER | BATTLE_TYPE_PALACE))))
@@ -4877,10 +4870,13 @@ static enum MoveEndResult MoveEndHitEscape(struct BattleCalcValues *cv)
 static enum MoveEndResult MoveEndPickpocket(struct BattleCalcValues *cv)
 {
     enum MoveEndResult result = MOVEEND_RESULT_CONTINUE;
+    enum Item itemToSteal;
+    u32 originalAttackerPartyId = gBattleStruct->battlerState[cv->battlerAtk].originalBattlerPartyId;
+    bool32 originalAttackerOnField = originalAttackerPartyId == PARTY_SIZE;
     u32 slot, i, j, targetableSlots[MAX_MON_ITEMS], index;
-    enum Item attackerItems[MAX_MON_ITEMS];
+    enum Item attackerPendingItems[MAX_MON_ITEMS];
     bool32 attackerhasItem = FALSE;
-    bool32 hasPendingStolenItem[MAX_MON_ITEMS];
+    bool32 hasStickyHold;
 
     if (gSpecialStatuses[cv->battlerAtk].attackerInParty)
     {
@@ -4888,22 +4884,31 @@ static enum MoveEndResult MoveEndPickpocket(struct BattleCalcValues *cv)
         return result;
     }
 
-    for (i = 0; i < MAX_MON_ITEMS; i++)
+    if (originalAttackerOnField)
     {
-        attackerItems[i] = gBattleMons[cv->battlerAtk].items[i];
-        if (attackerItems[i] == ITEM_NONE
-        && GetMoveEffect(gCurrentMove) == EFFECT_STEAL_ITEM)
-            hasPendingStolenItem[i] = TRUE;
-        else
-            hasPendingStolenItem[i] = FALSE;
-
-        if (attackerItems[i] != ITEM_NONE)
+        for (i = 0; i < MAX_MON_ITEMS; i++)
+        {
+            if (IsBattlerAlive(cv->battlerAtk) && !GetBattlerPartyState(cv->battlerAtk)->isKnockedOff) // Gen3 edge case where the knocked of item was not removed
+            {
+                attackerPendingItems[i] = gBattleMons[cv->battlerAtk].items[i];
+                attackerhasItem = TRUE;
+            }
+            else
+                attackerPendingItems[i] = ITEM_NONE;
+        }
+        hasStickyHold = BattlerHasTrait(cv->battlerAtk, ABILITY_STICKY_HOLD);
+    }
+    else
+    {
+        for (i = 0; i < MAX_MON_ITEMS; i++)
+        {
+            attackerPendingItems[i] = GetMonData(&gParties[GetBattlerTrainer(cv->battlerAtk)][originalAttackerPartyId], MON_DATA_HELD_ITEM + i);
             attackerhasItem = TRUE;
+        }
+        hasStickyHold = FALSE;
     }
 
-    if (IsBattlerAlive(cv->battlerAtk)
-     && attackerhasItem
-     && !GetBattlerPartyState(cv->battlerAtk)->isKnockedOff) // Gen3 edge case where the knocked of item was not removed
+    if (attackerhasItem) // valid item to steal
     {
         enum BattlerId battlers[MAX_BATTLERS_COUNT] = {0, 1, 2, 3};
         SortBattlersBySpeed(battlers, FALSE); // Pickpocket activates for fastest mon without item
@@ -4920,40 +4925,68 @@ static enum MoveEndResult MoveEndPickpocket(struct BattleCalcValues *cv)
                 && !DoesSubstituteBlockMove(cv->battlerAtk, battlerDef, gCurrentMove)              // Subsitute unaffected
                 && IsBattlerAlive(battlerDef))                                                       // Battler must be alive to pickpocket
             {
+                gBattlerTarget = gBattlerAbility = battlerDef;
+                gEffectBattler = cv->battlerAtk;
                 index = 0;
                 targetableSlots[0] = MAX_MON_ITEMS; // Invalid value for first slot if no valid slots found
-
-                for (j = 0; j < MAX_MON_ITEMS; j++) //Gather all stealable item slots
+                // Battle scripting is super brittle so we shall do the item exchange now (if possible)
+                if (!hasStickyHold)
                 {
-                    if (attackerItems[j] != ITEM_NONE
-                    && CanStealItem(battlerDef, cv->battlerAtk, attackerItems[j]) // Cannot steal plates, mega stones, etc
-                    && gBattleMons[battlerDef].items[j] == ITEM_NONE                                   // Pickpocketer can't have an item already
-                    )                         // Attacker must be holding an item
+                    for (j = 0; j < MAX_MON_ITEMS; j++) //Gather all stealable item slots
                     {
-                        if (targetableSlots[0] != MAX_MON_ITEMS)
-                            index++;
-                        targetableSlots[index] = j;
+                        if (attackerPendingItems[j] != ITEM_NONE
+                        && CanStealItem(battlerDef, cv->battlerAtk, attackerPendingItems[j]) // Cannot steal plates, mega stones, etc
+                        && gBattleMons[battlerDef].items[j] == ITEM_NONE)                     // Pickpocketer can't have an item already
+                        {
+                            if (targetableSlots[0] != MAX_MON_ITEMS)
+                                index++;
+                            targetableSlots[index] = j;
+                        }
+                    }
+
+                    if (targetableSlots[0] != MAX_MON_ITEMS)
+                    {
+                        slot = gLastItemSlot = GetSlot(targetableSlots, index);
+                        itemToSteal = attackerPendingItems[slot];
+                        if (attackerPendingItems[slot] != ITEM_NONE)
+                        {
+                            if (originalAttackerOnField)
+                            {
+                                StealTargetItem(battlerDef, cv->battlerAtk, ITEM_NONE, slot);  // Target takes attacker's item
+                            }
+                            else
+                            {
+                                StealTargetItem(battlerDef, cv->battlerAtk, itemToSteal, slot); // Don't change cv->battlerAtk's item
+
+                                PREPARE_MON_NICK_WITH_PREFIX_LOWER_BUFFER(gBattleTextBuff2, cv->battlerAtk, originalAttackerPartyId);
+
+                                if (B_TRAINERS_KNOCK_OFF_ITEMS == TRUE
+                                && gBattleTypeFlags & BATTLE_TYPE_TRAINER
+                                && !(gBattleTypeFlags & BATTLE_TYPE_FRONTIER)
+                                && IsOnPlayerSide(cv->battlerAtk)
+                                && itemToSteal == gBattleStruct->itemLost[GetBattlerTrainer(cv->battlerAtk)][originalAttackerPartyId][slot].originalItem)
+                                    gBattleStruct->itemLost[GetBattlerTrainer(cv->battlerAtk)][originalAttackerPartyId][slot].stolen = TRUE;
+                                itemToSteal = ITEM_NONE;
+                                BtlController_EmitSetMonData(
+                                    cv->battlerAtk,
+                                    B_COMM_TO_CONTROLLER,
+                                    REQUEST_HELDITEM_BATTLE + slot,
+                                    1u << originalAttackerPartyId,
+                                    sizeof(itemToSteal),
+                                    &itemToSteal);
+                                MarkBattlerForControllerExec(cv->battlerAtk);
+                            }
+                            PushTraitStack(battlerDef, ABILITY_PICKPOCKET);
+                            BattleScriptCall(BattleScript_Pickpocket);   // Includes sticky hold check to print separate string
+                        }
                     }
                 }
-
-                if (targetableSlots[0] != MAX_MON_ITEMS)
+                else
                 {
-                    slot = gLastItemSlot = GetSlot(targetableSlots, index);
-                    gBattlerTarget = gBattlerAbility = battlerDef;
-                    if (hasPendingStolenItem[slot])
-                    {
-                        gBattleMons[gBattlerAttacker].items[slot] = attackerItems[slot];
-                    }
-                    // Battle scripting is super brittle so we shall do the item exchange now (if possible)
-                    if (!BattlerHasTrait(cv->battlerAtk, ABILITY_STICKY_HOLD))
-                        StealTargetItem(battlerDef, cv->battlerAtk, slot); // Target takes attacker's item
-
-                gEffectBattler = cv->battlerAtk;
-                PushTraitStack(battlerDef, ABILITY_PICKPOCKET);
-                BattleScriptCall(BattleScript_Pickpocket);   // Includes sticky hold check to print separate string
+                    BattleScriptCall(BattleScript_PickpocketPrevented);
+                }
                 result = MOVEEND_RESULT_RUN_SCRIPT;
                 break; // Pickpocket activates on fastest mon, so exit loop.
-                }
             }
         }
     }

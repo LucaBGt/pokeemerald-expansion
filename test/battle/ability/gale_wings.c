@@ -143,7 +143,7 @@ SINGLE_BATTLE_TEST("Gale Wings only grants priority to Flying-type moves (Traits
 SINGLE_BATTLE_TEST("Gale Wings doesn't increase priority of Flying-type Natural Gift, Judgment, Hidden Power, or Tera Blast (Traits)")
 {
     enum Move move;
-    u16 heldItem;
+    enum Item heldItem;
     PARAMETRIZE { move = MOVE_NATURAL_GIFT; heldItem = ITEM_LUM_BERRY; }
     PARAMETRIZE { move = MOVE_JUDGMENT; heldItem = ITEM_SKY_PLATE; }
     PARAMETRIZE { move = MOVE_HIDDEN_POWER; heldItem = ITEM_NONE; }
@@ -182,7 +182,7 @@ SINGLE_BATTLE_TEST("Gale Wings doesn't increase priority of Flying-type Natural 
 SINGLE_BATTLE_TEST("Gale Wings doesn't increase priority of Flying-type Natural Gift, Judgment, Hidden Power, or Tera Blast (Items)")
 {
     enum Move move;
-    u16 heldItem;
+    enum Item heldItem;
     PARAMETRIZE { move = MOVE_NATURAL_GIFT; heldItem = ITEM_LUM_BERRY; }
     PARAMETRIZE { move = MOVE_JUDGMENT; heldItem = ITEM_SKY_PLATE; }
     PARAMETRIZE { move = MOVE_HIDDEN_POWER; heldItem = ITEM_NONE; }

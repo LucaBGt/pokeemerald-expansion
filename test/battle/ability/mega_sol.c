@@ -468,12 +468,18 @@ SINGLE_BATTLE_TEST("Synthesis, Morning Sun and Moonlight recover 2/3 of the user
 
     GIVEN {
         ASSUME(GetMoveEffect(move) == effect);
-        PLAYER(SPECIES_MEGANIUM) { HP(1); MaxHP(300); Ability(ABILITY_OVERGROW); Innates(ABILITY_MEGA_SOL); ; }
-        OPPONENT(SPECIES_WOBBUFFET);
+        PLAYER(SPECIES_MEGANIUM) { HP(1); MaxHP(300); Item(ITEM_MEGANIUMITE); Speed(999); }
+        OPPONENT(SPECIES_WOBBUFFET) { Speed(1); }
     } WHEN {
+        TURN { MOVE(player, move, gimmick: GIMMICK_MEGA); MOVE(opponent, MOVE_SUNNY_DAY); }
         TURN { MOVE(player, move); }
     } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, move, player);
+        ABILITY_POPUP(player, ABILITY_MEGA_SOL);
         HP_BAR(player, damage: -(300 * 2 / 3));
+        // No ability pop-up while Sun is active
+        ANIMATION(ANIM_TYPE_MOVE, move, player);
+        NOT ABILITY_POPUP(player, ABILITY_MEGA_SOL);
     }
 }
 
@@ -563,7 +569,7 @@ SINGLE_BATTLE_TEST("Mega Sol doesn't trigger the foe's Leaf Guard (Traits)", s16
 SINGLE_BATTLE_TEST("Mega Sol ignores Cloud Nine (Traits)")
 {
     s16 damage[2];
-    u16 species;
+    enum Species species;
     enum Ability ability;
 
     PARAMETRIZE { species = SPECIES_GOLDUCK;  ability = ABILITY_CLOUD_NINE; }
@@ -668,17 +674,22 @@ SINGLE_BATTLE_TEST("Mega Sol: Solar Beam does not need a charging turn if user h
     GIVEN {
         ASSUME(GetMoveEffect(MOVE_SOLARBEAM) == EFFECT_SOLAR_BEAM);
         ASSUME(GetMoveType(MOVE_SOLARBEAM) == TYPE_GRASS);
-        PLAYER(SPECIES_MEGANIUM) { Ability(ABILITY_OVERGROW); Innates(ABILITY_MEGA_SOL); ; }
-        OPPONENT(SPECIES_WOBBUFFET);
+        PLAYER(SPECIES_MEGANIUM) { Ability(ABILITY_OVERGROW); Innates(ABILITY_MEGA_SOL); Speed(999); }
+        OPPONENT(SPECIES_WOBBUFFET) { Speed(1); }
     } WHEN {
+        TURN { MOVE(opponent, MOVE_SUNNY_DAY); MOVE(player, MOVE_SOLAR_BEAM, gimmick: GIMMICK_MEGA); }
         TURN { MOVE(player, MOVE_SOLAR_BEAM); }
     } SCENE {
+        ABILITY_POPUP(player, ABILITY_MEGA_SOL);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_SOLAR_BEAM, player);
+        HP_BAR(opponent);
+        // No ability pop-up while Sun is active
+        NOT ABILITY_POPUP(player, ABILITY_MEGA_SOL);
         ANIMATION(ANIM_TYPE_MOVE, MOVE_SOLAR_BEAM, player);
         HP_BAR(opponent);
     }
 }
 
-// Not clear if this is a bug or not
 SINGLE_BATTLE_TEST("Mega Sol: Growth increases Attack and Sp. Atk by 2 stages under Mega Sol (Gen 5+) (Traits)")
 {
     GIVEN {
@@ -697,11 +708,10 @@ SINGLE_BATTLE_TEST("Mega Sol: Growth increases Attack and Sp. Atk by 2 stages un
     }
 }
 
-// Not clear if this is a bug or not
 SINGLE_BATTLE_TEST("Mega Sol doesn't prevent other weather based activations (Electro Shot) (Traits)")
 {
     GIVEN {
-        ASSUME(GetMoveTwoTurnAttackWeather(MOVE_ELECTRO_SHOT) == B_WEATHER_RAIN);
+        ASSUME(GetTwoTurnMoveWeather(MOVE_ELECTRO_SHOT) == BATTLE_WEATHER_RAIN);
         ASSUME(GetMoveEffect(MOVE_ELECTRO_SHOT) == EFFECT_TWO_TURNS_ATTACK);
         PLAYER(SPECIES_KYOGRE) { Ability(ABILITY_LIGHT_METAL); Innates(ABILITY_DRIZZLE); }
         OPPONENT(SPECIES_MEGANIUM) { Ability(ABILITY_OVERGROW); Innates(ABILITY_MEGA_SOL); ; }
@@ -713,7 +723,6 @@ SINGLE_BATTLE_TEST("Mega Sol doesn't prevent other weather based activations (El
     }
 }
 
-// Not clear if this is a bug or not
 SINGLE_BATTLE_TEST("Mega Sol doesn't prevent other weather based activations (Aurora Veil) (Traits)")
 {
     GIVEN {

@@ -302,7 +302,7 @@ SINGLE_BATTLE_TEST("Syrup Bomb is prevented by Bulletproof (Traits)")
 
 SINGLE_BATTLE_TEST("Sticky Syrup speed reduction is prevented by Clear Body, White Smoke or Full Metal Body (Traits)")
 {
-    u32 species;
+    enum Species species;
     enum Ability ability;
 
     PARAMETRIZE { species = SPECIES_BELDUM; ability = ABILITY_CLEAR_BODY; }

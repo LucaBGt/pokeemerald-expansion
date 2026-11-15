@@ -86,7 +86,7 @@ SINGLE_BATTLE_TEST("Embody Aspect does not reactivate after Neutralizing Gas end
 #if MAX_MON_TRAITS > 1
 SINGLE_BATTLE_TEST("Embody Aspect raises a stat depending on the users form by one stage (Traits)")
 {
-    u16 species;
+    enum Species species;
     enum Ability ability;
 
     PARAMETRIZE { species = SPECIES_OGERPON_TEAL_TERA; ability = ABILITY_EMBODY_ASPECT_TEAL_MASK; }

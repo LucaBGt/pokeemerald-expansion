@@ -128,7 +128,7 @@ WILD_BATTLE_TEST("Thief and Covet steal target's held item and it's added to Bag
     }
 }
 
-SINGLE_BATTLE_TEST("Thief and Covet can't steal target's held item if user faints before (Gen9)")
+SINGLE_BATTLE_TEST("Thief and Covet can't steal target's held item if user faints before")
 {
     enum Move move;
     PARAMETRIZE { move = MOVE_THIEF; }
@@ -333,13 +333,14 @@ WILD_BATTLE_TEST("Thief and Covet steal target's held item and it's added to Bag
     }
 }
 
-SINGLE_BATTLE_TEST("Thief and Covet can't steal target's held item if user faints before (Items)")
+SINGLE_BATTLE_TEST("Thief and Covet can't steal target's held item if user faints before (Gen9) (Items)")
 {
     enum Move move;
     PARAMETRIZE { move = MOVE_THIEF; }
     PARAMETRIZE { move = MOVE_COVET; }
     GIVEN {
-        PLAYER(SPECIES_WOBBUFFET) { HP(1); };
+        WITH_CONFIG(B_FAINT_MOVE_EFFECT_TIMING, GEN_9);
+        PLAYER(SPECIES_WOBBUFFET) { HP(1); }
         OPPONENT(SPECIES_WOBBUFFET) { Items(ITEM_NONE, ITEM_ROCKY_HELMET); }
     } WHEN {
         TURN { MOVE(player, move); }
@@ -348,8 +349,28 @@ SINGLE_BATTLE_TEST("Thief and Covet can't steal target's held item if user faint
         HP_BAR(opponent);
         NOT ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_ITEM_STEAL, opponent);
     } THEN {
-        EXPECT_EQ(player->items[1], ITEM_NONE);
-        EXPECT_EQ(opponent->items[1], ITEM_ROCKY_HELMET);
+        EXPECT_EQ(player->item, ITEM_NONE);
+        EXPECT_EQ(opponent->item, ITEM_ROCKY_HELMET);
+    }
+}
+
+SINGLE_BATTLE_TEST("Thief and Covet can steal target's held item if user faints before (Champions) (Items)")
+{
+    enum Move move;
+    PARAMETRIZE { move = MOVE_THIEF; }
+    PARAMETRIZE { move = MOVE_COVET; }
+    GIVEN {
+        WITH_CONFIG(B_FAINT_MOVE_EFFECT_TIMING, GEN_CHAMPIONS);
+        PLAYER(SPECIES_WOBBUFFET) { HP(1); }
+        OPPONENT(SPECIES_WOBBUFFET) { Items(ITEM_NONE, ITEM_ROCKY_HELMET); }
+    } WHEN {
+        TURN { MOVE(player, move); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, move, player);
+        HP_BAR(opponent);
+    } THEN {
+        EXPECT_EQ(player->item, ITEM_ROCKY_HELMET);
+        EXPECT_EQ(opponent->item, ITEM_NONE);
     }
 }
 

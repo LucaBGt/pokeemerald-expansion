@@ -305,7 +305,7 @@ BattleScript_ConsumableBerryStatRaise::
 	call BattleScript_ItemPopUp_Scripting
  	playanimation BS_SCRIPTING, B_ANIM_HELD_ITEM_BERRY
 	trybattlerstatchange BS_SCRIPTING, STAT_CHANGE_ITEM | STAT_CHANGE_CERTAIN
-	removeitem BS_SCRIPTING
+	removeitemwitheffect BS_SCRIPTING HOLD_EFFECT_NONE @ gLastUsedItem
 	return
 
 BattleScript_ConsumableBerryStatRaiseRipen::
@@ -314,7 +314,7 @@ BattleScript_ConsumableBerryStatRaiseRipen::
 	call BattleScript_ItemPopUp_Scripting
  	playanimation BS_SCRIPTING, B_ANIM_HELD_ITEM_BERRY
 	trybattlerstatchange BS_SCRIPTING, STAT_CHANGE_ITEM | STAT_CHANGE_CERTAIN
-	removeitem BS_SCRIPTING
+	removeitemwitheffect BS_SCRIPTING HOLD_EFFECT_NONE @ gLastUsedItem
 	return
 
 BattleScript_ConsumableItemStatRaise::
@@ -4211,11 +4211,10 @@ BattleScript_InnardsOutDmg::
 	pause B_WAIT_TIME_SHORT
 	call BattleScript_AbilityPopUpScripting
 	jumpifability BS_ATTACKER, ABILITY_MAGIC_GUARD, BattleScript_InnardsOutDmgRet
-	healthbarupdate BS_ATTACKER, PASSIVE_HP_UPDATE
-	datahpupdate BS_ATTACKER, PASSIVE_HP_UPDATE
-	printstring STRINGID_AFTERMATHDMG
-	waitmessage B_WAIT_TIME_LONG
+	healthbarupdate BS_ATTACKER
+	datahpupdate BS_ATTACKER, ASSURANCE_DOUBLE
 	tryfaintmon BS_ATTACKER
+BattleScript_InnardsOutDmgRet:
 	return
 
 BattleScript_DampPreventsAftermath::
@@ -5385,7 +5384,15 @@ BattleScript_CuriousMedicineActivates::
 BattleScript_HurtAttacker:
 	healthbarupdate BS_ATTACKER
 	datahpupdate BS_ATTACKER, ASSURANCE_DOUBLE
-	printfromtable STRINGID_AFTERMATHDMG
+	printfromtable B_MSG_HURT
+	waitmessage B_WAIT_TIME_LONG
+	tryfaintmon BS_ATTACKER
+	return
+
+BattleScript_HurtAttackerItem:
+	healthbarupdate BS_ATTACKER
+	datahpupdate BS_ATTACKER, ASSURANCE_DOUBLE
+	printfromtable B_MSG_HURT_BY_ITEM
 	waitmessage B_WAIT_TIME_LONG
 	tryfaintmon BS_ATTACKER
 	return
@@ -5401,7 +5408,7 @@ BattleScript_RoughSkinActivates::
 	call BattleScript_AbilityPopUp
 	waitmessage B_WAIT_TIME_LONG
 	call BattleScript_HurtAttackerNoMsg
-	waitabilitypopupAbility
+	waitabilitypopup
 	return
 
 BattleScript_RockyHelmetActivates::

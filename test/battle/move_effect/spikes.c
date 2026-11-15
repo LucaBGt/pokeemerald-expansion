@@ -164,7 +164,7 @@ SINGLE_BATTLE_TEST("Toxic Spikes: Only three layers can be set up")
 #if MAX_MON_TRAITS > 1
 SINGLE_BATTLE_TEST("Spikes do not damage airborne Pokemon (Traits)")
 {
-    u32 species = SPECIES_WOBBUFFET;
+    enum Species species = SPECIES_WOBBUFFET;
     enum Item item = ITEM_NONE;
     enum Move move1 = MOVE_CELEBRATE;
     enum Move move2 = MOVE_CELEBRATE;
@@ -214,7 +214,7 @@ SINGLE_BATTLE_TEST("Spikes do not damage airborne Pokemon (Traits)")
 #if MAX_MON_ITEMS > 1
 SINGLE_BATTLE_TEST("Spikes do not damage airborne Pokemon (Items)")
 {
-    u32 species = SPECIES_WOBBUFFET;
+    enum Species species = SPECIES_WOBBUFFET;
     enum Item item = ITEM_NONE;
     enum Move move1 = MOVE_CELEBRATE;
     enum Move move2 = MOVE_CELEBRATE;

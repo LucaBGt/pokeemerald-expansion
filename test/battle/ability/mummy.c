@@ -104,7 +104,7 @@ SINGLE_BATTLE_TEST("Mummy doesn't replace abilities that can't be suppressed")
 SINGLE_BATTLE_TEST("Mummy/Lingering Aroma replace the attacker's ability on contact (Traits)")
 {
     enum Move move;
-    u32 species;
+    enum Species species;
     enum Ability ability;
 
     PARAMETRIZE { move = MOVE_AQUA_JET; ability = ABILITY_MUMMY; species = SPECIES_YAMASK; }
@@ -187,7 +187,7 @@ SINGLE_BATTLE_TEST("Mummy and Lingering Aroma don't replace each other (Traits)"
 
 SINGLE_BATTLE_TEST("Mummy doesn't replace abilities that can't be suppressed (Traits)")
 {
-    u32 species;
+    enum Species species;
     enum Ability ability;
 
     PARAMETRIZE { species = SPECIES_ARCEUS; ability = ABILITY_MULTITYPE; }

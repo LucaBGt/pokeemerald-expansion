@@ -121,7 +121,7 @@ SINGLE_BATTLE_TEST("Stone Axe sets up hazards after any ability activation (Trai
     } SCENE {
         ANIMATION(ANIM_TYPE_MOVE, MOVE_STONE_AXE, player);
         ABILITY_POPUP(opponent, ABILITY_WEAK_ARMOR);
-        MESSAGE("Pointed stones float in the air around the opposing team!");
+        MESSAGE("Pointed stones float in the air on the opposing side!");
     }
 }
 #endif
@@ -139,7 +139,7 @@ SINGLE_BATTLE_TEST("Stone Axe fails to set up hazards if user faints (Items)")
         ANIMATION(ANIM_TYPE_MOVE, MOVE_STONE_AXE, player);
         HP_BAR(player);
         MESSAGE("Wobbuffet was hurt by the opposing Wobbuffet's Rocky Helmet!");
-        NOT MESSAGE("Pointed stones float in the air around the opposing team!");
+        NOT MESSAGE("Pointed stones float in the air on the opposing side!");
     }
 }
 #endif

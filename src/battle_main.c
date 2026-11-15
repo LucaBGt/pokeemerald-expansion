@@ -3047,23 +3047,13 @@ void SwitchInClearSetData(enum BattlerId battler, struct Volatiles *volatilesCop
 
     gBattleStruct->hazardsCounter = 0;
     gSpecialStatuses[battler].queuedSwitch = NO_QUEUED_SWITCH;
-
-    // Restore struct member so replacement does not miss timing (Traits)
-    for(int j = 0; j <= MAX_MON_INNATES; j++)
-    {
-        if (i != battler && !IsBattlerAlly(i, battler))
-            gBattleStruct->lastTakenMove[i] = MOVE_NONE;
-
-        gBattleStruct->lastTakenMoveFrom[i][battler] = 0;
-    }
-
     gBattleStruct->eventState.arenaTurn = 0xFF;
 
     // Restore struct member so replacement does not miss timing
     gSpecialStatuses[battler].switchInAbilityDone = FALSE;
 
     // Restore struct member so replacement does not miss timing (Traits)
-    for(int j = 0; j <= MAX_MON_INNATES; j++)
+    for(u32 j = 0; j <= MAX_MON_INNATES; j++)
     {
         gSpecialStatuses[battler].switchInTraitDone[j] = FALSE;
         gSpecialStatuses[battler].endTurnTraitDone[j] = FALSE;
@@ -5626,7 +5616,7 @@ enum Type TrySetAteType(enum Move move, enum BattlerId battlerAtk, enum Ability 
 }
 
 // Returns TYPE_NONE if type doesn't change.
-enum Type GetDynamicMoveType(struct Pokemon *mon, enum Move move, enum BattlerId battler, enum Ability ability, enum HoldEffect holdEffect, enum MonState state)
+enum Type GetDynamicMoveType(struct Pokemon *mon, enum Move move, enum BattlerId battler, enum MonState state)
 {
     enum Type moveType = GetMoveType(move);
     enum BattleMoveEffects moveEffect = GetMoveEffect(move);
@@ -5872,9 +5862,8 @@ enum Type GetDynamicMoveType(struct Pokemon *mon, enum Move move, enum BattlerId
     return TYPE_NONE;
 }
 
-void SetTypeBeforeUsingMove(enum Move move, enum BattlerId battler, enum Ability ability, enum HoldEffect holdEffect)
+void SetTypeBeforeUsingMove(enum Move move, enum BattlerId battler)
 {
-    enum Type moveType;
     enum Item heldGem = ITEM_NONE;
 
     gBattleStruct->dynamicMoveCategory = DAMAGE_CATEGORY_NONE;
@@ -5885,8 +5874,6 @@ void SetTypeBeforeUsingMove(enum Move move, enum BattlerId battler, enum Ability
                               GetBattlerMon(battler),
                               move,
                               battler,
-                              ability,
-                              holdEffect,
                               MON_IN_BATTLE
                             );
 

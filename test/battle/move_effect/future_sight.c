@@ -502,6 +502,27 @@ SINGLE_BATTLE_TEST("Toxic Chain does not trigger from Future Sight if the user i
 }
 
 #if MAX_MON_TRAITS > 1
+SINGLE_BATTLE_TEST("Future Sight ignores Wonder Guard (Gen 2-4) (Traits)")
+{
+    u32 genConfig;
+
+    PARAMETRIZE { genConfig = GEN_2; }
+    PARAMETRIZE { genConfig = GEN_3; }
+    PARAMETRIZE { genConfig = GEN_4; }
+    GIVEN {
+        WITH_CONFIG(B_UPDATED_MOVE_TYPES, genConfig);
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_SHEDINJA) { Ability(ABILITY_LIGHT_METAL); Innates(ABILITY_WONDER_GUARD); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_FUTURE_SIGHT); }
+        TURN {}
+        TURN {}
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_FUTURE_SIGHT, player);
+        NOT ABILITY_POPUP(opponent, ABILITY_WONDER_GUARD);
+        HP_BAR(opponent, hp: 0);
+    }
+}
 SINGLE_BATTLE_TEST("Future Sight doesn't ignore Wonder Guard (Gen 5+) (Traits)")
 {
     GIVEN {

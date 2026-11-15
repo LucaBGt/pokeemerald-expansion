@@ -41,7 +41,7 @@ SINGLE_BATTLE_TEST("Take Heart cures the user of all status conditions")
                 TURN { MOVE(player, MOVE_TAKE_HEART, WITH_RNG(RNG_PARALYSIS, FALSE)); }
                 break;
             default:
-                TURN { MOVE(player, MOVE_TAKE_HEART); }
+        TURN { MOVE(player, MOVE_TAKE_HEART); }
         }
     } SCENE {
         if (status1 == STATUS1_SLEEP) {

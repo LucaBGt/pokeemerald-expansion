@@ -522,7 +522,7 @@ DOUBLE_BATTLE_TEST("Ally Switch updates attract battler")
 #if MAX_MON_TRAITS > 1
 DOUBLE_BATTLE_TEST("Ally Switch does not redirect moves done by Pokémon with Stalwart and Propeller Tail (Traits)")
 {
-    u16 species;
+    enum Species species;
     enum Ability ability;
     PARAMETRIZE { species = SPECIES_DURALUDON; ability = ABILITY_STALWART; }
     PARAMETRIZE { species = SPECIES_ARROKUDA;  ability = ABILITY_PROPELLER_TAIL; }

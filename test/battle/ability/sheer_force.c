@@ -1448,6 +1448,20 @@ AI_SINGLE_BATTLE_TEST("AI sees Sheer Force skips additional effects")
     }
 }
 
+SINGLE_BATTLE_TEST("Sheer Force doesn't activate Shell Bell")
+{
+    GIVEN {
+        PLAYER(SPECIES_TAUROS) { Ability(ABILITY_SHEER_FORCE); Item(ITEM_SHELL_BELL); HP(1); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(player, MOVE_EARTH_POWER); }
+    } SCENE {
+        NONE_OF {
+            HP_BAR(player);
+        }
+    }
+}
+
 #if MAX_MON_TRAITS > 1
 SINGLE_BATTLE_TEST("Sheer Force doesn't boost Magnitude (Traits)", s16 damage)
 {
@@ -2560,7 +2574,8 @@ DOUBLE_BATTLE_TEST("Sheer Force only boosts the damage of moves it's supposed to
 
 AI_SINGLE_BATTLE_TEST("AI sees Sheer Force skips additional effects (Traits)")
 {
-    u16 ability, expectedMove, move;
+    enum Ability ability;
+    enum Move expectedMove, move;
 
     PARAMETRIZE { ability = ABILITY_ROUGH_SKIN;  move = MOVE_KARATE_CHOP; expectedMove = MOVE_POWER_UP_PUNCH; }
     PARAMETRIZE { ability = ABILITY_ROUGH_SKIN;  move = MOVE_BRICK_BREAK; expectedMove = MOVE_POWER_UP_PUNCH; }
@@ -2572,6 +2587,20 @@ AI_SINGLE_BATTLE_TEST("AI sees Sheer Force skips additional effects (Traits)")
         OPPONENT(SPECIES_DRUDDIGON) { Ability(ABILITY_MOLD_BREAKER); Innates(ability); Moves(MOVE_POWER_UP_PUNCH, move); }
     } WHEN {
         TURN { EXPECT_MOVE(opponent, expectedMove); }
+    }
+}
+
+SINGLE_BATTLE_TEST("Sheer Force doesn't activate Shell Bell (Traits)")
+{
+    GIVEN {
+        PLAYER(SPECIES_TAUROS) { Ability(ABILITY_ANGER_POINT); Innates(ABILITY_SHEER_FORCE); Item(ITEM_SHELL_BELL); HP(1); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(player, MOVE_EARTH_POWER); }
+    } SCENE {
+        NONE_OF {
+            HP_BAR(player);
+        }
     }
 }
 #endif
@@ -3403,6 +3432,20 @@ DOUBLE_BATTLE_TEST("Sheer Force only boosts the damage of moves it's supposed to
             if (damage1 != damage2)
                 DebugPrintf("Move that failed: %S", gMovesInfo[move].name);
             EXPECT_EQ(damage2, damage1);
+        }
+    }
+}
+
+SINGLE_BATTLE_TEST("Sheer Force doesn't activate Shell Bell (Items)")
+{
+    GIVEN {
+        PLAYER(SPECIES_TAUROS) { Ability(ABILITY_ANGER_POINT); Items(ITEM_GREAT_BALL, ITEM_SHELL_BELL); HP(1); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(player, MOVE_EARTH_POWER); }
+    } SCENE {
+        NONE_OF {
+            HP_BAR(player);
         }
     }
 }

@@ -123,3 +123,25 @@ SINGLE_BATTLE_TEST("Grassy Terrain does not heal levitating Pokémon")
         NOT HP_BAR(opponent);
     }
 }
+
+
+#if MAX_MON_TRAITS > 1
+SINGLE_BATTLE_TEST("Grassy Terrain does not heal levitating Pokémon (Traits)")
+{
+    u16 species;
+    enum Ability ability;
+    PARAMETRIZE { species = SPECIES_PIDGEOT; ability = ABILITY_KEEN_EYE; }
+    PARAMETRIZE { species = SPECIES_FLYGON; ability = ABILITY_LEVITATE; }
+
+    GIVEN {
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(species) { Ability(ABILITY_LIGHT_METAL); Innates(ability); HP(1); }
+    } WHEN {
+        TURN { MOVE(opponent, MOVE_CELEBRATE); MOVE(player, MOVE_GRASSY_TERRAIN); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_GRASSY_TERRAIN, player);
+        MESSAGE("Grass grew to cover the battlefield!");
+        NOT HP_BAR(opponent);
+    }
+}
+#endif

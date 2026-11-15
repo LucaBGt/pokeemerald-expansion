@@ -367,6 +367,27 @@ SINGLE_BATTLE_TEST("Strength Sap will drain users HP if target has Liquid Ooze (
         EXPECT_EQ(lostHp, atkStat);
     }
 }
+
+SINGLE_BATTLE_TEST("Strength Sap will restore HP if target has Contrary and is at +6 Attack (Traits)")
+{
+    GIVEN {
+        ASSUME_STAT_CHANGE(MOVE_CHARM, attack: -2);
+        PLAYER(SPECIES_WOBBUFFET) { MaxHP(300); HP(1); }
+        OPPONENT(SPECIES_SNIVY) { Ability(ABILITY_OVERGROW); Innates(ABILITY_CONTRARY); Attack(50); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_CHARM); }
+        TURN { MOVE(player, MOVE_CHARM); }
+        TURN { MOVE(player, MOVE_CHARM); }
+        TURN { MOVE(player, MOVE_STRENGTH_SAP); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_STRENGTH_SAP, player);
+        HP_BAR(player, hp: 201);
+        MESSAGE("The opposing Snivy had its energy drained!");
+    } THEN {
+        EXPECT_EQ(opponent->statStages[STAT_ATK], MAX_STAT_STAGE);
+        EXPECT_EQ(player->hp, 201);
+    }
+}
 #endif
 
 #if MAX_MON_ITEMS > 1

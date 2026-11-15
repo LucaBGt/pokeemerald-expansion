@@ -2141,11 +2141,6 @@ enum TryTakeMonItemResult
     TAKE_OK,
 };
 
-static void BufferBagFullCantTakeItemMessage(u16 itemUnused)
-{
-    StringExpandPlaceholders(gStringVar4, gText_BagFullCouldNotRemoveItem);
-}
-
 static enum TryTakeMonItemResult TryTakeMonItem(struct Pokemon *mon)
 {
     enum Item item = ITEM_NONE;

@@ -74,3 +74,30 @@ SINGLE_BATTLE_TEST("Venoshock's power doubles if the target is poisoned/badly po
         EXPECT_MUL_EQ(results[0].damage, Q_4_12(2.0), results[2].damage);
     }
 }
+
+
+#if MAX_MON_TRAITS > 1
+SINGLE_BATTLE_TEST("Hex deals double damage to Pokémon with Comatose (Traits)", s16 damage)
+{
+    enum Species species;
+    enum Ability ability;
+
+    PARAMETRIZE { species = SPECIES_LOPUNNY; ability = ABILITY_LIMBER; }
+    PARAMETRIZE { species = SPECIES_KOMALA;  ability = ABILITY_COMATOSE; }
+
+    GIVEN {
+        ASSUME(GetMoveEffect(MOVE_HEX) == EFFECT_DOUBLE_POWER_ON_ARG_STATUS);
+        ASSUME(GetMoveEffectArg_Status(MOVE_HEX) == STATUS1_ANY);
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(species) { Ability(ABILITY_LIGHT_METAL); Innates(ability); HP(300); MaxHP(300); SpDefense(100); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_SOAK); }
+        TURN { MOVE(player, MOVE_HEX); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_HEX, player);
+        HP_BAR(opponent, captureDamage: &results[i].damage);
+    } FINALLY {
+        EXPECT_MUL_EQ(results[0].damage, Q_4_12(2.0), results[1].damage);
+    }
+}
+#endif

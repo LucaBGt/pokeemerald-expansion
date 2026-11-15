@@ -6,7 +6,7 @@ ASSUMPTIONS
     ASSUME(GetMoveEffect(MOVE_ACROBATICS) == EFFECT_ACROBATICS);
     ASSUME(GetMoveType(MOVE_ACROBATICS) == TYPE_FLYING);
 }
-#if MAX_MON_ITEMS == 1
+
 SINGLE_BATTLE_TEST("Acrobatics doubles in power if the user has no held item", s16 damage)
 {
     enum Item heldItem;
@@ -46,10 +46,10 @@ SINGLE_BATTLE_TEST("Acrobatics still doubles in power when Flying Gem is consume
     }
 }
 
-#else
-SINGLE_BATTLE_TEST("Acrobatics doubles in power if the user has no held item", s16 damage)
+#if MAX_MON_ITEMS == 1
+SINGLE_BATTLE_TEST("Acrobatics doubles in power if the user has no held item (Items)", s16 damage)
 {
-    u16 heldItem;
+    enum Item heldItem;
     PARAMETRIZE { heldItem = ITEM_POTION; }
     PARAMETRIZE { heldItem = ITEM_NONE; }
     GIVEN {
@@ -64,7 +64,7 @@ SINGLE_BATTLE_TEST("Acrobatics doubles in power if the user has no held item", s
     }
 }
 
-SINGLE_BATTLE_TEST("Acrobatics still doubles in power when Flying Gem is consumed", s16 damage)
+SINGLE_BATTLE_TEST("Acrobatics still doubles in power when Flying Gem is consumed (Items)", s16 damage)
 {
     u16 heldItem, heldItem2;
     PARAMETRIZE { heldItem = ITEM_NONE; heldItem2 = ITEM_NONE; }

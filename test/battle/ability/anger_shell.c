@@ -91,11 +91,10 @@ SINGLE_BATTLE_TEST("Anger Shell activates after all hits from a multi-hit move")
     }
 }
 
-SINGLE_BATTLE_TEST("Anger Shell does not activate if move is boosted by Sheer Force (Gen9)")
+SINGLE_BATTLE_TEST("Anger Shell does not activate if move is boosted by Sheer Force")
 {
     u16 maxHp = 500;
     GIVEN {
-        // WITH_CONFIG(B_SHEER_FORCE_AGAINST_ABILITIES, GEN_9);
         PLAYER(SPECIES_KLAWF) { Ability(ABILITY_ANGER_SHELL); MaxHP(maxHp); HP(maxHp / 2 + 1); }
         OPPONENT(SPECIES_NIDOKING) { Ability(ABILITY_SHEER_FORCE); }
     } WHEN {

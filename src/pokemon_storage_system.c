@@ -483,11 +483,7 @@ struct PokemonStorageSystemData
     const u16 *displayMonPalette;
     u32 displayMonPersonality;
     enum Species displayMonSpecies;
-<<<<<<< HEAD
-    u16 displayMonItemId[MAX_MON_ITEMS_INTERNAL];
-=======
-    enum Item displayMonItemId;
->>>>>>> master1.7
+    enum Item displayMonItemId[MAX_MON_ITEMS_INTERNAL];
     u16 displayUnusedVar;
     bool8 setMosaic;
     u8 displayMonMarkings;
@@ -10221,22 +10217,8 @@ static bool8 HasMail()
 {
     for (u8 i = 0; i < MAX_MON_ITEMS; i++)
     {
-        switch (sStorage->displayMonItemId[i])
-        {
-        case ITEM_ORANGE_MAIL:
-        case ITEM_HARBOR_MAIL:
-        case ITEM_GLITTER_MAIL:
-        case ITEM_MECH_MAIL:
-        case ITEM_WOOD_MAIL:
-        case ITEM_WAVE_MAIL:
-        case ITEM_BEAD_MAIL:
-        case ITEM_SHADOW_MAIL:
-        case ITEM_TROPIC_MAIL:
-        case ITEM_DREAM_MAIL:
-        case ITEM_FAB_MAIL:
-        case ITEM_RETRO_MAIL:
+        if (ItemIsMail(sStorage->displayMonItemId[i]))
             return TRUE;
-        }
     }
     return FALSE;
 }

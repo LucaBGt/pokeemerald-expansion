@@ -133,6 +133,25 @@ SINGLE_BATTLE_TEST("Misty Terrain will fail if there is one already on the field
     }
 }
 
+SINGLE_BATTLE_TEST("Misty Terrain does not decrease the power of Dragon-type moves against flying targets", s16 damage)
+{
+    enum Ability ability;
+    PARAMETRIZE { ability = ABILITY_HEATPROOF; }
+    PARAMETRIZE { ability = ABILITY_LEVITATE; }
+    GIVEN {
+        PLAYER(SPECIES_BRONZONG) { Ability(ability); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(opponent, MOVE_MISTY_TERRAIN); }
+        TURN { MOVE(opponent, MOVE_DRAGON_CLAW); }
+    } SCENE {
+        MESSAGE("The opposing Wobbuffet used Dragon Claw!");
+        HP_BAR(player, captureDamage: &results[i].damage);
+    } FINALLY {
+        EXPECT_MUL_EQ(results[0].damage, Q_4_12(2.0), results[1].damage);
+    }
+}
+
 #if MAX_MON_TRAITS > 1
 SINGLE_BATTLE_TEST("Misty Terrain protects grounded battlers from non-volatile status conditions (Traits)")
 {
@@ -149,6 +168,30 @@ SINGLE_BATTLE_TEST("Misty Terrain protects grounded battlers from non-volatile s
         NOT { STATUS_ICON(opponent, badPoison: TRUE); }
         MESSAGE("Wobbuffet used Toxic!");
         STATUS_ICON(opponent, badPoison: TRUE);
+    }
+}
+
+SINGLE_BATTLE_TEST("Misty Terrain uses the defender's ability when checking if it is grounded (Traits)", s16 damage)
+{
+    bool32 terrain;
+    PARAMETRIZE { terrain = FALSE; }
+    PARAMETRIZE { terrain = TRUE; }
+
+    GIVEN {
+        ASSUME(GetMoveType(MOVE_DRAGON_CLAW) == TYPE_DRAGON);
+        PLAYER(SPECIES_ROTOM) { Ability(ABILITY_LIGHT_METAL); Innates(ABILITY_LEVITATE); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        if (terrain)
+            TURN { MOVE(player, MOVE_MISTY_TERRAIN); }
+        TURN { MOVE(player, MOVE_DRAGON_CLAW); }
+    } SCENE {
+        if (terrain)
+            ANIMATION(ANIM_TYPE_MOVE, MOVE_MISTY_TERRAIN, player);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_DRAGON_CLAW, player);
+        HP_BAR(opponent, captureDamage: &results[i].damage);
+    } FINALLY {
+        EXPECT_MUL_EQ(results[0].damage, Q_4_12(0.5), results[1].damage);
     }
 }
 #endif

@@ -92,6 +92,23 @@ SINGLE_BATTLE_TEST("Scrappy doesn't bypass a Ghost-type's Wonder Guard")
     }
 }
 
+SINGLE_BATTLE_TEST("Scrappy will bypass Ghost-type's even if the Ability is replaced mid attack")
+{
+    GIVEN {
+        ASSUME(GetMoveType(MOVE_DOUBLE_HIT) == TYPE_NORMAL);
+        ASSUME(GetMoveStrikeCount(MOVE_DOUBLE_HIT) == 2);
+        PLAYER(SPECIES_KANGASKHAN) { Ability(ABILITY_SCRAPPY); }
+        OPPONENT(SPECIES_COFAGRIGUS) { Ability(ABILITY_MUMMY); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_DOUBLE_HIT); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_DOUBLE_HIT, player);
+        HP_BAR(opponent);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_DOUBLE_HIT, player);
+        HP_BAR(opponent);
+    }
+}
+
 #if MAX_MON_TRAITS > 1
 SINGLE_BATTLE_TEST("Scrappy doesn't prevent Intimidate (Gen4-7) (Traits)")
 {
@@ -183,4 +200,22 @@ SINGLE_BATTLE_TEST("Scrappy doesn't bypass a Ghost-type's Wonder Guard (Traits)"
         ABILITY_POPUP(opponent, ABILITY_WONDER_GUARD);
     }
 }
+
+SINGLE_BATTLE_TEST("Scrappy will bypass Ghost-type's even if the Ability is replaced mid attack (Traits)")
+{
+    GIVEN {
+        ASSUME(GetMoveType(MOVE_DOUBLE_HIT) == TYPE_NORMAL);
+        ASSUME(GetMoveStrikeCount(MOVE_DOUBLE_HIT) == 2);
+        PLAYER(SPECIES_KANGASKHAN) { Ability(ABILITY_EARLY_BIRD); Innates(ABILITY_SCRAPPY); }
+        OPPONENT(SPECIES_COFAGRIGUS) { Ability(ABILITY_LIGHT_METAL); Innates(ABILITY_MUMMY); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_DOUBLE_HIT); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_DOUBLE_HIT, player);
+        HP_BAR(opponent);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_DOUBLE_HIT, player);
+        HP_BAR(opponent);
+    }
+}
+
 #endif

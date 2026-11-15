@@ -177,10 +177,46 @@ SINGLE_BATTLE_TEST("Double Shock user loses its Electric-type if enemy faints")
     }
 }
 
-#if MAX_MON_TRAITS > 1
-SINGLE_BATTLE_TEST("Burn Up fails if the user has Protean/Libero and is not a Fire-type (Traits)")
+SINGLE_BATTLE_TEST("Burn Up cannot be selected if the user is not Fire-type (Champions)")
 {
     GIVEN {
+        WITH_CONFIG(B_MOVES_THAT_REMOVE_TYPE, GEN_CHAMPIONS);
+        ASSUME(GetMoveEffect(MOVE_BURN_UP) == EFFECT_FAIL_IF_NOT_ARG_TYPE);
+        ASSUME(IsMoveEffectRemoveSpeciesType(MOVE_BURN_UP, MOVE_EFFECT_REMOVE_ARG_TYPE, TYPE_FIRE) == TRUE);
+        ASSUME(GetSpeciesType(SPECIES_WOBBUFFET, 0) != TYPE_FIRE || GetSpeciesType(SPECIES_WOBBUFFET, 1) != TYPE_FIRE);
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_BURN_UP); }
+    } WHEN {
+        TURN { MOVE(opponent, MOVE_BURN_UP, allowed: FALSE); }
+    } SCENE {
+        NONE_OF { ANIMATION(ANIM_TYPE_MOVE, MOVE_BURN_UP, player); }
+        MESSAGE("The opposing Wobbuffet used Struggle!");
+    }
+}
+
+SINGLE_BATTLE_TEST("Double Shock cannot be selected if the user is not Electric-type (Champions)")
+{
+    GIVEN {
+        WITH_CONFIG(B_MOVES_THAT_REMOVE_TYPE, GEN_CHAMPIONS);
+        ASSUME(GetMoveEffect(MOVE_DOUBLE_SHOCK) == EFFECT_FAIL_IF_NOT_ARG_TYPE);
+        ASSUME(IsMoveEffectRemoveSpeciesType(MOVE_DOUBLE_SHOCK, MOVE_EFFECT_REMOVE_ARG_TYPE, TYPE_ELECTRIC) == TRUE);
+        ASSUME(GetSpeciesType(SPECIES_WOBBUFFET, 0) != TYPE_ELECTRIC || GetSpeciesType(SPECIES_WOBBUFFET, 1) != TYPE_ELECTRIC);
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_DOUBLE_SHOCK); }
+    } WHEN {
+        TURN { MOVE(opponent, MOVE_DOUBLE_SHOCK, allowed: FALSE); }
+    } SCENE {
+        NONE_OF { ANIMATION(ANIM_TYPE_MOVE, MOVE_DOUBLE_SHOCK, player); }
+        MESSAGE("The opposing Wobbuffet used Struggle!");
+    }
+}
+
+
+#if MAX_MON_TRAITS > 1
+SINGLE_BATTLE_TEST("Burn Up fails if the user has Protean/Libero and is not a Fire-type (Gen9) (Traits)")
+{
+    GIVEN {
+        WITH_CONFIG(B_MOVES_THAT_REMOVE_TYPE, GEN_9);
         WITH_CONFIG(B_PROTEAN_LIBERO, GEN_6);
         PLAYER(SPECIES_REGIROCK);
         OPPONENT(SPECIES_KECLEON) { Ability(ABILITY_LIGHT_METAL); Innates(ABILITY_PROTEAN); }

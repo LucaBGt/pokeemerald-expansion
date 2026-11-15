@@ -147,8 +147,12 @@ struct SpecialStatus
     u8 statStageAmount:4;
     u8 statStageAmount2:4;
     // End of byte
+    uq4_12_t storedTypeEffectiveness;
     u8 switchInAbilityDone:1;
     u8 switchInItemDone:1;
+    bool8 switchInTraitDone[MAX_MON_TRAITS];
+    bool8 endTurnTraitDone[MAX_MON_TRAITS];
+    u8 berryReducedType; // Catch for multiple berries and hidden power(multi)
 };
 
 struct SideTimer

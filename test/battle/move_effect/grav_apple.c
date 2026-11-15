@@ -69,3 +69,31 @@ SINGLE_BATTLE_TEST("Grav Apple's power increases by 50% under Gravity's effect",
         EXPECT_MUL_EQ(results[0].damage, Q_4_12(1.5), results[1].damage);
     }
 }
+
+
+#if MAX_MON_TRAITS > 1
+SINGLE_BATTLE_TEST("Mirror Armor reflects Grav Apple's Defense drop and considers Simple and Contrary (Traits)")
+{
+    enum Species species;
+    enum Ability ability;
+    s32 expectedDelta;
+
+    PARAMETRIZE { species = SPECIES_BIBAREL; ability = ABILITY_SIMPLE;   expectedDelta = -2; }
+    PARAMETRIZE { species = SPECIES_INKAY;   ability = ABILITY_CONTRARY; expectedDelta = 1; }
+
+    GIVEN {
+        PLAYER(species) { Ability(ABILITY_LIGHT_METAL); Innates(ability); }
+        OPPONENT(SPECIES_CORVIKNIGHT) { Ability(ABILITY_MIRROR_ARMOR); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_GRAV_APPLE); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_GRAV_APPLE, player);
+        HP_BAR(opponent);
+        ABILITY_POPUP(opponent, ABILITY_MIRROR_ARMOR);
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, player);
+    } THEN {
+        EXPECT_EQ(player->statStages[STAT_DEF], DEFAULT_STAT_STAGE + expectedDelta);
+        EXPECT_EQ(opponent->statStages[STAT_DEF], DEFAULT_STAT_STAGE);
+    }
+}
+#endif

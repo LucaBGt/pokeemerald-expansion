@@ -434,8 +434,8 @@ void ScrCmd_createmon(struct ScriptContext *ctx)
     monTemplate.level        = VarGet(ScriptReadHalfword(ctx));
 
     u32 flags                 = ScriptReadWord(ctx);
-    monTemplate.heldItem     = PARSE_FLAG(0, ITEM_NONE);
-    monTemplate.heldItem2     = PARSE_FLAG(26, ITEM_NONE);
+    monTemplate.heldItem[0]     = PARSE_FLAG(0, ITEM_NONE);
+    monTemplate.heldItem[1]     = PARSE_FLAG(27, ITEM_NONE);
     if (flags & (1 << 1))
     {
         monTemplate.ball = VarGet(ScriptReadHalfword(ctx));

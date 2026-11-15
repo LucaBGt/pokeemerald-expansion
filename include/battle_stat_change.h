@@ -45,7 +45,7 @@ void ClearOtherStatChangeValues(enum BattlerId battler);
 void ClearBothStatChangeQueues(void);
 enum StatChangeResult TrySingleStatChange(struct BattleCalcValues *cv, struct StatChange *st);
 u32 GetStatStage(enum Stat stat, const struct AdditionalEffect *additionalEffect);
-bool32 ShouldDefiantCompetitiveActivate(enum BattlerId battler, enum Ability ability);
+bool32 ShouldDefiantCompetitiveActivate(enum BattlerId battler);
 enum MoveResult DoStatChangeResolution(struct BattleCalcValues *cv);
 bool32 CanStatChange(struct BattleCalcValues *cv, struct StatChange *st);
 bool32 IsStatChangeStatusMove(enum Move move, bool32 (*isStatChange)(const struct AdditionalEffect *effect));

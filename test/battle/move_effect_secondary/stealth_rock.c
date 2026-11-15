@@ -21,7 +21,7 @@ SINGLE_BATTLE_TEST("Stealth Rock: Rock from G-Max Stonesurge are set up before a
 }
 
 #if MAX_MON_TRAITS > 1
-SINGLE_BATTLE_TEST("Steath Rock: Rock from G-Max Stonesurge are set up before any ability activation (Traits)")
+SINGLE_BATTLE_TEST("Stealth Rock: Rock from G-Max Stonesurge are set up before any ability activation (Traits)")
 {
     GIVEN {
         PLAYER(SPECIES_DREDNAW) { GigantamaxFactor(TRUE); }
@@ -30,7 +30,7 @@ SINGLE_BATTLE_TEST("Steath Rock: Rock from G-Max Stonesurge are set up before an
         TURN { MOVE(player, MOVE_WATERFALL, gimmick: GIMMICK_DYNAMAX); }
     } SCENE {
         ANIMATION(ANIM_TYPE_MOVE, MOVE_G_MAX_STONESURGE, player);
-        MESSAGE("Pointed stones float in the air around the opposing team!");
+        MESSAGE("Pointed stones float in the air on the opposing side!");
         ABILITY_POPUP(opponent, ABILITY_WEAK_ARMOR);
     }
 }

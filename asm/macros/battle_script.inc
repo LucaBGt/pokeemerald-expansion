@@ -2146,47 +2146,6 @@
 	callnative BS_TryDoMoveEffectsBeforeMoves
 	.endm
 
-	.macro catchaftervictory
-	callnative BS_CatchAfterVictory
-	.endm
-
-	.macro jumpifnoballs jumpInstr:req
-	callnative BS_JumpIfNoBalls
-	.4byte \jumpInstr
-	.endm
-
-	.macro handlefailedvictorycatch
-	callnative BS_HandleFailedVictoryCatch
-	.endm
-
-	.macro catchornot
-	callnative BS_CatchOrNot
-	.endm
-
-	.macro showitempopup battler:req
-	callnative BS_ShowItemPopup
-	.byte \battler
-	.endm
-
-	.macro destroyitempopup
-	callnative BS_DestroyItemPopup
-	.endm
-
-	.macro multihitplurality
-	callnative BS_MultiHitPlurality
-	.endm
-
-	.macro jumpifterrain comparison:req, terrain:req, jumpInstr:req
-	.byte B_SCR_OP_JUMPIFTERRAIN
-	.byte \comparison
-	.byte \terrain
-	.4byte \jumpInstr
-	.endm
-
-	.macro trydomoveeffectsbeforemoves
-	callnative BS_TryDoMoveEffectsBeforeMoves
-	.endm
-
 	.macro pushtraitstack battler:req, ability:req
 	callnative BS_PushTraitStack
 	.byte \battler

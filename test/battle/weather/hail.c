@@ -125,7 +125,7 @@ SINGLE_BATTLE_TEST("Hail doesn't do damage when weather is negated (Traits)")
 #if MAX_MON_ITEMS > 1
 SINGLE_BATTLE_TEST("Hail fails if Desolate Land or Primordial Sea are active (Items)")
 {
-    u32 species;
+    enum Species species;
     enum Item item;
 
     PARAMETRIZE { species = SPECIES_WOBBUFFET; item = ITEM_NONE; }

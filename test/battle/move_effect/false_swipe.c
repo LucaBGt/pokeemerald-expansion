@@ -69,3 +69,24 @@ SINGLE_BATTLE_TEST("False Swipe does not reduce its damage when hitting a substi
         EXPECT_EQ(results[0].damage, results[1].substituteDamage);
     }
 }
+
+
+#if MAX_MON_ITEMS > 1
+SINGLE_BATTLE_TEST("False Swipe still hits the target if it has 1 HP (Items)")
+{
+    GIVEN {
+        ASSUME(MoveMakesContact(MOVE_FALSE_SWIPE));
+        ASSUME(GetItemHoldEffect(ITEM_ROCKY_HELMET) == HOLD_EFFECT_ROCKY_HELMET);
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET) { HP(1); Items(ITEM_PECHA_BERRY, ITEM_ROCKY_HELMET); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_FALSE_SWIPE); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_FALSE_SWIPE, player);
+        HP_BAR(player);
+        MESSAGE("Wobbuffet was hurt by the opposing Wobbuffet's Rocky Helmet!");
+    } THEN {
+        EXPECT_EQ(opponent->hp, 1);
+    }
+}
+#endif

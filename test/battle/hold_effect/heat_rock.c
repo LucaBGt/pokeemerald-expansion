@@ -35,3 +35,34 @@ SINGLE_BATTLE_TEST("Heat Rock extends sun created by Sunny Day to 8 turns")
         MESSAGE("The sunlight faded.");
     }
 }
+
+
+#if MAX_MON_ITEMS > 1
+SINGLE_BATTLE_TEST("Heat Rock extends sun created by Sunny Day to 8 turns (Items)")
+{
+    GIVEN {
+        PLAYER(SPECIES_WOBBUFFET) { Items(ITEM_PECHA_BERRY, ITEM_HEAT_ROCK); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(player, MOVE_SUNNY_DAY); }
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_SUNNY_DAY, player);
+        MESSAGE("The sunlight turned harsh!");
+        MESSAGE("The sunlight is strong.");
+        MESSAGE("The sunlight is strong.");
+        MESSAGE("The sunlight is strong.");
+        MESSAGE("The sunlight is strong.");
+        MESSAGE("The sunlight is strong.");
+        MESSAGE("The sunlight is strong.");
+        MESSAGE("The sunlight is strong.");
+        MESSAGE("The sunlight faded.");
+    }
+}
+#endif

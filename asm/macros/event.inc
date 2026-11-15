@@ -1073,36 +1073,35 @@
 	.2byte \species
 	.2byte \level
 	.ifnb \item; .set givemon_flags, givemon_flags | (1 << 0); .endif
-	.ifnb \item2; .set givemon_flags, givemon_flags | (1 << 1); .endif
-	.ifnb \ball; .set givemon_flags, givemon_flags | (1 << 2); .endif
-	.set givemon_flags, givemon_flags | (1 << 3);
-	.ifnb \abilityNum; .set givemon_flags, givemon_flags | (1 << 4); .endif
-	.set givemon_flags, givemon_flags | (1 << 5);
-	.ifnb \hpEv; .set givemon_flags, givemon_flags | (1 << 6); .endif
-	.ifnb \atkEv; .set givemon_flags, givemon_flags | (1 << 7); .endif
-	.ifnb \defEv; .set givemon_flags, givemon_flags | (1 << 8); .endif
-	.ifnb \speedEv; .set givemon_flags, givemon_flags | (1 << 9); .endif
-	.ifnb \spAtkEv; .set givemon_flags, givemon_flags | (1 << 10); .endif
-	.ifnb \spDefEv; .set givemon_flags, givemon_flags | (1 << 11); .endif
-	.ifnb \hpIv; .set givemon_flags, givemon_flags | (1 << 12); .endif
-	.ifnb \atkIv; .set givemon_flags, givemon_flags | (1 << 13); .endif
-	.ifnb \defIv; .set givemon_flags, givemon_flags | (1 << 14); .endif
-	.ifnb \speedIv; .set givemon_flags, givemon_flags | (1 << 15); .endif
-	.ifnb \spAtkIv; .set givemon_flags, givemon_flags | (1 << 16); .endif
-	.ifnb \spDefIv; .set givemon_flags, givemon_flags | (1 << 17); .endif
-	.ifnb \move1; .set givemon_flags, givemon_flags | (1 << 18); .endif
-	.ifnb \move2; .set givemon_flags, givemon_flags | (1 << 19); .endif
-	.ifnb \move3; .set givemon_flags, givemon_flags | (1 << 20); .endif
-	.ifnb \move4; .set givemon_flags, givemon_flags | (1 << 21); .endif
-	.ifnb \shinyMode; .set givemon_flags, givemon_flags | (1 << 22); .endif
-	.ifnb \gmaxFactor; .set givemon_flags, givemon_flags | (1 << 23); .endif
-	.ifnb \teraType; .set givemon_flags, givemon_flags | (1 << 24); .endif
-	.ifnb \dmaxLevel; .set givemon_flags, givemon_flags | (1 << 25); .endif
+	.ifnb \ball; .set givemon_flags, givemon_flags | (1 << 1); .endif
+	.set givemon_flags, givemon_flags | (1 << 2);
+	.ifnb \abilityNum; .set givemon_flags, givemon_flags | (1 << 3); .endif
+	.set givemon_flags, givemon_flags | (1 << 4);
+	.ifnb \hpEv; .set givemon_flags, givemon_flags | (1 << 5); .endif
+	.ifnb \atkEv; .set givemon_flags, givemon_flags | (1 << 6); .endif
+	.ifnb \defEv; .set givemon_flags, givemon_flags | (1 << 7); .endif
+	.ifnb \speedEv; .set givemon_flags, givemon_flags | (1 << 8); .endif
+	.ifnb \spAtkEv; .set givemon_flags, givemon_flags | (1 << 9); .endif
+	.ifnb \spDefEv; .set givemon_flags, givemon_flags | (1 << 10); .endif
+	.ifnb \hpIv; .set givemon_flags, givemon_flags | (1 << 11); .endif
+	.ifnb \atkIv; .set givemon_flags, givemon_flags | (1 << 12); .endif
+	.ifnb \defIv; .set givemon_flags, givemon_flags | (1 << 13); .endif
+	.ifnb \speedIv; .set givemon_flags, givemon_flags | (1 << 14); .endif
+	.ifnb \spAtkIv; .set givemon_flags, givemon_flags | (1 << 15); .endif
+	.ifnb \spDefIv; .set givemon_flags, givemon_flags | (1 << 16); .endif
+	.ifnb \move1; .set givemon_flags, givemon_flags | (1 << 17); .endif
+	.ifnb \move2; .set givemon_flags, givemon_flags | (1 << 18); .endif
+	.ifnb \move3; .set givemon_flags, givemon_flags | (1 << 19); .endif
+	.ifnb \move4; .set givemon_flags, givemon_flags | (1 << 20); .endif
+	.ifnb \shinyMode; .set givemon_flags, givemon_flags | (1 << 21); .endif
+	.ifnb \gmaxFactor; .set givemon_flags, givemon_flags | (1 << 22); .endif
+	.ifnb \teraType; .set givemon_flags, givemon_flags | (1 << 23); .endif
+	.ifnb \dmaxLevel; .set givemon_flags, givemon_flags | (1 << 24); .endif
 	.ifnb \isEgg; .set givemon_flags, givemon_flags | (1 << 25); .endif
 	.if \ignoreTotalEvCheck; .set givemon_flags, givemon_flags | (1 << 26); .endif
+	.ifnb \item2; .set givemon_flags, givemon_flags | (1 << 27); .endif
 	.4byte givemon_flags
 	.ifnb \item; .2byte \item; .endif
-	.ifnb \item2; .2byte \item2; .endif
 	.ifnb \ball; .2byte \ball; .endif
 	.ifnb \nature; .2byte \nature; .else; .2byte NATURE_MAY_SYNCHRONIZE; .endif
 	.ifnb \abilityNum; .2byte \abilityNum; .endif
@@ -1128,6 +1127,7 @@
 	.ifnb \teraType; .2byte \teraType; .endif
 	.ifnb \dmaxLevel; .2byte \dmaxLevel; .endif
 	.ifnb \isEgg; .2byte \isEgg; .endif
+	.ifnb \item2; .2byte \item2; .endif
 	.endm
 
 	@ creates a mon for a given party and slot
@@ -1140,36 +1140,35 @@
 	.2byte \species
 	.2byte \level
 	.ifnb \item; .set givemon_flags, givemon_flags | (1 << 0); .endif
-	.ifnb \item2; .set givemon_flags, givemon_flags | (1 << 1); .endif
-	.ifnb \ball; .set givemon_flags, givemon_flags | (1 << 2); .endif
-	.ifnb \nature; .set givemon_flags, givemon_flags | (1 << 3); .endif
-	.ifnb \abilityNum; .set givemon_flags, givemon_flags | (1 << 4); .endif
-	.ifnb \gender; .set givemon_flags, givemon_flags | (1 << 5); .endif
-	.ifnb \hpEv; .set givemon_flags, givemon_flags | (1 << 6); .endif
-	.ifnb \atkEv; .set givemon_flags, givemon_flags | (1 << 7); .endif
-	.ifnb \defEv; .set givemon_flags, givemon_flags | (1 << 8); .endif
-	.ifnb \speedEv; .set givemon_flags, givemon_flags | (1 << 9); .endif
-	.ifnb \spAtkEv; .set givemon_flags, givemon_flags | (1 << 10); .endif
-	.ifnb \spDefEv; .set givemon_flags, givemon_flags | (1 << 11); .endif
-	.ifnb \hpIv; .set givemon_flags, givemon_flags | (1 << 12); .endif
-	.ifnb \atkIv; .set givemon_flags, givemon_flags | (1 << 13); .endif
-	.ifnb \defIv; .set givemon_flags, givemon_flags | (1 << 14); .endif
-	.ifnb \speedIv; .set givemon_flags, givemon_flags | (1 << 15); .endif
-	.ifnb \spAtkIv; .set givemon_flags, givemon_flags | (1 << 16); .endif
-	.ifnb \spDefIv; .set givemon_flags, givemon_flags | (1 << 17); .endif
-	.ifnb \move1; .set givemon_flags, givemon_flags | (1 << 18); .endif
-	.ifnb \move2; .set givemon_flags, givemon_flags | (1 << 19); .endif
-	.ifnb \move3; .set givemon_flags, givemon_flags | (1 << 20); .endif
-	.ifnb \move4; .set givemon_flags, givemon_flags | (1 << 21); .endif
-	.ifnb \shinyMode; .set givemon_flags, givemon_flags | (1 << 22); .endif
-	.ifnb \gmaxFactor; .set givemon_flags, givemon_flags | (1 << 23); .endif
-	.ifnb \teraType; .set givemon_flags, givemon_flags | (1 << 24); .endif
-	.ifnb \dmaxLevel; .set givemon_flags, givemon_flags | (1 << 25); .endif
+	.ifnb \ball; .set givemon_flags, givemon_flags | (1 << 1); .endif
+	.ifnb \nature; .set givemon_flags, givemon_flags | (1 << 2); .endif
+	.ifnb \abilityNum; .set givemon_flags, givemon_flags | (1 << 3); .endif
+	.ifnb \gender; .set givemon_flags, givemon_flags | (1 << 4); .endif
+	.ifnb \hpEv; .set givemon_flags, givemon_flags | (1 << 5); .endif
+	.ifnb \atkEv; .set givemon_flags, givemon_flags | (1 << 6); .endif
+	.ifnb \defEv; .set givemon_flags, givemon_flags | (1 << 7); .endif
+	.ifnb \speedEv; .set givemon_flags, givemon_flags | (1 << 8); .endif
+	.ifnb \spAtkEv; .set givemon_flags, givemon_flags | (1 << 9); .endif
+	.ifnb \spDefEv; .set givemon_flags, givemon_flags | (1 << 10); .endif
+	.ifnb \hpIv; .set givemon_flags, givemon_flags | (1 << 11); .endif
+	.ifnb \atkIv; .set givemon_flags, givemon_flags | (1 << 12); .endif
+	.ifnb \defIv; .set givemon_flags, givemon_flags | (1 << 13); .endif
+	.ifnb \speedIv; .set givemon_flags, givemon_flags | (1 << 14); .endif
+	.ifnb \spAtkIv; .set givemon_flags, givemon_flags | (1 << 15); .endif
+	.ifnb \spDefIv; .set givemon_flags, givemon_flags | (1 << 16); .endif
+	.ifnb \move1; .set givemon_flags, givemon_flags | (1 << 17); .endif
+	.ifnb \move2; .set givemon_flags, givemon_flags | (1 << 18); .endif
+	.ifnb \move3; .set givemon_flags, givemon_flags | (1 << 19); .endif
+	.ifnb \move4; .set givemon_flags, givemon_flags | (1 << 20); .endif
+	.ifnb \shinyMode; .set givemon_flags, givemon_flags | (1 << 21); .endif
+	.ifnb \gmaxFactor; .set givemon_flags, givemon_flags | (1 << 22); .endif
+	.ifnb \teraType; .set givemon_flags, givemon_flags | (1 << 23); .endif
+	.ifnb \dmaxLevel; .set givemon_flags, givemon_flags | (1 << 24); .endif
 	.ifnb \isEgg; .set givemon_flags, givemon_flags | (1 << 25); .endif
 	.if \ignoreTotalEvCheck; .set givemon_flags, givemon_flags | (1 << 26); .endif
+	.ifnb \item2; .set givemon_flags, givemon_flags | (1 << 27); .endif
 	.4byte givemon_flags
 	.ifnb \item; .2byte \item; .endif
-	.ifnb \item2; .2byte \item2; .endif
 	.ifnb \ball; .2byte \ball; .endif
 	.ifnb \nature; .2byte \nature; .endif
 	.ifnb \abilityNum; .2byte \abilityNum; .endif
@@ -1195,6 +1194,7 @@
 	.ifnb \teraType; .2byte \teraType; .endif
 	.ifnb \dmaxLevel; .2byte \dmaxLevel; .endif
 	.ifnb \isEgg; .2byte \isEgg; .endif
+	.ifnb \item2; .2byte \item2; .endif
 	.endm
 
 	@ Gives the player an Egg of the specified species.

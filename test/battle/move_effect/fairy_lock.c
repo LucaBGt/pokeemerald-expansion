@@ -135,3 +135,47 @@ SINGLE_BATTLE_TEST("Fairy Lock does not prevent switch out via Baton Pass")
         EXPECT_EQ(player->species, SPECIES_WYNAUT);
     }
 }
+
+
+#if MAX_MON_ITEMS > 1
+SINGLE_BATTLE_TEST("Fairy Lock does not prevent switch out via Eject Button (Items)")
+{
+    GIVEN {
+        ASSUME(gItemsInfo[ITEM_EJECT_BUTTON].holdEffect == HOLD_EFFECT_EJECT_BUTTON);
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET) { Items(ITEM_PECHA_BERRY, ITEM_EJECT_BUTTON); }
+        OPPONENT(SPECIES_WYNAUT);
+    } WHEN {
+        TURN { MOVE(player, MOVE_FAIRY_LOCK); }
+        TURN { MOVE(player, MOVE_SCRATCH); SEND_OUT(opponent, 1); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_SCRATCH, player);
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_EFFECT, opponent);
+        MESSAGE("The opposing Wobbuffet is switched out with the Eject Button!");
+        MESSAGE("2 sent out Wynaut!");
+    } THEN {
+        EXPECT_EQ(opponent->species, SPECIES_WYNAUT);
+    }
+}
+
+SINGLE_BATTLE_TEST("Fairy Lock does not prevent switch out via Red Card (Items)")
+{
+    GIVEN {
+        ASSUME(gItemsInfo[ITEM_RED_CARD].holdEffect == HOLD_EFFECT_RED_CARD);
+        PLAYER(SPECIES_WOBBUFFET);
+        PLAYER(SPECIES_WYNAUT);
+        OPPONENT(SPECIES_WOBBUFFET) { Items(ITEM_PECHA_BERRY, ITEM_RED_CARD); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_FAIRY_LOCK); }
+        TURN { MOVE(player, MOVE_SCRATCH); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_SCRATCH, player);
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_EFFECT, opponent);
+        MESSAGE("The opposing Wobbuffet held up its Red Card against Wobbuffet!");
+        MESSAGE("Wynaut was dragged out!");
+    } THEN {
+        EXPECT_EQ(player->species, SPECIES_WYNAUT);
+        EXPECT_EQ(opponent->items[0], ITEM_NONE);
+    }
+}
+#endif

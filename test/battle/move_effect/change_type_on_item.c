@@ -45,13 +45,58 @@ SINGLE_BATTLE_TEST("Techno Blast changes type depending on the drive the user ho
     }
 }
 
-TO_DO_BATTLE_TEST("Judgement changes type depending on the plate the user holds");
-TO_DO_BATTLE_TEST("Multi Attack changes type depending on the memory the user holds");
+SINGLE_BATTLE_TEST("Judgment changes type depending on the Plate the user holds")
+{
+    enum Species species;
+    enum Item item;
+
+    PARAMETRIZE { species = SPECIES_VENUSAUR; item = ITEM_FLAME_PLATE; }
+    PARAMETRIZE { species = SPECIES_CHARIZARD; item = ITEM_SPLASH_PLATE; }
+    PARAMETRIZE { species = SPECIES_BLASTOISE; item = ITEM_ZAP_PLATE; }
+    PARAMETRIZE { species = SPECIES_DRATINI; item = ITEM_ICICLE_PLATE; }
+
+    GIVEN {
+        ASSUME(GetMoveEffect(MOVE_JUDGMENT) == EFFECT_CHANGE_TYPE_ON_ITEM);
+        ASSUME(GetMoveEffectArg_HoldEffect(MOVE_JUDGMENT) == HOLD_EFFECT_PLATE);
+        PLAYER(SPECIES_WOBBUFFET) { Item(item); }
+        OPPONENT(species);
+    } WHEN {
+        TURN { MOVE(player, MOVE_JUDGMENT); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_JUDGMENT, player);
+        EFFECTIVENESS_SE(opponent, SE_SUPER_EFFECTIVE);
+        HP_BAR(opponent);
+    }
+}
+
+SINGLE_BATTLE_TEST("Multi-Attack changes type depending on the Memory the user holds")
+{
+    enum Species species;
+    enum Item item;
+
+    PARAMETRIZE { species = SPECIES_VENUSAUR; item = ITEM_FIRE_MEMORY; }
+    PARAMETRIZE { species = SPECIES_CHARIZARD; item = ITEM_WATER_MEMORY; }
+    PARAMETRIZE { species = SPECIES_BLASTOISE; item = ITEM_ELECTRIC_MEMORY; }
+    PARAMETRIZE { species = SPECIES_DRATINI; item = ITEM_ICE_MEMORY; }
+
+    GIVEN {
+        ASSUME(GetMoveEffect(MOVE_MULTI_ATTACK) == EFFECT_CHANGE_TYPE_ON_ITEM);
+        ASSUME(GetMoveEffectArg_HoldEffect(MOVE_MULTI_ATTACK) == HOLD_EFFECT_MEMORY);
+        PLAYER(SPECIES_WOBBUFFET) { Item(item); }
+        OPPONENT(species);
+    } WHEN {
+        TURN { MOVE(player, MOVE_MULTI_ATTACK); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_MULTI_ATTACK, player);
+        EFFECTIVENESS_SE(opponent, SE_SUPER_EFFECTIVE);
+        HP_BAR(opponent);
+    }
+}
 
 #if MAX_MON_ITEMS > 1
 SINGLE_BATTLE_TEST("Techno Blast changes type depending on the drive the user holds (Items)")
 {
-    u16 species;
+    enum Species species;
     enum Item item;
 
     PARAMETRIZE { species = SPECIES_CHARIZARD; item = ITEM_DOUSE_DRIVE; }
@@ -66,8 +111,32 @@ SINGLE_BATTLE_TEST("Techno Blast changes type depending on the drive the user ho
         TURN { MOVE(player, MOVE_TECHNO_BLAST); }
     } SCENE {
         ANIMATION(ANIM_TYPE_MOVE, MOVE_TECHNO_BLAST, player);
+        EFFECTIVENESS_SE(opponent, SE_SUPER_EFFECTIVE);
         HP_BAR(opponent);
-        MESSAGE("It's super effective!");
+    }
+}
+
+SINGLE_BATTLE_TEST("Judgment changes type depending on the Plate the user holds (Items)")
+{
+    enum Species species;
+    enum Item item;
+
+    PARAMETRIZE { species = SPECIES_VENUSAUR; item = ITEM_FLAME_PLATE; }
+    PARAMETRIZE { species = SPECIES_CHARIZARD; item = ITEM_SPLASH_PLATE; }
+    PARAMETRIZE { species = SPECIES_BLASTOISE; item = ITEM_ZAP_PLATE; }
+    PARAMETRIZE { species = SPECIES_DRATINI; item = ITEM_ICICLE_PLATE; }
+
+    GIVEN {
+        ASSUME(GetMoveEffect(MOVE_JUDGMENT) == EFFECT_CHANGE_TYPE_ON_ITEM);
+        ASSUME(GetMoveEffectArg_HoldEffect(MOVE_JUDGMENT) == HOLD_EFFECT_PLATE);
+        PLAYER(SPECIES_WOBBUFFET) { Items(ITEM_PECHA_BERRY, item); }
+        OPPONENT(species);
+    } WHEN {
+        TURN { MOVE(player, MOVE_JUDGMENT); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_JUDGMENT, player);
+        EFFECTIVENESS_SE(opponent, SE_SUPER_EFFECTIVE);
+        HP_BAR(opponent);
     }
 }
 #endif

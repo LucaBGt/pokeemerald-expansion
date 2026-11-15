@@ -86,6 +86,7 @@ SINGLE_BATTLE_TEST("Incinerate destroys Rowap Berry before it can damage the att
         EXPECT_EQ(opponent->item, ITEM_NONE);
     }
 }
+
 #if MAX_MON_TRAITS > 1
 SINGLE_BATTLE_TEST("Incinerate destroys Berries and Gems even if the holder has Klutz (Traits)")
 {

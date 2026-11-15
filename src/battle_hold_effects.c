@@ -607,7 +607,7 @@ static enum ItemEffect TryStickyBarbOnTargetHit(enum BattlerId battlerDef, enum 
         // No sticky hold checks.
         gLastUsedItem = gBattleMons[battlerDef].items[barbSlot];
         gEffectBattler = battlerDef;
-        StealTargetItem(battlerAtk, battlerDef, barbSlot);  // Attacker takes target's barb
+        StealTargetItem(battlerAtk, battlerDef, ITEM_NONE, barbSlot);  // Attacker takes target's barb
         BattleScriptCall(BattleScript_StickyBarbTransfer);
         effect = ITEM_EFFECT_OTHER;
     }

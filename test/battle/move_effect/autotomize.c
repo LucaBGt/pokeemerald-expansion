@@ -4,7 +4,7 @@
 static u32 GetPlayerLeftWeight(void)
 {
     enum BattlerId battler = GetBattlerAtPosition(B_POSITION_PLAYER_LEFT);
-    return GetBattlerWeight(battler, GetBattlerAbility(battler), GetBattlerHoldEffect(battler));
+    return GetBattlerWeight(battler);
 }
 
 ASSUMPTIONS
@@ -208,3 +208,156 @@ WILD_BATTLE_TEST("Autotomize doesn't affect Heavy Ball's multiplier", u32 catchi
         EXPECT_EQ(results[0].catchingChance, results[1].catchingChance);
     }
 }
+
+
+#if MAX_MON_TRAITS > 1
+SINGLE_BATTLE_TEST("Autotomize cannot decrease weight below 0.1kg (0.2 lbs) (Traits)")
+{
+    GIVEN {
+        ASSUME(GetSpeciesWeight(SPECIES_DURALUDON) == 400);
+        PLAYER(SPECIES_DURALUDON) { Ability(ABILITY_STALWART); Innates(ABILITY_LIGHT_METAL); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(player, MOVE_AUTOTOMIZE); }
+        TURN { MOVE(player, MOVE_AUTOTOMIZE); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_AUTOTOMIZE, player);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_AUTOTOMIZE, player);
+    } THEN {
+        EXPECT_EQ(GetPlayerLeftWeight(), 1);
+        EXPECT_EQ((u32)player->volatiles.autotomizeCount, 1);
+    }
+}
+
+SINGLE_BATTLE_TEST("Autotomize's weight reduction cannot be Baton Passed (Traits)")
+{
+    GIVEN {
+        ASSUME(GetSpeciesWeight(SPECIES_DURALUDON) == 400);
+        PLAYER(SPECIES_DURALUDON) { Ability(ABILITY_STALWART); Innates(ABILITY_STALWART); }
+        PLAYER(SPECIES_DURALUDON) { Ability(ABILITY_STALWART); Innates(ABILITY_STALWART); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(player, MOVE_AUTOTOMIZE); }
+        TURN { MOVE(player, MOVE_BATON_PASS); SEND_OUT(player, 1); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_AUTOTOMIZE, player);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_BATON_PASS, player);
+        SEND_IN_MESSAGE("Duraludon");
+    } THEN {
+        EXPECT_EQ(player->statStages[STAT_SPEED], DEFAULT_STAT_STAGE + 2);
+        EXPECT_EQ(GetPlayerLeftWeight(), 400);
+        EXPECT_EQ((u32)player->volatiles.autotomizeCount, 0);
+    }
+}
+
+SINGLE_BATTLE_TEST("Autotomize's weight reduction cannot be removed by Haze (Traits)")
+{
+    GIVEN {
+        ASSUME(GetSpeciesWeight(SPECIES_DURALUDON) == 400);
+        PLAYER(SPECIES_DURALUDON) { Ability(ABILITY_STALWART); Innates(ABILITY_STALWART); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(player, MOVE_AUTOTOMIZE); }
+        TURN { MOVE(opponent, MOVE_HAZE); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_AUTOTOMIZE, player);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_HAZE, opponent);
+    } THEN {
+        EXPECT_EQ(player->statStages[STAT_SPEED], DEFAULT_STAT_STAGE);
+        EXPECT_EQ(GetPlayerLeftWeight(), 1);
+        EXPECT_EQ((u32)player->volatiles.autotomizeCount, 1);
+    }
+}
+
+SINGLE_BATTLE_TEST("Autotomize's weight reduction is reset upon form change (Gen 6+) (Traits)")
+{
+    u32 gen;
+
+    PARAMETRIZE { gen = GEN_5; }
+    PARAMETRIZE { gen = GEN_6; }
+
+    GIVEN {
+        ASSUME(GetSpeciesWeight(SPECIES_AEGISLASH_SHIELD) == 530);
+        ASSUME(GetSpeciesWeight(SPECIES_AEGISLASH_BLADE) == 530);
+        WITH_CONFIG(B_AUTOTOMIZE_FORM_CHANGE, gen);
+        PLAYER(SPECIES_AEGISLASH_SHIELD) { Ability(ABILITY_TANGLED_FEET); Innates(ABILITY_STANCE_CHANGE); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(player, MOVE_AUTOTOMIZE); }
+        TURN { MOVE(player, MOVE_SCRATCH); }
+    } THEN {
+        EXPECT_EQ(player->species, SPECIES_AEGISLASH_BLADE);
+        if (gen >= GEN_6)
+        {
+            EXPECT_EQ(GetPlayerLeftWeight(), 530);
+            EXPECT_EQ((u32)player->volatiles.autotomizeCount, 0);
+        }
+        else
+        {
+            EXPECT_EQ(GetPlayerLeftWeight(), 1);
+            EXPECT_EQ((u32)player->volatiles.autotomizeCount, 1);
+        }
+    }
+}
+
+SINGLE_BATTLE_TEST("Autotomize's weight reduction is reset upon switch (Traits)")
+{
+    GIVEN {
+        ASSUME(GetSpeciesWeight(SPECIES_DURALUDON) == 400);
+        PLAYER(SPECIES_DURALUDON) { Ability(ABILITY_STALWART); Innates(ABILITY_STALWART); }
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(player, MOVE_AUTOTOMIZE); }
+        TURN { SWITCH(player, 1); }
+        TURN { SWITCH(player, 0); }
+    } THEN {
+        EXPECT_EQ(GetPlayerLeftWeight(), 400);
+        EXPECT_EQ((u32)player->volatiles.autotomizeCount, 0);
+    }
+}
+
+SINGLE_BATTLE_TEST("Autotomize's weight reduction is reset upon fainting (Traits)")
+{
+    GIVEN {
+        ASSUME(GetSpeciesWeight(SPECIES_DURALUDON) == 400);
+        PLAYER(SPECIES_DURALUDON) { Ability(ABILITY_LIGHT_METAL); Innates(ABILITY_STALWART); HP(1); }
+        PLAYER(SPECIES_RABSCA);
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(player, MOVE_AUTOTOMIZE); }
+        TURN { MOVE(opponent, MOVE_SCRATCH); SEND_OUT(player, 1); }
+        TURN { MOVE(player, MOVE_REVIVAL_BLESSING, partyIndex: 0); }
+        TURN { SWITCH(player, 0); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_AUTOTOMIZE, player);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_SCRATCH, opponent);
+        MESSAGE("Duraludon fainted!");
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_REVIVAL_BLESSING, player);
+    } THEN {
+        EXPECT_EQ(GetPlayerLeftWeight(), 400);
+        EXPECT_EQ((u32)player->volatiles.autotomizeCount, 0);
+    }
+}
+
+WILD_BATTLE_TEST("Autotomize doesn't affect Heavy Ball's multiplier (Traits)", u32 catchingChance)
+{
+    bool32 usedAutotomize;
+    PARAMETRIZE { usedAutotomize = FALSE; }
+    PARAMETRIZE { usedAutotomize = TRUE; }
+
+    GIVEN {
+        ASSUME(GetSpeciesWeight(SPECIES_SCIZOR) == 1180);
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_SCIZOR) { Ability(ABILITY_TECHNICIAN); Innates(ABILITY_TECHNICIAN); }
+    } WHEN {
+        if (usedAutotomize)
+            TURN { MOVE(opponent, MOVE_AUTOTOMIZE); }
+        TURN { USE_ITEM(player, ITEM_HEAVY_BALL); }
+    } SCENE {
+        CATCHING_CHANCE(&results[i].catchingChance);
+    } FINALLY {
+        EXPECT_EQ(results[0].catchingChance, results[1].catchingChance);
+    }
+}
+#endif

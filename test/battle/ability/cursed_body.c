@@ -132,8 +132,51 @@ SINGLE_BATTLE_TEST("Cursed Body disables the base move of a status Z-Move")
     }
 }
 
-TO_DO_BATTLE_TEST("Cursed Body disables damaging Z-Moves, but not the base move")
+SINGLE_BATTLE_TEST("Cursed Body does not trigger on Max Moves")
+{
+    enum Gimmick dyna;
+    enum Move move;
+    PARAMETRIZE { dyna = GIMMICK_NONE; move = MOVE_WATER_GUN; }
+    PARAMETRIZE { dyna = GIMMICK_DYNAMAX; move = MOVE_MAX_GEYSER; }
+    GIVEN {
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_JELLICENT) { Ability(ABILITY_CURSED_BODY); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_WATER_GUN, gimmick: dyna, WITH_RNG(RNG_CURSED_BODY, 1)); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, move, player);
+        HP_BAR(opponent);
+        if (dyna == GIMMICK_NONE) {
+            ABILITY_POPUP(opponent, ABILITY_CURSED_BODY);
+        } else {
+            NOT ABILITY_POPUP(opponent, ABILITY_CURSED_BODY);
+        }
+    } THEN {
+        u32 disabledMove = player->volatiles.disabledMove;
+        if (dyna == GIMMICK_NONE)
+            EXPECT_EQ(disabledMove, MOVE_WATER_GUN);
+        else
+            EXPECT_EQ(disabledMove, MOVE_NONE);
+    }
+}
 
+SINGLE_BATTLE_TEST("Cursed Body disables damaging Z-Moves, but not the base move")
+{
+    GIVEN {
+        ASSUME(GetMoveType(MOVE_WATER_GUN) == gItemsInfo[ITEM_WATERIUM_Z].secondaryId);
+        PLAYER(SPECIES_WOBBUFFET) { Item(ITEM_WATERIUM_Z); }
+        OPPONENT(SPECIES_JELLICENT) { Ability(ABILITY_CURSED_BODY); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_WATER_GUN, gimmick: GIMMICK_Z_MOVE, WITH_RNG(RNG_CURSED_BODY, 1)); }
+        TURN { MOVE(player, MOVE_WATER_GUN); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_HYDRO_VORTEX, player);
+        HP_BAR(opponent);
+        ABILITY_POPUP(opponent, ABILITY_CURSED_BODY);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_WATER_GUN, player);
+        HP_BAR(opponent);
+    }
+}
 
 #if MAX_MON_TRAITS > 1
 SINGLE_BATTLE_TEST("Cursed Body triggers 30% of the time (Traits)")
@@ -248,7 +291,8 @@ SINGLE_BATTLE_TEST("Cursed Body disables the base move of a status Z-Move (Trait
 {
     GIVEN {
         ASSUME(GetMoveEffect(MOVE_NATURE_POWER) == EFFECT_NATURE_POWER);
-        ASSUME(GetMoveEffect(MOVE_ELECTRIC_TERRAIN) == EFFECT_ELECTRIC_TERRAIN);
+        ASSUME(GetMoveEffect(MOVE_ELECTRIC_TERRAIN) == EFFECT_TERRAIN);
+        ASSUME(GetMoveTerrainType(MOVE_ELECTRIC_TERRAIN) == B_TERRAIN_ELECTRIC);
         PLAYER(SPECIES_WOBBUFFET) { Item(ITEM_NORMALIUM_Z); }
         OPPONENT(SPECIES_FRILLISH) { Ability(ABILITY_DAMP); Innates(ABILITY_CURSED_BODY); }
     } WHEN {
@@ -266,11 +310,28 @@ SINGLE_BATTLE_TEST("Cursed Body disables the base move of a status Z-Move (Trait
     }
 }
 
-TO_DO_BATTLE_TEST("Cursed Body disables damaging Z-Moves, but not the base move (Traits)")
+SINGLE_BATTLE_TEST("Cursed Body disables damaging Z-Moves, but not the base move (Traits)")
+{
+    GIVEN {
+        ASSUME(GetMoveType(MOVE_WATER_GUN) == gItemsInfo[ITEM_WATERIUM_Z].secondaryId);
+        PLAYER(SPECIES_WOBBUFFET) { Item(ITEM_WATERIUM_Z); }
+        OPPONENT(SPECIES_JELLICENT) { Ability(ABILITY_DAMP); Innates(ABILITY_CURSED_BODY); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_WATER_GUN, gimmick: GIMMICK_Z_MOVE, WITH_RNG(RNG_CURSED_BODY, 1)); }
+        TURN { MOVE(player, MOVE_WATER_GUN); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_HYDRO_VORTEX, player);
+        HP_BAR(opponent);
+        ABILITY_POPUP(opponent, ABILITY_CURSED_BODY);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_WATER_GUN, player);
+        HP_BAR(opponent);
+    }
+}
+
 #endif
 
 #if MAX_MON_ITEMS > 1
-SINGLE_BATTLE_TEST("Cursed Body cannot disable Struggle")
+SINGLE_BATTLE_TEST("Cursed Body cannot disable Struggle (Items)")
 {
     GIVEN {
         ASSUME(GetItemHoldEffect(ITEM_CHOICE_SCARF) == HOLD_EFFECT_CHOICE_SCARF);
@@ -290,11 +351,12 @@ SINGLE_BATTLE_TEST("Cursed Body cannot disable Struggle")
     }
 }
 
-SINGLE_BATTLE_TEST("Cursed Body disables the base move of a status Z-Move")
+SINGLE_BATTLE_TEST("Cursed Body disables the base move of a status Z-Move (Items)")
 {
     GIVEN {
         ASSUME(GetMoveEffect(MOVE_NATURE_POWER) == EFFECT_NATURE_POWER);
-        ASSUME(GetMoveEffect(MOVE_ELECTRIC_TERRAIN) == EFFECT_ELECTRIC_TERRAIN);
+        ASSUME(GetMoveEffect(MOVE_ELECTRIC_TERRAIN) == EFFECT_TERRAIN);
+        ASSUME(GetMoveTerrainType(MOVE_ELECTRIC_TERRAIN) == B_TERRAIN_ELECTRIC);
         PLAYER(SPECIES_WOBBUFFET) { Items(ITEM_GREAT_BALL, ITEM_NORMALIUM_Z); }
         OPPONENT(SPECIES_FRILLISH) { Ability(ABILITY_CURSED_BODY); }
     } WHEN {
@@ -309,6 +371,24 @@ SINGLE_BATTLE_TEST("Cursed Body disables the base move of a status Z-Move")
     } THEN {
         u32 disabledMove = player->volatiles.disabledMove;
         EXPECT_EQ(disabledMove, MOVE_NATURE_POWER);
+    }
+}
+
+SINGLE_BATTLE_TEST("Cursed Body disables damaging Z-Moves, but not the base move (Items)")
+{
+    GIVEN {
+        ASSUME(GetMoveType(MOVE_WATER_GUN) == gItemsInfo[ITEM_WATERIUM_Z].secondaryId);
+        PLAYER(SPECIES_WOBBUFFET) { Items(ITEM_GREAT_BALL, ITEM_WATERIUM_Z); }
+        OPPONENT(SPECIES_JELLICENT) { Ability(ABILITY_CURSED_BODY); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_WATER_GUN, gimmick: GIMMICK_Z_MOVE, WITH_RNG(RNG_CURSED_BODY, 1)); }
+        TURN { MOVE(player, MOVE_WATER_GUN); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_HYDRO_VORTEX, player);
+        HP_BAR(opponent);
+        ABILITY_POPUP(opponent, ABILITY_CURSED_BODY);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_WATER_GUN, player);
+        HP_BAR(opponent);
     }
 }
 #endif

@@ -277,3 +277,63 @@ SINGLE_BATTLE_TEST("Acupressure increases one of its stats by 2 stages at random
 // Triple Battles required to test
 //TO_DO_BATTLE_TEST("Acupressure works on the ally if the user targeted itself but switched positions via Triple Battle shift before execution");
 //TO_DO_BATTLE_TEST("Acupressure fails on the user if it targeted its ally but switched positions via Triple Battle shift before execution");
+
+
+#if MAX_MON_TRAITS > 1
+SINGLE_BATTLE_TEST("Acupressure fails on the user if all of its stats are maximized (Traits)")
+{
+    GIVEN {
+        ASSUME(GetMoveEffect(MOVE_CLANGOROUS_SOUL) == EFFECT_CLANGOROUS_SOUL);
+        ASSUME_STAT_CHANGE(MOVE_HONE_CLAWS, attack: +1, accuracy: +1);
+        ASSUME_STAT_CHANGE(MOVE_DOUBLE_TEAM, evasion: +1);
+        PLAYER(SPECIES_BIBAREL) { Ability(ABILITY_UNAWARE); Innates(ABILITY_SIMPLE); HP(601); MaxHP(601); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(player, MOVE_CLANGOROUS_SOUL); }
+        TURN { MOVE(player, MOVE_CLANGOROUS_SOUL); }
+        TURN { MOVE(player, MOVE_CLANGOROUS_SOUL); }
+        for (u32 j = 0; j < 3; j++)
+            TURN { MOVE(player, MOVE_HONE_CLAWS); }
+        for (u32 j = 0; j < 3; j++)
+            TURN { MOVE(player, MOVE_DOUBLE_TEAM); }
+        TURN { MOVE(player, MOVE_ACUPRESSURE, target: player); }
+    } SCENE {
+        MESSAGE("Bibarel used Acupressure!");
+        NOT ANIMATION(ANIM_TYPE_MOVE, MOVE_ACUPRESSURE, player);
+        MESSAGE("But it failed!");
+    } THEN {
+        for (enum Stat stat = STAT_ATK; stat < NUM_BATTLE_STATS; stat++)
+            EXPECT_EQ(player->statStages[stat], MAX_STAT_STAGE);
+    }
+}
+
+DOUBLE_BATTLE_TEST("Acupressure fails on the ally if all of its stats are maximized (Traits)")
+{
+    GIVEN {
+        ASSUME(GetMoveEffect(MOVE_CLANGOROUS_SOUL) == EFFECT_CLANGOROUS_SOUL);
+        ASSUME_STAT_CHANGE(MOVE_HONE_CLAWS, attack: +1, accuracy: +1);
+        ASSUME_STAT_CHANGE(MOVE_DOUBLE_TEAM, evasion: +1);
+        PLAYER(SPECIES_WOBBUFFET);
+        PLAYER(SPECIES_BIBAREL) { Ability(ABILITY_UNAWARE); Innates(ABILITY_SIMPLE); HP(601); MaxHP(601); }
+        OPPONENT(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WYNAUT);
+    } WHEN {
+        TURN { MOVE(playerRight, MOVE_CLANGOROUS_SOUL); }
+        TURN { MOVE(playerRight, MOVE_CLANGOROUS_SOUL); }
+        TURN { MOVE(playerRight, MOVE_CLANGOROUS_SOUL); }
+        for (u32 j = 0; j < 3; j++)
+            TURN { MOVE(playerRight, MOVE_HONE_CLAWS); }
+        for (u32 j = 0; j < 3; j++)
+            TURN { MOVE(playerRight, MOVE_DOUBLE_TEAM); }
+        TURN { MOVE(playerLeft, MOVE_ACUPRESSURE, target: playerRight); }
+    } SCENE {
+        MESSAGE("Wobbuffet used Acupressure!");
+        NOT ANIMATION(ANIM_TYPE_MOVE, MOVE_ACUPRESSURE, playerLeft);
+        MESSAGE("But it failed!");
+    } THEN {
+        for (enum Stat stat = STAT_ATK; stat < NUM_BATTLE_STATS; stat++)
+            EXPECT_EQ(playerRight->statStages[stat], MAX_STAT_STAGE);
+    }
+}
+
+#endif

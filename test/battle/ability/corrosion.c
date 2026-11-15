@@ -323,13 +323,32 @@ SINGLE_BATTLE_TEST("Corrosion does not affect Poison Spikes")
     }
 }
 
+SINGLE_BATTLE_TEST("Corrosion does not make Toxic Spikes poison a Corrosion user Terastallized into Steel")
+{
+    GIVEN {
+        ASSUME(GetMoveEffect(MOVE_TOXIC_SPIKES) == EFFECT_TOXIC_SPIKES);
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_SALANDIT) { Ability(ABILITY_CORROSION); TeraType(TYPE_STEEL); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(player, MOVE_TOXIC_SPIKES); MOVE(opponent, MOVE_CELEBRATE, gimmick: GIMMICK_TERA); }
+        TURN { SWITCH(opponent, 1); }
+        TURN { SWITCH(opponent, 0); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_TOXIC_SPIKES, player);
+    } THEN {
+        EXPECT_EQ(opponent->status1, STATUS1_NONE);
+    }
+}
+
 TO_DO_BATTLE_TEST("Dynamax: Corrosion can poison Poison/Steel types if the Pokémon uses G-Max Malodor")
+
 
 #if MAX_MON_TRAITS > 1
 
 SINGLE_BATTLE_TEST("Corrosion can poison or badly poison a Pokemon regardless of its typing (Traits)")
 {
-    u16 species;
+    enum Species species;
 
     PARAMETRIZE { species = SPECIES_ODDISH; }
     PARAMETRIZE { species = SPECIES_BELDUM; }
@@ -394,7 +413,7 @@ SINGLE_BATTLE_TEST("Corrosion does not effect poison type damaging moves if the 
 
 SINGLE_BATTLE_TEST("Corrosion can poison Poison- and Steel-type targets if it uses Fling while holding a Toxic Orb or a Poison Barb (Traits)")
 {
-    u16 heldItem;
+    enum Item heldItem;
 
     PARAMETRIZE { heldItem = ITEM_POISON_BARB; }
     PARAMETRIZE { heldItem = ITEM_TOXIC_ORB; }
@@ -567,7 +586,7 @@ SINGLE_BATTLE_TEST("Corrosion's effect is lost if the move used by the Pokémon 
 
 SINGLE_BATTLE_TEST("Corrosion can poison Poison/Steel types if the Pokémon uses Baneful Bunker (Traits)")
 {
-    u16 species;
+    enum Species species;
 
     PARAMETRIZE { species = SPECIES_ODDISH; }
     PARAMETRIZE { species = SPECIES_BELDUM; }
@@ -590,7 +609,7 @@ SINGLE_BATTLE_TEST("Corrosion can poison Poison/Steel types if the Pokémon uses
 
 SINGLE_BATTLE_TEST("Corrosion can poison Poison/Steel types if the Pokémon uses Psycho Shift while poisoned (Traits)")
 {
-    u16 species;
+    enum Species species;
 
     PARAMETRIZE { species = SPECIES_ODDISH; }
     PARAMETRIZE { species = SPECIES_BELDUM; }
@@ -611,7 +630,7 @@ SINGLE_BATTLE_TEST("Corrosion can poison Poison/Steel types if the Pokémon uses
 
 SINGLE_BATTLE_TEST("Corrosion can poison Poison/Steel types if the Pokémon uses Fling while holding a Toxic Orb (Traits)")
 {
-    u16 species;
+    enum Species species;
 
     PARAMETRIZE { species = SPECIES_ODDISH; }
     PARAMETRIZE { species = SPECIES_BELDUM; }
@@ -633,7 +652,7 @@ SINGLE_BATTLE_TEST("Corrosion can poison Poison/Steel types if the Pokémon uses
 
 SINGLE_BATTLE_TEST("Corrosion can poison Poison/Steel types if the Pokémon uses Fling while holding a Poison Barb (Traits)")
 {
-    u16 species;
+    enum Species species;
 
     PARAMETRIZE { species = SPECIES_ODDISH; }
     PARAMETRIZE { species = SPECIES_BELDUM; }
@@ -656,7 +675,7 @@ SINGLE_BATTLE_TEST("Corrosion can poison Poison/Steel types if the Pokémon uses
 
 SINGLE_BATTLE_TEST("Corrosion does not affect Poison Spikes (Traits)")
 {
-    u16 species;
+    enum Species species;
 
     PARAMETRIZE { species = SPECIES_ODDISH; }
     PARAMETRIZE { species = SPECIES_BELDUM; }
@@ -676,13 +695,31 @@ SINGLE_BATTLE_TEST("Corrosion does not affect Poison Spikes (Traits)")
     }
 }
 
+SINGLE_BATTLE_TEST("Corrosion does not make Toxic Spikes poison a Corrosion user Terastallized into Steel (Traits)")
+{
+    GIVEN {
+        ASSUME(GetMoveEffect(MOVE_TOXIC_SPIKES) == EFFECT_TOXIC_SPIKES);
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_SALANDIT) { Ability(ABILITY_OBLIVIOUS); Innates(ABILITY_CORROSION); TeraType(TYPE_STEEL); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(player, MOVE_TOXIC_SPIKES); MOVE(opponent, MOVE_CELEBRATE, gimmick: GIMMICK_TERA); }
+        TURN { SWITCH(opponent, 1); }
+        TURN { SWITCH(opponent, 0); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_TOXIC_SPIKES, player);
+    } THEN {
+        EXPECT_EQ(opponent->status1, STATUS1_NONE);
+    }
+}
+
 TO_DO_BATTLE_TEST("Dynamax: Corrosion can poison Poison/Steel types if the Pokémon uses G-Max Malodor (Traits)")
 #endif
 
 #if MAX_MON_ITEMS > 1
 SINGLE_BATTLE_TEST("Corrosion can poison Poison- and Steel-type targets if it uses Fling while holding a Toxic Orb or a Poison Barb (Items)")
 {
-    u16 heldItem;
+    enum Item heldItem;
 
     PARAMETRIZE { heldItem = ITEM_POISON_BARB; }
     PARAMETRIZE { heldItem = ITEM_TOXIC_ORB; }
@@ -723,7 +760,7 @@ SINGLE_BATTLE_TEST("If a Poison- or Steel-type Pokémon with Corrosion holds a T
 
 SINGLE_BATTLE_TEST("Corrosion can poison Poison/Steel types if the Pokémon uses Fling while holding a Toxic Orb (Items)")
 {
-    u16 species;
+    enum Species species;
 
     PARAMETRIZE { species = SPECIES_ODDISH; }
     PARAMETRIZE { species = SPECIES_BELDUM; }
@@ -745,7 +782,7 @@ SINGLE_BATTLE_TEST("Corrosion can poison Poison/Steel types if the Pokémon uses
 
 SINGLE_BATTLE_TEST("Corrosion can poison Poison/Steel types if the Pokémon uses Fling while holding a Poison Barb (Items)")
 {
-    u16 species;
+    enum Species species;
 
     PARAMETRIZE { species = SPECIES_ODDISH; }
     PARAMETRIZE { species = SPECIES_BELDUM; }

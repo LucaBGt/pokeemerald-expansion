@@ -275,7 +275,7 @@ static bool32 HandleEndTurnFutureSight(enum BattlerId battler)
         if (IsFutureSightAttackerInParty(gBattlerAttacker, gBattlerTarget))
             gSpecialStatuses[gBattlerAttacker].attackerInParty = TRUE;
         else
-            SetTypeBeforeUsingMove(gCurrentMove, gBattlerAttacker, GetBattlerAbility(gBattlerAttacker), GetBattlerHoldEffect(gBattlerAttacker));
+            SetTypeBeforeUsingMove(gCurrentMove, gBattlerAttacker);
 
         gBattleScripting.animTurn = 1; // to play correct anim
         BattleScriptCall(BattleScript_MonTookFutureAttack);
@@ -1356,8 +1356,6 @@ static bool32 HandleEndTurnThirdEventBlock(enum BattlerId battler)
         break;
     }
     case THIRD_EVENT_BLOCK_ITEMS:
-    {
-
         if ((BattlerHasHoldItemEffect(battler, HOLD_EFFECT_FLAME_ORB, TRUE)
          || BattlerHasHoldItemEffect(battler, HOLD_EFFECT_STICKY_BARB, TRUE)
          || BattlerHasHoldItemEffect(battler, HOLD_EFFECT_TOXIC_ORB, TRUE)
@@ -1370,19 +1368,19 @@ static bool32 HandleEndTurnThirdEventBlock(enum BattlerId battler)
         break;
     }
 
-    return effect;
-}
-
     #if TESTING
         if (gTestRunnerEnabled)
             gBattleMons[battler].item = gBattleMons[battler].items[0];
     #endif
 
+    return effect;
+}
+
 static bool32 HandleEndTurnOpportunist(enum BattlerId battler)
 {
     bool32 effect = FALSE;
 
-    if (IsBattlerPresent(battler) && AbilityBattleEffects(ABILITYEFFECT_OPPORTUNIST, battler, GetBattlerAbility(battler), MOVE_NONE, TRUE))
+    if (IsBattlerPresent(battler) && AbilityBattleEffects(ABILITYEFFECT_OPPORTUNIST, battler, MOVE_NONE, TRUE))
         effect = TRUE;
 
     gBattleStruct->eventState.endTurnBattler++;
@@ -1393,7 +1391,7 @@ static bool32 HandleEndTurnMirrorHerb(enum BattlerId battler)
 {
     bool32 effect = FALSE;
 
-    if (IsBattlerPresent(battler) && ItemBattleEffects(battler, 0, GetBattlerHoldEffect(battler), IsMirrorHerbActivation))
+    if (IsBattlerPresent(battler) && ItemBattleEffects(battler, 0, IsMirrorHerbActivation))
         effect = TRUE;
 
     gBattleStruct->eventState.endTurnBattler++;

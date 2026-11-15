@@ -537,7 +537,7 @@ static u32 GetEligibleParentToPassNatureVanilla(struct DayCare *daycare)
     if (dittoCount == DAYCARE_MON_COUNT)
         slot = RandomPercentage(RNG_DAYCARE_PICK_NATURE_PARENT, 50);
 
-    if (!BoxMonHasItemHoldEffect(&daycare->mons[slot].mon, ITEM_EVERSTONE))
+    if (!BoxMonHasItemHoldEffect(&daycare->mons[slot].mon, HOLD_EFFECT_PREVENT_EVOLVE))
         return DAYCARE_MON_COUNT;
 
     if (RandomPercentage(RNG_DAYCARE_NATURE_INHERITANCE, 50))

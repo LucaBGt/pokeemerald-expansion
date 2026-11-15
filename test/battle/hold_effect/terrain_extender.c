@@ -203,3 +203,224 @@ SINGLE_BATTLE_TEST("Terrain Extender makes terrain created by abilities last 8 t
         }
     }
 }
+
+
+#if MAX_MON_TRAITS > 1
+SINGLE_BATTLE_TEST("Terrain Extender does not extend terrain if the holder has Klutz (Traits)")
+{
+    GIVEN {
+        PLAYER(SPECIES_WOBBUFFET) { Speed(100); Ability(ABILITY_LIGHT_METAL); Innates(ABILITY_KLUTZ); Item(ITEM_TERRAIN_EXTENDER); Moves(MOVE_ELECTRIC_TERRAIN); }
+        OPPONENT(SPECIES_WOBBUFFET) { Speed(50); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_ELECTRIC_TERRAIN); MOVE(opponent, MOVE_CELEBRATE); }
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_ELECTRIC_TERRAIN, player);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_CELEBRATE, opponent);
+        for (u32 turn = 0; turn < 4; turn++)
+        {
+            ANIMATION(ANIM_TYPE_MOVE, MOVE_CELEBRATE, player);
+            ANIMATION(ANIM_TYPE_MOVE, MOVE_CELEBRATE, opponent);
+        }
+        MESSAGE("The electricity disappeared from the battlefield.");
+    }
+}
+
+SINGLE_BATTLE_TEST("Terrain Extender makes terrain created by abilities last 8 turns (Traits)")
+{
+    enum Ability ability;
+    enum Species species;
+
+    PARAMETRIZE { ability = ABILITY_ELECTRIC_SURGE; species = SPECIES_PINCURCHIN; }
+    PARAMETRIZE { ability = ABILITY_GRASSY_SURGE;   species = SPECIES_RILLABOOM; }
+    PARAMETRIZE { ability = ABILITY_MISTY_SURGE;    species = SPECIES_TAPU_FINI; }
+    PARAMETRIZE { ability = ABILITY_PSYCHIC_SURGE;  species = SPECIES_TAPU_LELE; }
+
+    GIVEN {
+        PLAYER(species) { Speed(100); Ability(ABILITY_LIGHT_METAL); Innates(ability); Item(ITEM_TERRAIN_EXTENDER); }
+        OPPONENT(SPECIES_WOBBUFFET) { Speed(50); }
+    } WHEN {
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+    } SCENE {
+        ABILITY_POPUP(player, ability);
+        for (u32 turn = 0; turn < 8; turn++)
+        {
+            ANIMATION(ANIM_TYPE_MOVE, MOVE_CELEBRATE, player);
+            ANIMATION(ANIM_TYPE_MOVE, MOVE_CELEBRATE, opponent);
+        }
+        switch (ability)
+        {
+        case ABILITY_ELECTRIC_SURGE:
+            MESSAGE("The electricity disappeared from the battlefield.");
+            break;
+        case ABILITY_GRASSY_SURGE:
+            MESSAGE("The grass disappeared from the battlefield.");
+            break;
+        case ABILITY_MISTY_SURGE:
+            MESSAGE("The mist disappeared from the battlefield.");
+            break;
+        case ABILITY_PSYCHIC_SURGE:
+            MESSAGE("The weirdness disappeared from the battlefield!");
+            break;
+        default:
+            break;
+        }
+    }
+}
+#endif
+
+#if MAX_MON_ITEMS > 1
+SINGLE_BATTLE_TEST("Terrain Extender does not extend terrain created by another Pokémon (Items)")
+{
+    GIVEN {
+        PLAYER(SPECIES_WOBBUFFET) { Speed(50); Items(ITEM_PECHA_BERRY, ITEM_TERRAIN_EXTENDER); }
+        OPPONENT(SPECIES_WOBBUFFET) { Speed(100); Moves(MOVE_ELECTRIC_TERRAIN); }
+    } WHEN {
+        TURN { MOVE(opponent, MOVE_ELECTRIC_TERRAIN); MOVE(player, MOVE_CELEBRATE); }
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_ELECTRIC_TERRAIN, opponent);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_CELEBRATE, player);
+        for (u32 turn = 0; turn < 4; turn++)
+        {
+            ANIMATION(ANIM_TYPE_MOVE, MOVE_CELEBRATE, opponent);
+            ANIMATION(ANIM_TYPE_MOVE, MOVE_CELEBRATE, player);
+        }
+        MESSAGE("The electricity disappeared from the battlefield.");
+    }
+}
+
+SINGLE_BATTLE_TEST("Terrain Extender does not extend terrain if the holder has Klutz (Items)")
+{
+    GIVEN {
+        PLAYER(SPECIES_WOBBUFFET) { Speed(100); Ability(ABILITY_KLUTZ); Items(ITEM_PECHA_BERRY, ITEM_TERRAIN_EXTENDER); Moves(MOVE_ELECTRIC_TERRAIN); }
+        OPPONENT(SPECIES_WOBBUFFET) { Speed(50); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_ELECTRIC_TERRAIN); MOVE(opponent, MOVE_CELEBRATE); }
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_ELECTRIC_TERRAIN, player);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_CELEBRATE, opponent);
+        for (u32 turn = 0; turn < 4; turn++)
+        {
+            ANIMATION(ANIM_TYPE_MOVE, MOVE_CELEBRATE, player);
+            ANIMATION(ANIM_TYPE_MOVE, MOVE_CELEBRATE, opponent);
+        }
+        MESSAGE("The electricity disappeared from the battlefield.");
+    }
+}
+
+SINGLE_BATTLE_TEST("Terrain Extender makes terrain created by moves last 8 turns (Items)")
+{
+    enum Move move;
+
+    PARAMETRIZE { move = MOVE_ELECTRIC_TERRAIN; }
+    PARAMETRIZE { move = MOVE_GRASSY_TERRAIN; }
+    PARAMETRIZE { move = MOVE_MISTY_TERRAIN; }
+    PARAMETRIZE { move = MOVE_PSYCHIC_TERRAIN; }
+
+    GIVEN {
+        PLAYER(SPECIES_WOBBUFFET) { Speed(100); Items(ITEM_PECHA_BERRY, ITEM_TERRAIN_EXTENDER); Moves(move); }
+        OPPONENT(SPECIES_WOBBUFFET) { Speed(50); }
+    } WHEN {
+        TURN { MOVE(player, move); MOVE(opponent, MOVE_CELEBRATE); }
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, move, player);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_CELEBRATE, opponent);
+        for (u32 turn = 0; turn < 7; turn++)
+        {
+            ANIMATION(ANIM_TYPE_MOVE, MOVE_CELEBRATE, player);
+            ANIMATION(ANIM_TYPE_MOVE, MOVE_CELEBRATE, opponent);
+        }
+        switch (move)
+        {
+        case MOVE_ELECTRIC_TERRAIN:
+            MESSAGE("The electricity disappeared from the battlefield.");
+            break;
+        case MOVE_GRASSY_TERRAIN:
+            MESSAGE("The grass disappeared from the battlefield.");
+            break;
+        case MOVE_MISTY_TERRAIN:
+            MESSAGE("The mist disappeared from the battlefield.");
+            break;
+        case MOVE_PSYCHIC_TERRAIN:
+            MESSAGE("The weirdness disappeared from the battlefield!");
+            break;
+        default:
+            break;
+        }
+    }
+}
+
+SINGLE_BATTLE_TEST("Terrain Extender makes terrain created by abilities last 8 turns (Items)")
+{
+    enum Ability ability;
+    enum Species species;
+
+    PARAMETRIZE { ability = ABILITY_ELECTRIC_SURGE; species = SPECIES_PINCURCHIN; }
+    PARAMETRIZE { ability = ABILITY_GRASSY_SURGE;   species = SPECIES_RILLABOOM; }
+    PARAMETRIZE { ability = ABILITY_MISTY_SURGE;    species = SPECIES_TAPU_FINI; }
+    PARAMETRIZE { ability = ABILITY_PSYCHIC_SURGE;  species = SPECIES_TAPU_LELE; }
+
+    GIVEN {
+        PLAYER(species) { Speed(100); Ability(ability); Items(ITEM_PECHA_BERRY, ITEM_TERRAIN_EXTENDER); }
+        OPPONENT(SPECIES_WOBBUFFET) { Speed(50); }
+    } WHEN {
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+    } SCENE {
+        ABILITY_POPUP(player, ability);
+        for (u32 turn = 0; turn < 8; turn++)
+        {
+            ANIMATION(ANIM_TYPE_MOVE, MOVE_CELEBRATE, player);
+            ANIMATION(ANIM_TYPE_MOVE, MOVE_CELEBRATE, opponent);
+        }
+        switch (ability)
+        {
+        case ABILITY_ELECTRIC_SURGE:
+            MESSAGE("The electricity disappeared from the battlefield.");
+            break;
+        case ABILITY_GRASSY_SURGE:
+            MESSAGE("The grass disappeared from the battlefield.");
+            break;
+        case ABILITY_MISTY_SURGE:
+            MESSAGE("The mist disappeared from the battlefield.");
+            break;
+        case ABILITY_PSYCHIC_SURGE:
+            MESSAGE("The weirdness disappeared from the battlefield!");
+            break;
+        default:
+            break;
+        }
+    }
+}
+#endif

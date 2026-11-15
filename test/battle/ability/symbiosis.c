@@ -285,6 +285,30 @@ DOUBLE_BATTLE_TEST("Symbiosis triggers after an ally's Cheek Pouch activates")
     }
 }
 
+DOUBLE_BATTLE_TEST("Opposing Symbiosis ignores the player's stolen-item record")
+{
+    GIVEN {
+        ASSUME(GetMoveEffect(MOVE_KNOCK_OFF) == EFFECT_KNOCK_OFF);
+        ASSUME(GetMoveEffect(MOVE_TRICK_ROOM) == EFFECT_TRICK_ROOM);
+        ASSUME(GetItemHoldEffect(ITEM_ROOM_SERVICE) == HOLD_EFFECT_ROOM_SERVICE);
+        PLAYER(SPECIES_WOBBUFFET) { Item(ITEM_LEFTOVERS); }
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET) { Item(ITEM_ROOM_SERVICE); }
+        OPPONENT(SPECIES_ORANGURU) { Ability(ABILITY_SYMBIOSIS); Item(ITEM_POTION); }
+    } WHEN {
+        TURN { MOVE(opponentLeft, MOVE_KNOCK_OFF, target: playerLeft); }
+        TURN { MOVE(playerRight, MOVE_TRICK_ROOM); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_KNOCK_OFF, opponentLeft);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_TRICK_ROOM, playerRight);
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_EFFECT, opponentLeft);
+        ABILITY_POPUP(opponentRight, ABILITY_SYMBIOSIS);
+    } THEN {
+        EXPECT_EQ(opponentLeft->item, ITEM_POTION);
+        EXPECT_EQ(opponentRight->item, ITEM_NONE);
+    }
+}
+
 #if MAX_MON_TRAITS > 1
 DOUBLE_BATTLE_TEST("Symbiosis transfers its item to an ally after it consumes an item (Traits)")
 {
@@ -412,15 +436,45 @@ DOUBLE_BATTLE_TEST("Symbiosis transfers its item to an ally after it consumes a 
         OPPONENT(SPECIES_WOBBUFFET);
         OPPONENT(SPECIES_WOBBUFFET);
     } WHEN {
-        TURN { MOVE(opponentLeft, MOVE_TACKLE, target: playerLeft); }
+        TURN { MOVE(opponentLeft, MOVE_SCRATCH, target: playerLeft); }
     } SCENE {
         ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_BERRY, playerLeft);
-        ANIMATION(ANIM_TYPE_MOVE, MOVE_TACKLE, opponentLeft);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_SCRATCH, opponentLeft);
         ABILITY_POPUP(playerRight, ABILITY_SYMBIOSIS);
         STATUS_ICON(playerLeft, STATUS1_TOXIC_POISON);
     } THEN {
         EXPECT_EQ(playerLeft->item, ITEM_TOXIC_ORB);
         EXPECT_EQ(playerRight->item, ITEM_NONE);
+    }
+}
+
+
+DOUBLE_BATTLE_TEST("A spread move does not consume items received through Symbiosis as resistance Berries (Traits)")
+{
+    GIVEN {
+        ASSUME(GetMoveTarget(MOVE_EARTHQUAKE) == TARGET_FOES_AND_ALLY);
+        ASSUME(GetMoveType(MOVE_EARTHQUAKE) == TYPE_GROUND);
+        ASSUME(GetItemHoldEffect(ITEM_SHUCA_BERRY) == HOLD_EFFECT_RESIST_BERRY);
+        ASSUME(GetItemHoldEffectParam(ITEM_SHUCA_BERRY) == TYPE_GROUND);
+        PLAYER(SPECIES_ORANGURU) { Ability(ABILITY_TELEPATHY); Innates(ABILITY_SYMBIOSIS); Item(ITEM_POTION); }
+        PLAYER(SPECIES_PIKACHU) { Item(ITEM_SHUCA_BERRY); }
+        OPPONENT(SPECIES_PIKACHU) { Item(ITEM_SHUCA_BERRY); }
+        OPPONENT(SPECIES_ORANGURU) { Ability(ABILITY_TELEPATHY); Innates(ABILITY_SYMBIOSIS); Item(ITEM_POTION); }
+    } WHEN {
+        TURN { MOVE(playerLeft, MOVE_EARTHQUAKE); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_BERRY, playerRight);
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_BERRY, opponentLeft);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_EARTHQUAKE, playerLeft);
+        ABILITY_POPUP(opponentRight, ABILITY_SYMBIOSIS);
+        NOT ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_BERRY, opponentLeft);
+        ABILITY_POPUP(playerLeft, ABILITY_SYMBIOSIS);
+        NOT ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_BERRY, playerRight);
+    } THEN {
+        EXPECT_EQ(playerLeft->item, ITEM_NONE);
+        EXPECT_EQ(playerRight->item, ITEM_POTION);
+        EXPECT_EQ(opponentLeft->item, ITEM_POTION);
+        EXPECT_EQ(opponentRight->item, ITEM_NONE);
     }
 }
 
@@ -537,6 +591,30 @@ DOUBLE_BATTLE_TEST("Symbiosis triggers after an ally's Cheek Pouch activates (Tr
     } THEN {
         EXPECT_EQ(playerLeft->item, ITEM_POTION);
         EXPECT_EQ(playerRight->item, ITEM_NONE);
+    }
+}
+
+DOUBLE_BATTLE_TEST("Opposing Symbiosis ignores the player's stolen-item record (Traits)")
+{
+    GIVEN {
+        ASSUME(GetMoveEffect(MOVE_KNOCK_OFF) == EFFECT_KNOCK_OFF);
+        ASSUME(GetMoveEffect(MOVE_TRICK_ROOM) == EFFECT_TRICK_ROOM);
+        ASSUME(GetItemHoldEffect(ITEM_ROOM_SERVICE) == HOLD_EFFECT_ROOM_SERVICE);
+        PLAYER(SPECIES_WOBBUFFET) { Item(ITEM_LEFTOVERS); }
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET) { Item(ITEM_ROOM_SERVICE); }
+        OPPONENT(SPECIES_ORANGURU) { Ability(ABILITY_TELEPATHY); Innates(ABILITY_SYMBIOSIS); Item(ITEM_POTION); }
+    } WHEN {
+        TURN { MOVE(opponentLeft, MOVE_KNOCK_OFF, target: playerLeft); }
+        TURN { MOVE(playerRight, MOVE_TRICK_ROOM); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_KNOCK_OFF, opponentLeft);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_TRICK_ROOM, playerRight);
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_EFFECT, opponentLeft);
+        ABILITY_POPUP(opponentRight, ABILITY_SYMBIOSIS);
+    } THEN {
+        EXPECT_EQ(opponentLeft->item, ITEM_POTION);
+        EXPECT_EQ(opponentRight->item, ITEM_NONE);
     }
 }
 #endif
@@ -667,15 +745,45 @@ DOUBLE_BATTLE_TEST("Symbiosis transfers its item to an ally after it consumes a 
         OPPONENT(SPECIES_WOBBUFFET);
         OPPONENT(SPECIES_WOBBUFFET);
     } WHEN {
-        TURN { MOVE(opponentLeft, MOVE_TACKLE, target: playerLeft); }
+        TURN { MOVE(opponentLeft, MOVE_SCRATCH, target: playerLeft); }
     } SCENE {
         ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_BERRY, playerLeft);
-        ANIMATION(ANIM_TYPE_MOVE, MOVE_TACKLE, opponentLeft);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_SCRATCH, opponentLeft);
         ABILITY_POPUP(playerRight, ABILITY_SYMBIOSIS);
         STATUS_ICON(playerLeft, STATUS1_TOXIC_POISON);
     } THEN {
         EXPECT_EQ(playerLeft->items[1], ITEM_TOXIC_ORB);
         EXPECT_EQ(playerRight->items[1], ITEM_NONE);
+    }
+}
+
+
+DOUBLE_BATTLE_TEST("A spread move does not consume items received through Symbiosis as resistance Berries (Items)")
+{
+    GIVEN {
+        ASSUME(GetMoveTarget(MOVE_EARTHQUAKE) == TARGET_FOES_AND_ALLY);
+        ASSUME(GetMoveType(MOVE_EARTHQUAKE) == TYPE_GROUND);
+        ASSUME(GetItemHoldEffect(ITEM_SHUCA_BERRY) == HOLD_EFFECT_RESIST_BERRY);
+        ASSUME(GetItemHoldEffectParam(ITEM_SHUCA_BERRY) == TYPE_GROUND);
+        PLAYER(SPECIES_ORANGURU) { Ability(ABILITY_SYMBIOSIS); Items(ITEM_PECHA_BERRY, ITEM_POTION); }
+        PLAYER(SPECIES_PIKACHU) { Items(ITEM_PECHA_BERRY, ITEM_SHUCA_BERRY); }
+        OPPONENT(SPECIES_PIKACHU) { Items(ITEM_PECHA_BERRY, ITEM_SHUCA_BERRY); }
+        OPPONENT(SPECIES_ORANGURU) { Ability(ABILITY_SYMBIOSIS); Items(ITEM_PECHA_BERRY, ITEM_POTION); }
+    } WHEN {
+        TURN { MOVE(playerLeft, MOVE_EARTHQUAKE); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_BERRY, playerRight);
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_BERRY, opponentLeft);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_EARTHQUAKE, playerLeft);
+        ABILITY_POPUP(opponentRight, ABILITY_SYMBIOSIS);
+        NOT ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_BERRY, opponentLeft);
+        ABILITY_POPUP(playerLeft, ABILITY_SYMBIOSIS);
+        NOT ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_BERRY, playerRight);
+    } THEN {
+        EXPECT_EQ(playerLeft->items[1], ITEM_NONE);
+        EXPECT_EQ(playerRight->items[1], ITEM_POTION);
+        EXPECT_EQ(opponentLeft->items[1], ITEM_POTION);
+        EXPECT_EQ(opponentRight->items[1], ITEM_NONE);
     }
 }
 
@@ -792,6 +900,30 @@ DOUBLE_BATTLE_TEST("Symbiosis triggers after an ally's Cheek Pouch activates (It
     } THEN {
         EXPECT_EQ(playerLeft->items[1], ITEM_POTION);
         EXPECT_EQ(playerRight->items[1], ITEM_NONE);
+    }
+}
+
+DOUBLE_BATTLE_TEST("Opposing Symbiosis ignores the player's stolen-item record (Items)")
+{
+    GIVEN {
+        ASSUME(GetMoveEffect(MOVE_KNOCK_OFF) == EFFECT_KNOCK_OFF);
+        ASSUME(GetMoveEffect(MOVE_TRICK_ROOM) == EFFECT_TRICK_ROOM);
+        ASSUME(GetItemHoldEffect(ITEM_ROOM_SERVICE) == HOLD_EFFECT_ROOM_SERVICE);
+        PLAYER(SPECIES_WOBBUFFET) { Item(ITEM_LEFTOVERS); }
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET) { Item(ITEM_ROOM_SERVICE); }
+        OPPONENT(SPECIES_ORANGURU) { Ability(ABILITY_SYMBIOSIS); Items(ITEM_PECHA_BERRY, ITEM_POTION); }
+    } WHEN {
+        TURN { MOVE(opponentLeft, MOVE_KNOCK_OFF, target: playerLeft); }
+        TURN { MOVE(playerRight, MOVE_TRICK_ROOM); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_KNOCK_OFF, opponentLeft);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_TRICK_ROOM, playerRight);
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_EFFECT, opponentLeft);
+        ABILITY_POPUP(opponentRight, ABILITY_SYMBIOSIS);
+    } THEN {
+        EXPECT_EQ(opponentLeft->items[1], ITEM_POTION);
+        EXPECT_EQ(opponentRight->items[1], ITEM_NONE);
     }
 }
 #endif

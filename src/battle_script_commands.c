@@ -1580,7 +1580,7 @@ u32 GetBattlerRawSpeedOrder(enum BattlerId battler)
 }
 
 // battlerStealer steals the item of itemBattler
-void StealTargetItem(enum BattlerId battlerStealer, enum BattlerId itemBattler, u8 slot, enum Item itemOverride)
+void StealTargetItem(enum BattlerId battlerStealer, enum BattlerId itemBattler, enum Item itemOverride, u8 slot)
 {
     if (itemOverride)
     {
@@ -2134,6 +2134,19 @@ static bool32 BattleTypeAllowsExp(void)
         return FALSE;
     else
         return TRUE;
+}
+
+static enum BattlerId GetBattlerFromPlayerPartyId(u32 partyId)
+{
+    if (gBattlerPartyIndexes[B_BATTLER_0] == partyId && !(gAbsentBattlerFlags & 1))
+        return B_BATTLER_0;
+    if (!IsDoubleBattle())
+        return MAX_BATTLERS_COUNT;
+    if (!BattlerIsPlayer(B_BATTLER_2))
+        return MAX_BATTLERS_COUNT;
+    if (gBattlerPartyIndexes[B_BATTLER_2] == partyId && !(gAbsentBattlerFlags & 4))
+        return B_BATTLER_2;
+    return MAX_BATTLERS_COUNT;
 }
 
 static void Cmd_getexp(void)
@@ -4191,7 +4204,7 @@ static void ResetValuesForCalledMove(void)
         gBattleStruct->eventState.atkCanceler = CANCELER_VOLATILE_BLOCKED;
     gBattleScripting.animTurn = 0;
     gBattleScripting.animTargetsHit = 0;
-    SetTypeBeforeUsingMove(gCurrentMove, gBattlerAttacker, GetBattlerAbility(gBattlerAttacker), GetBattlerHoldEffect(gBattlerAttacker));
+    SetTypeBeforeUsingMove(gCurrentMove, gBattlerAttacker);
     ClearDamageCalcResults();
 }
 
@@ -9388,9 +9401,9 @@ void BS_TrySymbiosis(void)
         for (i = 0; i < MAX_MON_ITEMS; i++)
         {
             if(gBattleMons[battler].items[i] == ITEM_NONE
-            && gBattleMons[BATTLE_PARTNER(battler)].items[i] != ITEM_NONE
-            && CanBattlerGetOrLoseItem(battler, partner, gBattleMons[BATTLE_PARTNER(battler)].items[i])
-            && CanBattlerGetOrLoseItem(partner, battler, gBattleMons[BATTLE_PARTNER(battler)].items[i]))
+            && gBattleMons[GetPartnerBattler(battler)].items[i] != ITEM_NONE
+            && CanBattlerGetOrLoseItem(battler, partner, gBattleMons[GetPartnerBattler(battler)].items[i])
+            && CanBattlerGetOrLoseItem(partner, battler, gBattleMons[GetPartnerBattler(battler)].items[i]))
             {
                 if (targetableSlots[0] != MAX_MON_ITEMS)
                     index++;
@@ -11230,8 +11243,6 @@ void BS_SwitchinAbilities(void)
 void BS_EffectsAfterFormChange(void)
 {
     NATIVE_ARGS();
-
-    struct BattleCalcValues cv = {0};
 
     for (enum BattlerId battler = 0; battler < gBattlersCount; battler++)
     {

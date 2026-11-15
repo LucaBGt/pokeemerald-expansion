@@ -152,8 +152,8 @@ DOUBLE_BATTLE_TEST("Moxie/Chilling Neigh does not increase damage done by the sa
 #if MAX_MON_TRAITS > 1
 DOUBLE_BATTLE_TEST("Moxie/Chilling Neigh raises Attack by one stage after directly causing a Pokemon to faint (Traits)")
 {
-    u32 species = 0, abilityPopUp = 0;
-    enum Ability ability = ABILITY_NONE;
+    enum Species species = SPECIES_NONE;
+    enum Ability ability = ABILITY_NONE, abilityPopUp = ABILITY_NONE;
     PARAMETRIZE { species = SPECIES_SALAMENCE;   ability = ABILITY_MOXIE;            abilityPopUp = ABILITY_MOXIE;          }
     PARAMETRIZE { species = SPECIES_GLASTRIER;   ability = ABILITY_CHILLING_NEIGH;   abilityPopUp = ABILITY_CHILLING_NEIGH; }
     PARAMETRIZE { species = SPECIES_CALYREX_ICE; ability = ABILITY_AS_ONE_ICE_RIDER; abilityPopUp = ABILITY_CHILLING_NEIGH; }
@@ -186,8 +186,8 @@ DOUBLE_BATTLE_TEST("Moxie/Chilling Neigh raises Attack by one stage after direct
 
 DOUBLE_BATTLE_TEST("Moxie/Chilling Neigh does not trigger if Pokemon faint to indirect damage or damage from other Pokemon (Traits)")
 {
-    u32 species = 0, abilityPopUp = 0;
-    enum Ability ability = ABILITY_NONE;
+    enum Species species = SPECIES_NONE;
+    enum Ability ability = ABILITY_NONE, abilityPopUp = ABILITY_NONE;
     PARAMETRIZE { species = SPECIES_SALAMENCE;   ability = ABILITY_MOXIE;            abilityPopUp = ABILITY_MOXIE;          }
     PARAMETRIZE { species = SPECIES_GLASTRIER;   ability = ABILITY_CHILLING_NEIGH;   abilityPopUp = ABILITY_CHILLING_NEIGH; }
     PARAMETRIZE { species = SPECIES_CALYREX_ICE; ability = ABILITY_AS_ONE_ICE_RIDER; abilityPopUp = ABILITY_CHILLING_NEIGH; }
@@ -224,8 +224,8 @@ DOUBLE_BATTLE_TEST("Moxie/Chilling Neigh does not trigger if Pokemon faint to in
 
 SINGLE_BATTLE_TEST("Moxie/Chilling Neigh does not trigger when already at maximum Attack stage (Traits)")
 {
-    u32 species = 0, abilityPopUp = 0;
-    enum Ability ability = ABILITY_NONE;
+    enum Species species = SPECIES_NONE;
+    enum Ability ability = ABILITY_NONE, abilityPopUp = ABILITY_NONE;
     PARAMETRIZE { species = SPECIES_SALAMENCE;   ability = ABILITY_MOXIE;            abilityPopUp = ABILITY_MOXIE;          }
     PARAMETRIZE { species = SPECIES_GLASTRIER;   ability = ABILITY_CHILLING_NEIGH;   abilityPopUp = ABILITY_CHILLING_NEIGH; }
     PARAMETRIZE { species = SPECIES_CALYREX_ICE; ability = ABILITY_AS_ONE_ICE_RIDER; abilityPopUp = ABILITY_CHILLING_NEIGH; }
@@ -263,8 +263,8 @@ SINGLE_BATTLE_TEST("Moxie/Chilling Neigh does not trigger when already at maximu
 DOUBLE_BATTLE_TEST("Moxie/Chilling Neigh does not increase damage done by the same move that causes another Pokemon to faint (Traits)")
 {
     s16 damage[2];
-    u32 species = 0, abilityPopUp = 0;
-    enum Ability ability = ABILITY_NONE;
+    enum Species species = SPECIES_NONE;
+    enum Ability ability = ABILITY_NONE, abilityPopUp = ABILITY_NONE;
     PARAMETRIZE { species = SPECIES_SALAMENCE;   ability = ABILITY_MOXIE;            abilityPopUp = ABILITY_MOXIE;          }
     PARAMETRIZE { species = SPECIES_GLASTRIER;   ability = ABILITY_CHILLING_NEIGH;   abilityPopUp = ABILITY_CHILLING_NEIGH; }
     PARAMETRIZE { species = SPECIES_CALYREX_ICE; ability = ABILITY_AS_ONE_ICE_RIDER; abilityPopUp = ABILITY_CHILLING_NEIGH; }

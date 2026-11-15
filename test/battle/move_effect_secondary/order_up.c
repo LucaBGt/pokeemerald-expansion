@@ -182,7 +182,7 @@ DOUBLE_BATTLE_TEST("Order Up is always boosted by Sheer Force", s16 damage)
 #if MAX_MON_TRAITS > 1
 DOUBLE_BATTLE_TEST("Order Up increases a stat based on Tatsugiri's form (Traits)")
 {
-    u32 species = 0;
+    enum Species species = SPECIES_NONE;
     PARAMETRIZE { species = SPECIES_TATSUGIRI_CURLY; }
     PARAMETRIZE { species = SPECIES_TATSUGIRI_DROOPY; }
     PARAMETRIZE { species = SPECIES_TATSUGIRI_STRETCHY; }
@@ -211,6 +211,8 @@ DOUBLE_BATTLE_TEST("Order Up increases a stat based on Tatsugiri's form (Traits)
         case SPECIES_TATSUGIRI_STRETCHY:
             MESSAGE("Dondozo's Speed rose!");
             break;
+        default:
+            break;
         }
     } THEN {
         switch (species)
@@ -224,13 +226,15 @@ DOUBLE_BATTLE_TEST("Order Up increases a stat based on Tatsugiri's form (Traits)
         case SPECIES_TATSUGIRI_STRETCHY:
             EXPECT_EQ(playerRight->statStages[STAT_SPEED], DEFAULT_STAT_STAGE + 1);
             break;
+        default:
+            break;
         }
     }
 }
 
 DOUBLE_BATTLE_TEST("Order Up increases a stat based on Tatsugiri's form even if Tatsugiri fainted inside Dondozo (Traits)")
 {
-    u32 species = 0;
+    enum Species species = SPECIES_NONE;
     PARAMETRIZE { species = SPECIES_TATSUGIRI_CURLY; }
     PARAMETRIZE { species = SPECIES_TATSUGIRI_DROOPY; }
     PARAMETRIZE { species = SPECIES_TATSUGIRI_STRETCHY; }
@@ -263,6 +267,8 @@ DOUBLE_BATTLE_TEST("Order Up increases a stat based on Tatsugiri's form even if 
         case SPECIES_TATSUGIRI_STRETCHY:
             MESSAGE("Dondozo's Speed rose!");
             break;
+        default:
+            break;
         }
     } THEN {
         switch (species)
@@ -275,6 +281,8 @@ DOUBLE_BATTLE_TEST("Order Up increases a stat based on Tatsugiri's form even if 
             break;
         case SPECIES_TATSUGIRI_STRETCHY:
             EXPECT_EQ(playerRight->statStages[STAT_SPEED], DEFAULT_STAT_STAGE + 1);
+            break;
+        default:
             break;
         }
     }

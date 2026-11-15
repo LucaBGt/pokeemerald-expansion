@@ -35,3 +35,33 @@ SINGLE_BATTLE_TEST("Smooth Rock extends sandstorm created by Sandstorm to 8 turn
         MESSAGE("The sandstorm subsided.");
     }
 }
+
+#if MAX_MON_ITEMS > 1
+SINGLE_BATTLE_TEST("Smooth Rock extends sandstorm created by Sandstorm to 8 turns (Items)")
+{
+    GIVEN {
+        PLAYER(SPECIES_SANDSLASH) { Items(ITEM_PECHA_BERRY, ITEM_SMOOTH_ROCK); }
+        OPPONENT(SPECIES_SANDSLASH);
+    } WHEN {
+        TURN { MOVE(player, MOVE_SANDSTORM); }
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_SANDSTORM, player);
+        MESSAGE("A sandstorm kicked up!");
+        MESSAGE("The sandstorm is raging.");
+        MESSAGE("The sandstorm is raging.");
+        MESSAGE("The sandstorm is raging.");
+        MESSAGE("The sandstorm is raging.");
+        MESSAGE("The sandstorm is raging.");
+        MESSAGE("The sandstorm is raging.");
+        MESSAGE("The sandstorm is raging.");
+        MESSAGE("The sandstorm subsided.");
+    }
+}
+#endif

@@ -235,6 +235,24 @@ DOUBLE_BATTLE_TEST("White Herb is correctly displayed")
     }
 }
 
+SINGLE_BATTLE_TEST("White Herb activates after a Mega Evolution")
+{
+    GIVEN {
+        PLAYER(SPECIES_MANECTRIC) { Item(ITEM_MANECTITE); }
+        OPPONENT(SPECIES_WOBBUFFET) { Item(ITEM_WHITE_HERB); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_CELEBRATE, gimmick: GIMMICK_MEGA); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_MEGA_EVOLUTION, player);
+        ABILITY_POPUP(player, ABILITY_INTIMIDATE);
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, opponent);
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_EFFECT, opponent);
+    } THEN {
+        EXPECT(opponent->item == ITEM_NONE);
+        EXPECT_EQ(opponent->statStages[STAT_ATK], DEFAULT_STAT_STAGE);
+    }
+}
+
 #if MAX_MON_TRAITS > 1
 SINGLE_BATTLE_TEST("White Herb restores stats after Attack was lowered by Intimidate in singles (Traits)")
 {
@@ -308,7 +326,7 @@ SINGLE_BATTLE_TEST("White Herb restores stats after Attack was lowered by Intimi
 
 SINGLE_BATTLE_TEST("White Herb restores stats after all hits of a multi hit move happened (Traits)")
 {
-    u16 species;
+    enum Species species;
     enum Ability ability;
 
     PARAMETRIZE { species = SPECIES_SLIGGOO_HISUI; ability = ABILITY_GOOEY; }
@@ -398,7 +416,7 @@ SINGLE_BATTLE_TEST("White Herb wont have time to activate if Magician steals it 
 
 SINGLE_BATTLE_TEST("White Herb has correct interactions with Intimidate triggered Defiant and Competitive (Traits)")
 {
-    u16 species;
+    enum Species species;
     enum Ability ability;
 
     PARAMETRIZE { species = SPECIES_IGGLYBUFF; ability = ABILITY_COMPETITIVE; }
@@ -521,7 +539,7 @@ SINGLE_BATTLE_TEST("White Herb restores stats after Attack was lowered by Intimi
 
 SINGLE_BATTLE_TEST("White Herb restores stats after all hits of a multi hit move happened (Items)")
 {
-    u16 species;
+    enum Species species;
     enum Ability ability;
 
     PARAMETRIZE { species = SPECIES_SLIGGOO_HISUI; ability = ABILITY_GOOEY; }
@@ -611,7 +629,7 @@ SINGLE_BATTLE_TEST("White Herb wont have time to activate if Magician steals it 
 
 SINGLE_BATTLE_TEST("White Herb has correct interactions with Intimidate triggered Defiant and Competitive (Items)")
 {
-    u16 species;
+    enum Species species;
     enum Ability ability;
 
     PARAMETRIZE { species = SPECIES_IGGLYBUFF; ability = ABILITY_COMPETITIVE; }
@@ -657,6 +675,24 @@ DOUBLE_BATTLE_TEST("White Herb is correctly displayed (Items)")
     } THEN {
         EXPECT(playerLeft->items[1]== ITEM_NONE);
         EXPECT(playerLeft->statStages[STAT_DEF] = DEFAULT_STAT_STAGE);
+    }
+}
+
+SINGLE_BATTLE_TEST("White Herb activates after a Mega Evolution (Items)")
+{
+    GIVEN {
+        PLAYER(SPECIES_MANECTRIC) { Items(ITEM_PECHA_BERRY, ITEM_MANECTITE); }
+        OPPONENT(SPECIES_WOBBUFFET) { Items(ITEM_PECHA_BERRY, ITEM_WHITE_HERB); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_CELEBRATE, gimmick: GIMMICK_MEGA); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_MEGA_EVOLUTION, player);
+        ABILITY_POPUP(player, ABILITY_INTIMIDATE);
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, opponent);
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_EFFECT, opponent);
+    } THEN {
+        EXPECT(opponent->items[1] == ITEM_NONE);
+        EXPECT_EQ(opponent->statStages[STAT_ATK], DEFAULT_STAT_STAGE);
     }
 }
 #endif

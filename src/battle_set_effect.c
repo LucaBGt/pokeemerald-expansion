@@ -34,15 +34,13 @@ static void HandleSetEffectNone(struct BattleCalcValues *cv, struct SetEffect *s
 
 static void HandleSetEffectNonVolatile(struct BattleCalcValues *cv, struct SetEffect *se)
 {
-    if (IsSafeguardProtected(cv->battlerAtk, se->effectBattler, cv->abilities[cv->battlerAtk]) && !se->primary)
+    if (IsSafeguardProtected(cv->battlerAtk, se->effectBattler) && !se->primary)
     {
         gBattlescriptCurrInstr = se->script;
     }
     else if (CanSetNonVolatileStatus(
                 cv->battlerAtk,
                 se->effectBattler,
-                cv->abilities[cv->battlerAtk],
-                cv->abilities[se->effectBattler],
                 se->moveEffect,
                 CHECK_TRIGGER))
     {
@@ -70,7 +68,7 @@ static void HandleSetEffectConfusion(struct BattleCalcValues *cv, struct SetEffe
 
 static void HandleSetEffectFlinch(struct BattleCalcValues *cv, struct SetEffect *se)
 {
-    if (cv->abilities[se->effectBattler] == ABILITY_INNER_FOCUS)
+    if (BattlerHasTrait(se->effectBattler, ABILITY_INNER_FOCUS))
     {
         if (se->primary || se->certain)
         {
@@ -118,7 +116,7 @@ static void HandleSetEffectAbsorb(struct BattleCalcValues *cv, struct SetEffect 
         gEffectBattler = cv->battlerAtk;
         gBattlerAbility = gBattleScripting.battler = cv->battlerDef;
 
-        if (cv->abilities[cv->battlerDef] == ABILITY_LIQUID_OOZE
+        if (BattlerHasTrait(cv->battlerDef, ABILITY_LIQUID_OOZE)
          && (GetMoveEffect(cv->move)!= EFFECT_DREAM_EATER || GetConfig(B_DREAM_EATER_LIQUID_OOZE) >= GEN_5))
         {
             SetPassiveDamageAmount(cv->battlerAtk, healAmount);
@@ -214,7 +212,7 @@ static void HandleSetEffectWrap(struct BattleCalcValues *cv, struct SetEffect *s
     }
     else
     {
-        SetWrapTurns(se->effectBattler, GetBattlerHoldEffect(cv->battlerAtk));
+        SetWrapTurns(se->effectBattler);
         gBattleMons[se->effectBattler].volatiles.wrapped = TRUE;
         gBattleMons[se->effectBattler].volatiles.wrappedMove = cv->move;
         gBattleMons[se->effectBattler].volatiles.wrappedBy = cv->battlerAtk;
@@ -309,7 +307,7 @@ static void HandleSetEffectRemoveStatus(struct BattleCalcValues *cv, struct SetE
 {
     u32 argStatus = GetMoveEffectArg_Status(gCurrentMove); // TODO: use the arg field in move effect
     if ((gBattleMons[se->effectBattler].status1 & argStatus)
-     && (NumAffectedSpreadMoveTargets() > 1 || !IsMoveEffectBlockedByTarget(cv->abilities[se->effectBattler])))
+     && (NumAffectedSpreadMoveTargets() > 1 || !IsMoveEffectBlockedByTarget(se->effectBattler)))
     {
         gBattleScripting.battler = se->effectBattler;
         gBattleMons[se->effectBattler].status1 &= ~(argStatus);
@@ -449,17 +447,33 @@ static void HandleSetEffectThroatChop(struct BattleCalcValues *cv, struct SetEff
 
 static void HandleSetEffectIncinerate(struct BattleCalcValues *cv, struct SetEffect *se)
 {
-    if (cv->abilities[se->effectBattler] == ABILITY_STICKY_HOLD)
-        return;
+    u32 i, slot, targetableSlots[MAX_MON_ITEMS];
+    u32 index = 0;
 
-    if (gItemsInfo[gBattleMons[se->effectBattler].item].pocket == POCKET_BERRIES
-     || (B_INCINERATE_GEMS >= GEN_6 && GetItemHoldEffect(gBattleMons[se->effectBattler].item) == HOLD_EFFECT_GEMS))
+    targetableSlots[0] = MAX_MON_ITEMS; // Invalid value for first slot if no valid slots found
+
+    if (BattlerHasTrait(se->effectBattler, ABILITY_STICKY_HOLD))
+    return;
+
+    for (i = 0; i < MAX_MON_ITEMS; i++)
     {
-        gLastUsedItem = gBattleMons[se->effectBattler].item;
-        gBattleMons[se->effectBattler].item = ITEM_NONE;
+        if (((gItemsInfo[gBattleMons[se->effectBattler].items[i]].pocket == POCKET_BERRIES) //Gather all valid item slots
+            || (B_INCINERATE_GEMS >= GEN_6 && GetItemHoldEffect(gBattleMons[se->effectBattler].items[i]) == HOLD_EFFECT_GEMS)))
+    {
+            if (targetableSlots[0] != MAX_MON_ITEMS)
+                index++;
+            targetableSlots[index] = i;
+        }
+    }
+
+    if (targetableSlots[0] != MAX_MON_ITEMS)
+    {
+        slot = gLastItemSlot = GetSlot(targetableSlots, index);
+        gLastUsedItem = gBattleMons[se->effectBattler].items[slot];
+        gBattleMons[se->effectBattler].items[slot] = ITEM_NONE;
         CheckSetUnburden(se->effectBattler);
 
-        BtlController_EmitSetMonData(se->effectBattler, B_COMM_TO_CONTROLLER, REQUEST_HELDITEM_BATTLE, 0, sizeof(gBattleMons[se->effectBattler].item), &gBattleMons[se->effectBattler].item);
+        BtlController_EmitSetMonData(se->effectBattler, B_COMM_TO_CONTROLLER, REQUEST_HELDITEM_BATTLE + slot, 0, sizeof(gBattleMons[se->effectBattler].items[slot]), &gBattleMons[se->effectBattler].items[slot]);
         MarkBattlerForControllerExec(se->effectBattler);
         BattleScriptPush(se->script);
         gBattlescriptCurrInstr = BattleScript_MoveEffectIncinerate;
@@ -468,23 +482,46 @@ static void HandleSetEffectIncinerate(struct BattleCalcValues *cv, struct SetEff
 
 static void HandleSetEffectBugBite(struct BattleCalcValues *cv, struct SetEffect *se)
 {
-    if (GetBattlerHoldEffect(se->effectBattler) == HOLD_EFFECT_JABOCA_BERRY || gSpecialStatuses[se->effectBattler].berryReduced)
+    u32 slot, i, targetableSlots[MAX_MON_ITEMS];
+    u32 index = 0;
+
+    targetableSlots[0] = MAX_MON_ITEMS; // Invalid value for first slot if no valid slots found
+
+
+    if (BattlerHasHoldItemEffect(se->effectBattler, HOLD_EFFECT_JABOCA_BERRY, TRUE) || gSpecialStatuses[se->effectBattler].berryReduced)
     {
         // jaboca berry / resist berries trigger instead of being stolen
+        // Gets riority over other berries and trigger first regardless of slot (Multi)
         gBattlescriptCurrInstr = se->script;
     }
-    else if (GetItemPocket(gBattleMons[se->effectBattler].item) == POCKET_BERRIES
-        && cv->abilities[se->effectBattler] != ABILITY_STICKY_HOLD)
+    else
     {
-        // target loses their berry
-        gLastUsedItem = gBattleMons[se->effectBattler].item;
-        gBattleMons[se->effectBattler].item = ITEM_NONE;
-        CheckSetUnburden(se->effectBattler);
+        if (!BattlerHasTrait(se->effectBattler, ABILITY_STICKY_HOLD))
+        {
+            for (i = 0; i < MAX_MON_ITEMS; i++)
+            {
+                if (GetItemPocket(gBattleMons[se->effectBattler].items[i]) == POCKET_BERRIES) //Gather all berry item slots
+                {
+                    if (targetableSlots[0] != MAX_MON_ITEMS)
+                        index++;
+                    targetableSlots[index] = i;
+                }
+            }
+        }
 
-        BtlController_EmitSetMonData(se->effectBattler, B_COMM_TO_CONTROLLER, REQUEST_HELDITEM_BATTLE, 0, sizeof(gBattleMons[se->effectBattler].item), &gBattleMons[se->effectBattler].item);
-        MarkBattlerForControllerExec(se->effectBattler);
-        BattleScriptPush(se->script);
-        gBattlescriptCurrInstr = BattleScript_MoveEffectBugBite;
+        if (targetableSlots[0] != MAX_MON_ITEMS)
+        {
+            slot = gLastItemSlot = GetSlot(targetableSlots, index);
+            // target loses their berry
+            gLastUsedItem = gBattleMons[se->effectBattler].items[slot];
+            gBattleMons[se->effectBattler].items[slot] = ITEM_NONE;
+            CheckSetUnburden(se->effectBattler);
+
+            BtlController_EmitSetMonData(se->effectBattler, B_COMM_TO_CONTROLLER, REQUEST_HELDITEM_BATTLE + slot, 0, sizeof(gBattleMons[se->effectBattler].items[slot]), &gBattleMons[se->effectBattler].items[slot]);
+            MarkBattlerForControllerExec(se->effectBattler);
+            BattleScriptPush(se->script);
+            gBattlescriptCurrInstr = BattleScript_MoveEffectBugBite;
+        }
     }
 }
 
@@ -803,7 +840,7 @@ static void HandleSetEffectEerieSpell(struct BattleCalcValues *cv, struct SetEff
 
 static void HandleSetEffectFling(struct BattleCalcValues *cv, struct SetEffect *se)
 {
-    if (CanFling(cv->battlerAtk, cv->abilities[cv->battlerAtk]) || gBattleStruct->flungItem == FLUNG_ITEM_REMOVED)
+    if (CanFling(cv->battlerAtk) || gBattleStruct->flungItem == FLUNG_ITEM_REMOVED)
     {
         enum Item item = ITEM_NONE;
 
@@ -822,7 +859,7 @@ static void HandleSetEffectFling(struct BattleCalcValues *cv, struct SetEffect *
 
         enum HoldEffect holdEffect = GetItemHoldEffect(item);
 
-        if (IsMoveEffectBlockedByTarget(cv->abilities[se->effectBattler]))
+        if (IsMoveEffectBlockedByTarget(se->effectBattler))
         {
             BattleScriptPush(se->script);
             gBattlescriptCurrInstr = BattleScript_FlingBlockedByShieldDust;
@@ -870,7 +907,7 @@ static void HandleSetEffectFling(struct BattleCalcValues *cv, struct SetEffect *
             break;
         case HOLD_EFFECT_MENTAL_HERB:
         case HOLD_EFFECT_WHITE_HERB:
-            ItemBattleEffects(se->effectBattler, 0, holdEffect, IsOnFlingActivation);
+            ItemBattleEffects(se->effectBattler, 0, IsOnFlingActivation);
             break;
         default:
             break;
@@ -1055,10 +1092,13 @@ static void HandleSetEffectAuroraVeil(struct BattleCalcValues *cv, struct SetEff
     if (!(gSideStatuses[side] & SIDE_STATUS_AURORA_VEIL))
     {
         gSideStatuses[side] |= SIDE_STATUS_AURORA_VEIL;
-        if (GetBattlerHoldEffect(se->effectBattler) == HOLD_EFFECT_LIGHT_CLAY)
-            gSideTimers[side].auroraVeilTimer = 8;
-        else
-            gSideTimers[side].auroraVeilTimer = 5;
+        gSideTimers[side].auroraVeilTimer = 5;
+        for (u32 i = 0; i < MAX_MON_ITEMS; i++)
+        {
+            if (GetSlotHoldItemEffect(se->effectBattler, i, TRUE) == HOLD_EFFECT_LIGHT_CLAY
+                && (gSideTimers[GetBattlerSide(se->effectBattler)].auroraVeilTimer == 5 || GetConfig(B_ALLOW_HELD_DUPES)))
+                gSideTimers[GetBattlerSide(se->effectBattler)].auroraVeilTimer += 3;
+        }
         gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_SET_AURORA_VEIL;
         BattleScriptPush(se->script);
         gBattlescriptCurrInstr = BattleScript_MoveEffectScreens;
@@ -1133,7 +1173,7 @@ static void HandleSetEffectGravity(struct BattleCalcValues *cv, struct SetEffect
 static void HandleSetEffectYawnFoe(struct BattleCalcValues *cv, struct SetEffect *se)
 {
     if (gBattleMons[se->effectBattler].volatiles.yawn == 0
-     && CanBeSlept(cv->battlerAtk, se->effectBattler, cv->abilities[se->effectBattler], BLOCKED_BY_SLEEP_CLAUSE)
+     && CanBeSlept(cv->battlerAtk, se->effectBattler, BLOCKED_BY_SLEEP_CLAUSE)
      && RandomPercentage(RNG_G_MAX_SNOOZE, 50))
     {
         gBattleMons[se->effectBattler].volatiles.yawn = 2;
@@ -1190,7 +1230,7 @@ static void HandleSetEffectFireSpinSide(struct BattleCalcValues *cv, struct SetE
         if (!gBattleMons[battler].volatiles.wrapped)
         {
             gBattleMons[battler].volatiles.wrapped = TRUE;
-            SetWrapTurns(battler, GetBattlerHoldEffect(cv->battlerAtk));
+            SetWrapTurns(battler);
             // The Wrap effect does not expire when the user switches, so here's some cheese.
             gBattleMons[battler].volatiles.wrappedBy = se->effectBattler;
             gBattleMons[battler].volatiles.wrappedMove = MOVE_FIRE_SPIN;
@@ -1208,7 +1248,7 @@ static void HandleSetEffectSandblastSide(struct BattleCalcValues *cv, struct Set
         if (!gBattleMons[battler].volatiles.wrapped)
         {
             gBattleMons[battler].volatiles.wrapped = TRUE;
-            SetWrapTurns(battler, GetBattlerHoldEffect(cv->battlerAtk));
+            SetWrapTurns(battler);
             // The Wrap effect does not expire when the user switches, so here's some cheese.
             gBattleMons[battler].volatiles.wrappedBy = se->effectBattler;
             gBattleMons[battler].volatiles.wrappedMove = MOVE_SAND_TOMB;
@@ -1432,11 +1472,11 @@ void SetMoveEffect(struct BattleCalcValues *cv, struct SetEffect *se)
     gBattleScripting.battler = cv->battlerAtk;
     gEffectBattler = se->effectBattler;
 
-    if (!se->primary && !affectsUser && IsMoveEffectBlockedByTarget(cv->abilities[se->effectBattler]))
+    if (!se->primary && !affectsUser && IsMoveEffectBlockedByTarget(se->effectBattler))
         se->moveEffect = MOVE_EFFECT_NONE;
     else if (!se->primary
           && !se->bypassSheerForce
-          && IsSheerForceAffected(cv->move, cv->abilities[cv->battlerAtk])
+          && IsSheerForceAffected(cv->move, cv->battlerAtk)
           && !(se->moveEffect == MOVE_EFFECT_ORDER_UP && gBattleStruct->battlerState[cv->battlerAtk].commanderSpecies != SPECIES_NONE))
         se->moveEffect = MOVE_EFFECT_NONE;
     else if (!IsBattlerAlive(se->effectBattler) && !IgnoreTargetingForMoveEffect(se->moveEffect))
@@ -1455,12 +1495,6 @@ void SetMoveEffectHelper(enum BattlerId battlerAtk, enum BattlerId effectBattler
     cv.battlerAtk = battlerAtk;
     cv.battlerDef = gBattlerTarget;
     cv.move = gCurrentMove; // Should be set to None eventually. When Cmd_seteffectprimary is gone
-
-    for (enum BattlerId battler = B_BATTLER_0; battler < gBattlersCount; battler++)
-    {
-        cv.abilities[battler] = GetBattlerAbility(battler);
-        cv.holdEffects[battler] = GetBattlerHoldEffect(battler);
-    }
 
     struct SetEffect se = {0};
     se.moveEffect = moveEffect;

@@ -240,6 +240,8 @@ AI_SINGLE_BATTLE_TEST("AI uses the best Z-Moves.")
 
 TO_DO_BATTLE_TEST("TODO: AI uses Z-Moves -- Z-Trick Room")
 
+TO_DO_BATTLE_TEST("TODO: AI uses Z-Moves -- Z-Trick Room")
+
 #if MAX_MON_TRAITS > 1
 AI_SINGLE_BATTLE_TEST("AI uses Z-Moves -- Z-Conversion (Traits)")
 {
@@ -295,7 +297,8 @@ AI_SINGLE_BATTLE_TEST("AI uses Z-Moves -- conserves Z-move if target will faint 
 
 AI_SINGLE_BATTLE_TEST("AI uses Z-Moves to ensure a low-accuracy KO. (Items)")
 {
-    u32 species, ability;
+    enum Species species;
+    enum Ability ability;
     PARAMETRIZE { species = SPECIES_TORKOAL; ability = ABILITY_DROUGHT; }
     PARAMETRIZE { species = SPECIES_PELIPPER; ability = ABILITY_DRIZZLE; }
     GIVEN {

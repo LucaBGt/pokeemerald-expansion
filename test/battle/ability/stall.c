@@ -105,7 +105,7 @@ SINGLE_BATTLE_TEST("Stall user can move before faster battlers when Quick Claw a
     PASSES_RANDOMLY(2, 10, RNG_QUICK_CLAW);
     GIVEN {
         ASSUME(gItemsInfo[ITEM_QUICK_CLAW].holdEffect == HOLD_EFFECT_QUICK_CLAW);
-        PLAYER(SPECIES_SABLEYE) { Speed(1); Ability(ABILITY_KEEN_EYE); Innates(ABILITY_STALL); Item(ITEM_QUICK_CLAW); }
+        PLAYER(SPECIES_SABLEYE) { Speed(1); Ability(ABILITY_STALL); Item(ITEM_QUICK_CLAW); }
         OPPONENT(SPECIES_WOBBUFFET) { Speed(100); }
     } WHEN {
         TURN {}

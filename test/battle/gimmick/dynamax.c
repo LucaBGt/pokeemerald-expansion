@@ -1875,13 +1875,17 @@ SINGLE_BATTLE_TEST("Dynamax: Gravity does not prevent a Max Move derived from a 
 TO_DO_BATTLE_TEST("Dynamax: Contrary inverts stat-lowering Max Moves, without showing a message")
 TO_DO_BATTLE_TEST("Dynamax: Contrary inverts stat-increasing Max Moves, without showing a message")
 
+
+TO_DO_BATTLE_TEST("Dynamax: Contrary inverts stat-lowering Max Moves, without showing a message")
+TO_DO_BATTLE_TEST("Dynamax: Contrary inverts stat-increasing Max Moves, without showing a message")
+
 #if MAX_MON_TRAITS > 1
 DOUBLE_BATTLE_TEST("Dynamax stat raising moves don't make stat-changing abilities apply to partner (Traits)")
 {
     enum Move move = MOVE_NONE;
     u32 stat = 0;
     enum Ability ability = ABILITY_NONE;
-    u32 abilityList[] = {ABILITY_CONTRARY, ABILITY_SIMPLE};
+    enum Ability abilityList[] = {ABILITY_CONTRARY, ABILITY_SIMPLE};
     for (u32 j = 0; j < 2; j++)
     {
         PARAMETRIZE { move = MOVE_PECK; stat = STAT_SPEED; ability = abilityList[j]; }
@@ -2004,7 +2008,7 @@ SINGLE_BATTLE_TEST("Dynamax: Sitrus Berries heal based on a Pokemon's non-Dynama
     } WHEN {
         TURN { MOVE(opponent, MOVE_FLING); MOVE(player, MOVE_SCRATCH, gimmick: dynamax); }
     } SCENE {
-        MESSAGE("Wobbuffet restored its health using its Sitrus Berry!");
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_BERRY, player);
         HP_BAR(player, captureDamage: &results[i].damage);
     } FINALLY {
         EXPECT_EQ(results[0].damage, results[1].damage);

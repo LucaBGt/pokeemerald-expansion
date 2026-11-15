@@ -95,6 +95,41 @@ DOUBLE_BATTLE_TEST("Kings Rock flinch chance boosted by Serene Grace does not st
 }
 
 #if MAX_MON_TRAITS > 1
+SINGLE_BATTLE_TEST("Kings Rock can flinch with a non-flinching move boosted by Sheer Force")
+{
+    PASSES_RANDOMLY(10, 100, RNG_HOLD_EFFECT_FLINCH);
+    GIVEN {
+        ASSUME(MoveIsAffectedBySheerForce(MOVE_FLARE_BLITZ));
+        ASSUME(MoveHasAdditionalEffect(MOVE_FLARE_BLITZ, MOVE_EFFECT_FLINCH) == FALSE);
+        PLAYER(SPECIES_NIDOKING) { Ability(ABILITY_RIVALRY); Innates(ABILITY_SHEER_FORCE); Item(ITEM_KINGS_ROCK); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(player, MOVE_FLARE_BLITZ); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_FLARE_BLITZ, player);
+        MESSAGE("The opposing Wobbuffet flinched and couldn't move!");
+    }
+}
+
+SINGLE_BATTLE_TEST("Kings Rock cannot flinch with a flinching move boosted by Sheer Force")
+{
+    PASSES_RANDOMLY(0, 100, RNG_HOLD_EFFECT_FLINCH);
+    GIVEN {
+        ASSUME(MoveIsAffectedBySheerForce(MOVE_BITE));
+        ASSUME(MoveHasAdditionalEffect(MOVE_BITE, MOVE_EFFECT_FLINCH));
+        PLAYER(SPECIES_NIDOKING) { Ability(ABILITY_RIVALRY); Innates(ABILITY_SHEER_FORCE); Item(ITEM_KINGS_ROCK); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN {
+            MOVE(player, MOVE_BITE, secondaryEffect: TRUE);
+            MOVE(opponent, MOVE_SCRATCH);
+        }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_BITE, player);
+        NOT ANIMATION(ANIM_TYPE_MOVE, MOVE_SCRATCH, opponent);
+    }
+}
+
 DOUBLE_BATTLE_TEST("Kings Rock flinch chance boosted by Serene Grace does not stack with rainbow (Traits)")
 {
     PASSES_RANDOMLY(20, 100, RNG_HOLD_EFFECT_FLINCH);
@@ -121,6 +156,7 @@ DOUBLE_BATTLE_TEST("Kings Rock flinch chance boosted by Serene Grace does not st
 #endif
 
 #if MAX_MON_ITEMS > 1
+
 SINGLE_BATTLE_TEST("Kings Rock holder will flinch the target 10% of the time (Items)")
 {
     PASSES_RANDOMLY(10, 100, RNG_HOLD_EFFECT_FLINCH);
@@ -147,6 +183,41 @@ SINGLE_BATTLE_TEST("Kings Rock does not increase flinch chance of a move that ha
     } SCENE {
         ANIMATION(ANIM_TYPE_MOVE, MOVE_HEADBUTT, player);
         MESSAGE("The opposing Wobbuffet flinched and couldn't move!");
+    }
+}
+
+SINGLE_BATTLE_TEST("Kings Rock can flinch with a non-flinching move boosted by Sheer Force (Items)")
+{
+    PASSES_RANDOMLY(10, 100, RNG_HOLD_EFFECT_FLINCH);
+    GIVEN {
+        ASSUME(MoveIsAffectedBySheerForce(MOVE_FLARE_BLITZ));
+        ASSUME(MoveHasAdditionalEffect(MOVE_FLARE_BLITZ, MOVE_EFFECT_FLINCH) == FALSE);
+        PLAYER(SPECIES_NIDOKING) { Ability(ABILITY_SHEER_FORCE); Items(ITEM_GREAT_BALL, ITEM_KINGS_ROCK); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(player, MOVE_FLARE_BLITZ); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_FLARE_BLITZ, player);
+        MESSAGE("The opposing Wobbuffet flinched and couldn't move!");
+    }
+}
+
+SINGLE_BATTLE_TEST("Kings Rock cannot flinch with a flinching move boosted by Sheer Force (Items)")
+{
+    PASSES_RANDOMLY(0, 100, RNG_HOLD_EFFECT_FLINCH);
+    GIVEN {
+        ASSUME(MoveIsAffectedBySheerForce(MOVE_BITE));
+        ASSUME(MoveHasAdditionalEffect(MOVE_BITE, MOVE_EFFECT_FLINCH));
+        PLAYER(SPECIES_NIDOKING) { Ability(ABILITY_SHEER_FORCE); Items(ITEM_GREAT_BALL, ITEM_KINGS_ROCK); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN {
+            MOVE(player, MOVE_BITE, secondaryEffect: TRUE);
+            MOVE(opponent, MOVE_SCRATCH);
+        }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_BITE, player);
+        NOT ANIMATION(ANIM_TYPE_MOVE, MOVE_SCRATCH, opponent);
     }
 }
 

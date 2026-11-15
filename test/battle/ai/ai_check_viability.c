@@ -709,7 +709,9 @@ AI_SINGLE_BATTLE_TEST("AI sees Shield Dust immunity to additional effects (Trait
 
 AI_DOUBLE_BATTLE_TEST("AI sees type-changing moves as the correct type (Traits)")
 {
-    u32 species, fieldStatus, ability;
+    enum Species species;
+    enum Move fieldStatus;
+    enum Ability ability;
     u64 aiFlags = AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT;
 
     PARAMETRIZE { fieldStatus = MOVE_RAIN_DANCE; species = SPECIES_PRIMARINA; ability = ABILITY_NONE; }
@@ -757,7 +759,7 @@ AI_SINGLE_BATTLE_TEST("AI uses Sparkling Aria to cure an enemy with Guts (Traits
 
 AI_DOUBLE_BATTLE_TEST("AI scores Order Up's stat boost only with Commander (Traits)")
 {
-    u32 species = SPECIES_NONE;
+    enum Species species = SPECIES_NONE;
     enum Ability ability = ABILITY_NONE;
     bool32 expectBoost = FALSE;
 

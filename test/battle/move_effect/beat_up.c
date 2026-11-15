@@ -406,7 +406,7 @@ SINGLE_BATTLE_TEST("Beat Up doesn't consider Comatose as a status (Traits)")
         ANIMATION(ANIM_TYPE_MOVE, MOVE_BEAT_UP, player);
         ANIMATION(ANIM_TYPE_MOVE, MOVE_BEAT_UP, player);
         NOT ANIMATION(ANIM_TYPE_MOVE, MOVE_BEAT_UP, player);
-        MESSAGE("The Pokémon was hit 2 time(s)!");
+        MESSAGE("The Pokémon was hit 2 times!");
     }
 }
 

@@ -121,7 +121,7 @@ SINGLE_BATTLE_TEST("Baton Pass passes Cursed status")
 SINGLE_BATTLE_TEST("Curse applies to the user if used with Protean/Libero (Traits)")
 {
     enum Ability ability;
-    u32 species;
+    enum Species species;
     PARAMETRIZE { ability = ABILITY_PROTEAN; species = SPECIES_KECLEON; }
     PARAMETRIZE { ability = ABILITY_LIBERO;  species = SPECIES_RABOOT; }
     GIVEN {

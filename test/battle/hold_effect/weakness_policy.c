@@ -33,7 +33,7 @@ TO_DO_BATTLE_TEST("TODO: Write Weakness Policy (Hold Effect) test titles")
 #if MAX_MON_ITEMS > 1
 SINGLE_BATTLE_TEST("Weakness Policy does not activate if Disguise blocks the damage (Items)")
 {
-    u32 species;
+    enum Species species;
 
     PARAMETRIZE { species = SPECIES_MIMIKYU_BUSTED; }
     PARAMETRIZE { species = SPECIES_MIMIKYU_DISGUISED; }

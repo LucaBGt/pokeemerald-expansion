@@ -175,17 +175,18 @@ SINGLE_BATTLE_TEST("Snow Warning sets up hail for 8 turns with Icy Rock (Gen6-8)
     GIVEN {
         WITH_CONFIG(B_SNOW_WARNING, GEN_8);
         WITH_CONFIG(B_ABILITY_WEATHER, GEN_6);
-        PLAYER(SPECIES_ABOMASNOW) { Moves(MOVE_CELEBRATE); Ability(ABILITY_SNOW_WARNING); Items(ITEM_PECHA_BERRY, ITEM_ICY_ROCK); }
-        OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_CELEBRATE); }
+        ASSUME(gItemsInfo[ITEM_ICY_ROCK].holdEffect == HOLD_EFFECT_ICY_ROCK);
+        PLAYER(SPECIES_ABOMASNOW) { Ability(ABILITY_SNOW_WARNING); Items(ITEM_PECHA_BERRY, ITEM_ICY_ROCK); }
+        OPPONENT(SPECIES_WOBBUFFET);
     } WHEN {
-        TURN { MOVE(player, MOVE_CELEBRATE); MOVE(opponent, MOVE_CELEBRATE); }
-        TURN { MOVE(player, MOVE_CELEBRATE); MOVE(opponent, MOVE_CELEBRATE); }
-        TURN { MOVE(player, MOVE_CELEBRATE); MOVE(opponent, MOVE_CELEBRATE); }
-        TURN { MOVE(player, MOVE_CELEBRATE); MOVE(opponent, MOVE_CELEBRATE); }
-        TURN { MOVE(player, MOVE_CELEBRATE); MOVE(opponent, MOVE_CELEBRATE); }
-        TURN { MOVE(player, MOVE_CELEBRATE); MOVE(opponent, MOVE_CELEBRATE); }
-        TURN { MOVE(player, MOVE_CELEBRATE); MOVE(opponent, MOVE_CELEBRATE); }
-        TURN { MOVE(player, MOVE_CELEBRATE); MOVE(opponent, MOVE_CELEBRATE); }
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
     } SCENE {
         ABILITY_POPUP(player, ABILITY_SNOW_WARNING);
         MESSAGE("The hail is crashing down.");
@@ -204,17 +205,18 @@ SINGLE_BATTLE_TEST("Snow Warning sets up snow for 8 turns with Icy Rock (Gen9+) 
     GIVEN {
         WITH_CONFIG(B_SNOW_WARNING, GEN_9);
         WITH_CONFIG(B_ABILITY_WEATHER, GEN_9);
-        PLAYER(SPECIES_ABOMASNOW) { Moves(MOVE_CELEBRATE); Ability(ABILITY_SNOW_WARNING); Items(ITEM_PECHA_BERRY, ITEM_ICY_ROCK); }
-        OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_CELEBRATE); }
+        ASSUME(gItemsInfo[ITEM_ICY_ROCK].holdEffect == HOLD_EFFECT_ICY_ROCK);
+        PLAYER(SPECIES_ABOMASNOW) { Ability(ABILITY_SNOW_WARNING); Items(ITEM_PECHA_BERRY, ITEM_ICY_ROCK); }
+        OPPONENT(SPECIES_WOBBUFFET);
     } WHEN {
-        TURN { MOVE(player, MOVE_CELEBRATE); MOVE(opponent, MOVE_CELEBRATE); }
-        TURN { MOVE(player, MOVE_CELEBRATE); MOVE(opponent, MOVE_CELEBRATE); }
-        TURN { MOVE(player, MOVE_CELEBRATE); MOVE(opponent, MOVE_CELEBRATE); }
-        TURN { MOVE(player, MOVE_CELEBRATE); MOVE(opponent, MOVE_CELEBRATE); }
-        TURN { MOVE(player, MOVE_CELEBRATE); MOVE(opponent, MOVE_CELEBRATE); }
-        TURN { MOVE(player, MOVE_CELEBRATE); MOVE(opponent, MOVE_CELEBRATE); }
-        TURN { MOVE(player, MOVE_CELEBRATE); MOVE(opponent, MOVE_CELEBRATE); }
-        TURN { MOVE(player, MOVE_CELEBRATE); MOVE(opponent, MOVE_CELEBRATE); }
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
+        TURN {}
     } SCENE {
         ABILITY_POPUP(player, ABILITY_SNOW_WARNING);
         MESSAGE("Snow continues to fall.");

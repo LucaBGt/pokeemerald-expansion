@@ -6642,7 +6642,7 @@ void UpdateDaysPassedSinceFormChange(u16 days)
 
 enum Type CheckDynamicMoveType(struct Pokemon *mon, enum Move move, enum BattlerId battler, enum MonState state)
 {
-    enum Type moveType = GetDynamicMoveType(mon, move, battler, GetBattlerAbility(battler), GetBattlerHoldEffect(battler), state);
+    enum Type moveType = GetDynamicMoveType(mon, move, battler, state);
     if (moveType != TYPE_NONE)
         return moveType;
     return GetMoveType(move);
@@ -7009,8 +7009,13 @@ void CreateMonFromTemplate(struct Pokemon *mon, const struct PokemonTemplate *mo
     u32 personality = ResolvePersonality(species, monTemplate->gender, monTemplate->nature, monTemplate->origin);
     CreateMon(mon, species, level, personality, OTID_STRUCT_PLAYER_ID);
 
-    enum Item heldItem = ResolveHeldItem(monTemplate->heldItem);
-    SetMonData(mon, MON_DATA_HELD_ITEM, &heldItem);
+    enum Item heldItem;
+    
+    for(int i = 0; i < MAX_MON_ITEMS; i++)
+    {
+        heldItem = ResolveHeldItem(monTemplate->heldItem[i]);
+        SetMonData(mon, MON_DATA_HELD_ITEM + i, &heldItem);
+    }
 
     if (monTemplate->doNotUseDefaultBall)
     {

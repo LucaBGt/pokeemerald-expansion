@@ -394,3 +394,80 @@ SINGLE_BATTLE_TEST("Beak Blast is blocked by Bulletproof but not to the burn it 
         MESSAGE("It doesn't affect Chesnaught…");
     }
 }
+
+
+#if MAX_MON_TRAITS > 1
+SINGLE_BATTLE_TEST("Beak Blast burns even if the target has Unseen Fist (Traits)")
+{
+    GIVEN {
+        ASSUME(GetMovePriority(MOVE_BEAK_BLAST) < 0);
+        ASSUME(MoveMakesContact(MOVE_SURGING_STRIKES));
+        PLAYER(SPECIES_URSHIFU_RAPID_STRIKE) { Ability(ABILITY_LIGHT_METAL); Innates(ABILITY_UNSEEN_FIST); }
+        OPPONENT(SPECIES_TOUCANNON) {};
+    } WHEN {
+        TURN { MOVE(opponent, MOVE_BEAK_BLAST); MOVE(player, MOVE_SURGING_STRIKES); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_BEAK_BLAST_SETUP, opponent);
+        MESSAGE("The opposing Toucannon started heating up its beak!");
+        MESSAGE("Urshifu was burned!");
+    }
+}
+
+SINGLE_BATTLE_TEST("Beak Blast takes effect after HP drain effects and before abilities (Traits)")
+{
+    GIVEN {
+        ASSUME(GetMovePriority(MOVE_BEAK_BLAST) < 0);
+        ASSUME(MoveMakesContact(MOVE_DRAIN_PUNCH));
+        PLAYER(SPECIES_URSHIFU_RAPID_STRIKE) { HP(1); }
+        OPPONENT(SPECIES_GARCHOMP) { Ability(ABILITY_SAND_VEIL); Innates(ABILITY_ROUGH_SKIN); }
+    } WHEN {
+        TURN { MOVE(opponent, MOVE_BEAK_BLAST); MOVE(player, MOVE_DRAIN_PUNCH); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_BEAK_BLAST_SETUP, opponent);
+        MESSAGE("The opposing Garchomp started heating up its beak!");
+        MESSAGE("The opposing Garchomp had its energy drained!");
+        MESSAGE("Urshifu was burned!");
+        ABILITY_POPUP(opponent, ABILITY_ROUGH_SKIN);
+    }
+}
+
+SINGLE_BATTLE_TEST("Beak Blast is blocked by Bulletproof but not to the burn it causes (Traits)")
+{
+    GIVEN {
+        ASSUME(GetMovePriority(MOVE_BEAK_BLAST) < 0);
+        ASSUME(MoveMakesContact(MOVE_POUND));
+        PLAYER(SPECIES_CHESNAUGHT) { Ability(ABILITY_OVERGROW); Innates(ABILITY_BULLETPROOF); }
+        OPPONENT(SPECIES_TOUCANNON) {};
+    } WHEN {
+        TURN { MOVE(player, MOVE_POUND); MOVE(opponent, MOVE_BEAK_BLAST); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_BEAK_BLAST_SETUP, opponent);
+        MESSAGE("The opposing Toucannon started heating up its beak!");
+        MESSAGE("Chesnaught was burned!");
+        STATUS_ICON(player, STATUS1_BURN);
+        NOT ANIMATION(ANIM_TYPE_MOVE, MOVE_BEAK_BLAST, opponent);
+        ABILITY_POPUP(player, ABILITY_BULLETPROOF);
+        MESSAGE("It doesn't affect Chesnaught…");
+    }
+}
+#endif
+
+#if MAX_MON_ITEMS > 1
+SINGLE_BATTLE_TEST("Beak Blast's charging message is shown regardless if it would've missed (Items)")
+{
+    GIVEN {
+        ASSUME(GetMovePriority(MOVE_BEAK_BLAST) < 0);
+        ASSUME(MoveMakesContact(MOVE_POUND));
+        PLAYER(SPECIES_WOBBUFFET) { Items(ITEM_PECHA_BERRY, ITEM_BRIGHT_POWDER); }
+        OPPONENT(SPECIES_TOUCANNON) {};
+    } WHEN {
+        TURN { MOVE(opponent, MOVE_BEAK_BLAST, hit: FALSE); MOVE(player, MOVE_POUND); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_BEAK_BLAST_SETUP, opponent);
+        MESSAGE("The opposing Toucannon started heating up its beak!");
+        MESSAGE("Wobbuffet was burned!");
+        NOT ANIMATION(ANIM_TYPE_MOVE, MOVE_BEAK_BLAST, opponent);
+        MESSAGE("Wobbuffet avoided the attack!");
+    }
+}
+#endif

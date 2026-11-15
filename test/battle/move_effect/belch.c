@@ -116,6 +116,36 @@ SINGLE_BATTLE_TEST("Belch can still be used after restoring the consumed berry")
     }
 }
 
+SINGLE_BATTLE_TEST("Belch fails if the user has not eaten a berry (Champions)")
+{
+    enum Item item = ITEM_NONE;
+    PARAMETRIZE { item = ITEM_NONE; }
+    PARAMETRIZE { item = ITEM_ORAN_BERRY; }
+    GIVEN {
+        ASSUME(GetMoveEffect(MOVE_STUFF_CHEEKS) == EFFECT_STUFF_CHEEKS);
+        WITH_CONFIG(B_BELCH_SELECTABLE, GEN_CHAMPIONS);
+        PLAYER(SPECIES_SKWOVET) { Item(item); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        if (item == ITEM_NONE)
+            TURN { MOVE(player, MOVE_BELCH); }
+        else {
+            TURN { MOVE(player, MOVE_STUFF_CHEEKS); }
+            TURN { MOVE(player, MOVE_BELCH); }
+            TURN { MOVE(player, MOVE_BELCH); }
+        }
+    } SCENE {
+        if (item == ITEM_NONE) {
+            MESSAGE("Skwovet hasn't eaten any held Berries, so it can't possibly belch!");
+        }
+        else {
+            ANIMATION(ANIM_TYPE_MOVE, MOVE_STUFF_CHEEKS, player);
+            ANIMATION(ANIM_TYPE_MOVE, MOVE_BELCH, player);
+            ANIMATION(ANIM_TYPE_MOVE, MOVE_BELCH, player);
+        }
+    }
+}
+
 #if MAX_MON_ITEMS > 1
 AI_SINGLE_BATTLE_TEST("AI: Belch has nonzero score after eating a berry (Items)")
 {
@@ -131,12 +161,13 @@ AI_SINGLE_BATTLE_TEST("AI: Belch has nonzero score after eating a berry (Items)"
     }
 }
 
-SINGLE_BATTLE_TEST("Belch cannot be used if the user has not eaten a berry (Items)")
+SINGLE_BATTLE_TEST("Belch cannot be used if the user has not eaten a berry (Gen6-9) (Items)")
 {
     enum Item item = ITEM_NONE;
     PARAMETRIZE { item = ITEM_NONE; }
     PARAMETRIZE { item = ITEM_ORAN_BERRY; }
     GIVEN {
+        WITH_CONFIG(B_BELCH_SELECTABLE, GEN_9);
         PLAYER(SPECIES_SKWOVET) { Items(ITEM_GREAT_BALL, item); }
         OPPONENT(SPECIES_WOBBUFFET);
     } WHEN {
@@ -220,4 +251,35 @@ SINGLE_BATTLE_TEST("Belch can still be used after restoring the consumed berry (
         ANIMATION(ANIM_TYPE_MOVE, MOVE_BELCH, player);
     }
 }
+
+SINGLE_BATTLE_TEST("Belch fails if the user has not eaten a berry (Champions) (Items)")
+{
+    enum Item item = ITEM_NONE;
+    PARAMETRIZE { item = ITEM_NONE; }
+    PARAMETRIZE { item = ITEM_ORAN_BERRY; }
+    GIVEN {
+        ASSUME(GetMoveEffect(MOVE_STUFF_CHEEKS) == EFFECT_STUFF_CHEEKS);
+        WITH_CONFIG(B_BELCH_SELECTABLE, GEN_CHAMPIONS);
+        PLAYER(SPECIES_SKWOVET) { Items(ITEM_GREAT_BALL, item); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        if (item == ITEM_NONE)
+            TURN { MOVE(player, MOVE_BELCH); }
+        else {
+            TURN { MOVE(player, MOVE_STUFF_CHEEKS); }
+            TURN { MOVE(player, MOVE_BELCH); }
+            TURN { MOVE(player, MOVE_BELCH); }
+        }
+    } SCENE {
+        if (item == ITEM_NONE) {
+            MESSAGE("Skwovet hasn't eaten any held Berries, so it can't possibly belch!");
+        }
+        else {
+            ANIMATION(ANIM_TYPE_MOVE, MOVE_STUFF_CHEEKS, player);
+            ANIMATION(ANIM_TYPE_MOVE, MOVE_BELCH, player);
+            ANIMATION(ANIM_TYPE_MOVE, MOVE_BELCH, player);
+        }
+    }
+}
+
 #endif

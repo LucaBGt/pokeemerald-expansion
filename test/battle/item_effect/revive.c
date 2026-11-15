@@ -265,6 +265,29 @@ SINGLE_BATTLE_TEST("Revive keeps Mimikyu Busted forms and Eiscue Noice in their 
     }
 }
 
+SINGLE_BATTLE_TEST("Revive can only be used if the selected Pokémon has fainted")
+{
+    bool32 fainted;
+
+    PARAMETRIZE { fainted = FALSE; }
+    PARAMETRIZE { fainted = TRUE; }
+
+    GIVEN {
+        ASSUME(gItemsInfo[ITEM_REVIVE].battleUsage == EFFECT_ITEM_REVIVE);
+        PLAYER(SPECIES_WYNAUT) { HP(100); MaxHP(200); }
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        if (fainted)
+            TURN { MOVE(player, MOVE_MEMENTO); SEND_OUT(player, 1); }
+        else
+            TURN {}
+    } THEN {
+        gPartyMenu.slotId = 0;
+        EXPECT_EQ(CannotUseItemsInBattle(ITEM_REVIVE, &gParties[B_TRAINER_PLAYER][0]), !fainted);
+    }
+}
+
 TO_DO_BATTLE_TEST("Revive won't restore a battler's HP if it hasn't fainted")
 
 #if MAX_MON_TRAITS > 1

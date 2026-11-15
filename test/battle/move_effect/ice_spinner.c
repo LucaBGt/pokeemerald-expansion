@@ -161,10 +161,28 @@ SINGLE_BATTLE_TEST("Ice Spinner will remove terrain if target is behind a Substi
     }
 }
 
-#if MAX_MON_ITEMS > 1
-SINGLE_BATTLE_TEST("Ice Spinner fails to remove terrain if user faints during attack execution (Items)")
+#if MAX_MON_TRAITS > 1
+SINGLE_BATTLE_TEST("Ice Spinner removes terrain if user faints during attack execution (Champions) (Traits)")
 {
     GIVEN {
+        WITH_CONFIG(B_FAINT_MOVE_EFFECT_TIMING, GEN_CHAMPIONS);
+        PLAYER(SPECIES_SHARPEDO) { Ability(ABILITY_SPEED_BOOST); Innates(ABILITY_ROUGH_SKIN); }
+        OPPONENT(SPECIES_WOBBUFFET) { HP(1); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_ELECTRIC_TERRAIN); MOVE(opponent, MOVE_ICE_SPINNER); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_ELECTRIC_TERRAIN, player);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_ICE_SPINNER, opponent);
+        MESSAGE("The electricity disappeared from the battlefield.");
+    }
+}
+#endif
+
+#if MAX_MON_ITEMS > 1
+SINGLE_BATTLE_TEST("Ice Spinner fails to remove terrain if user faints during attack execution (Gen9) (Items)")
+{
+    GIVEN {
+        WITH_CONFIG(B_FAINT_MOVE_EFFECT_TIMING, GEN_9);
         PLAYER(SPECIES_WOBBUFFET);
         OPPONENT(SPECIES_WOBBUFFET) { Items(ITEM_PECHA_BERRY, ITEM_LIFE_ORB); HP(1); }
     } WHEN {
@@ -179,6 +197,7 @@ SINGLE_BATTLE_TEST("Ice Spinner fails to remove terrain if user faints during at
 SINGLE_BATTLE_TEST("Ice Spinner will not be remove Terrain if user is switched out due to Red Card (Items)")
 {
     GIVEN {
+        WITH_CONFIG(B_FAINT_MOVE_EFFECT_TIMING, GEN_9);
         PLAYER(SPECIES_WOBBUFFET) { Items(ITEM_PECHA_BERRY, ITEM_RED_CARD); }
         OPPONENT(SPECIES_WOBBUFFET);
         OPPONENT(SPECIES_WYNAUT);

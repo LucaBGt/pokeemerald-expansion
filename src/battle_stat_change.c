@@ -899,7 +899,7 @@ bool32 ShouldDefiantCompetitiveActivate(enum BattlerId battler)
     return gSideTimers[side].stickyWebBattlerSide != side;
 }
 
-u32 GetStatStage(u32 stat, const struct AdditionalEffect *additionalEffect)
+u32 GetStatStage(enum Stat stat, const struct AdditionalEffect *additionalEffect)
 {
     switch (stat)
     {
@@ -1093,7 +1093,7 @@ static void SetAdditionalEffectsOnStatChange(struct BattleCalcValues *cv, struct
         break;
     case EFFECT_AUTOTOMIZE:
         if (gBattleStruct->moveResultFlags[cv->battlerDef] & MOVE_RESULT_STAT_CHANGED
-         && GetBattlerWeight(cv->battlerDef, cv->abilities[cv->battlerDef], cv->holdEffects[cv->battlerDef]) > 1)
+         && GetBattlerWeight(cv->battlerDef) > 1)
         {
             gBattleMons[cv->battlerDef].volatiles.autotomizeCount++;
             st->moveScript = BattleScript_AutotomizeMessage;

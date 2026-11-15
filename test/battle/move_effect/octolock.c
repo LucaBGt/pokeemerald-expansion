@@ -267,7 +267,7 @@ SINGLE_BATTLE_TEST("Octolock ends after user that set the lock switches out")
 #if MAX_MON_TRAITS > 1
 SINGLE_BATTLE_TEST("Octolock reduction is prevented by Clear Body, White Smoke and Full Metal Body (Traits)")
 {
-    u32 species;
+    enum Species species;
     enum Ability ability;
 
     PARAMETRIZE { species = SPECIES_BELDUM; ability = ABILITY_CLEAR_BODY; }

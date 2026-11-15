@@ -194,26 +194,139 @@ SINGLE_BATTLE_TEST("Rapid Spin and Mortal Spin will remove hazards if the target
     }
 }
 
+SINGLE_BATTLE_TEST("Rapid Spin and Mortal Spin remove Leech Seed")
+{
+    enum Move move;
+
+    PARAMETRIZE { move = MOVE_RAPID_SPIN; }
+    PARAMETRIZE { move = MOVE_MORTAL_SPIN; }
+
+    GIVEN {
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(opponent, MOVE_LEECH_SEED); MOVE(player, move); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_LEECH_SEED, opponent);
+        ANIMATION(ANIM_TYPE_MOVE, move, player);
+        MESSAGE("Wobbuffet was freed from Leech Seed!");
+    }
+}
+
+SINGLE_BATTLE_TEST("Rapid Spin and Mortal Spin don't remove hazards if the user faints (Gen9)")
+{
+    enum Move move;
+
+    PARAMETRIZE { move = MOVE_RAPID_SPIN; }
+    PARAMETRIZE { move = MOVE_MORTAL_SPIN; }
+
+    GIVEN {
+        WITH_CONFIG(B_FAINT_MOVE_EFFECT_TIMING, GEN_9);
+        PLAYER(SPECIES_WOBBUFFET) { HP(1); }
+        OPPONENT(SPECIES_GARCHOMP) { Ability(ABILITY_ROUGH_SKIN); }
+    } WHEN {
+        TURN { MOVE(opponent, MOVE_STEALTH_ROCK); MOVE(player, move); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, move, player);
+        ABILITY_POPUP(opponent, ABILITY_ROUGH_SKIN);
+        NONE_OF {
+            MESSAGE("The pointed stones disappeared from your side!");
+        }
+    }
+}
+
+SINGLE_BATTLE_TEST("Rapid Spin and Mortal Spin remove hazards even if the user faints (Champions)")
+{
+    enum Move move;
+
+    PARAMETRIZE { move = MOVE_RAPID_SPIN; }
+    PARAMETRIZE { move = MOVE_MORTAL_SPIN; }
+
+    GIVEN {
+        WITH_CONFIG(B_FAINT_MOVE_EFFECT_TIMING, GEN_CHAMPIONS);
+        PLAYER(SPECIES_WOBBUFFET) { HP(1); }
+        OPPONENT(SPECIES_GARCHOMP) { Ability(ABILITY_ROUGH_SKIN); }
+    } WHEN {
+        TURN { MOVE(opponent, MOVE_STEALTH_ROCK); MOVE(player, move); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, move, player);
+        ABILITY_POPUP(opponent, ABILITY_ROUGH_SKIN);
+        MESSAGE("The pointed stones disappeared from your side!");
+    }
+}
+
+
 #if MAX_MON_TRAITS > 1
 SINGLE_BATTLE_TEST("Rapid Spin activates after Toxic Debris (Traits)")
 {
     GIVEN {
-        ASSUME(GetMoveEffect(MOVE_RAPID_SPIN) == EFFECT_RAPID_SPIN);
-        PLAYER(SPECIES_GLIMMORA) { Ability(ABILITY_CORROSION); Innates(ABILITY_TOXIC_DEBRIS); }
+        PLAYER(SPECIES_GLIMMORA) { Ability(ABILITY_LIGHT_METAL); Innates(ABILITY_TOXIC_DEBRIS); }
         OPPONENT(SPECIES_WOBBUFFET);
     } WHEN {
         TURN { MOVE(opponent, MOVE_RAPID_SPIN); }
     } SCENE {
         ANIMATION(ANIM_TYPE_MOVE, MOVE_RAPID_SPIN, opponent);
         ABILITY_POPUP(player, ABILITY_TOXIC_DEBRIS);
-        MESSAGE("The poison spikes disappeared from the ground around the opposing team!");
+        MESSAGE("The toxic spikes disappeared from the ground around the opposing side!");
+    }
+}
+
+
+SINGLE_BATTLE_TEST("Rapid Spin blows away Wrap and hazards but doesn't raise Speed when Sheer Force boosted (Gen 8) (Traits)")
+{
+    GIVEN {
+        WITH_CONFIG(B_SPEED_BUFFING_RAPID_SPIN, GEN_8);
+        ASSUME(GetMoveEffect(MOVE_RAPID_SPIN) == EFFECT_RAPID_SPIN);
+        ASSUME_MOVE_EFFECT_STAT_CHANGE(MOVE_RAPID_SPIN, self: TRUE, speed: 1);
+        PLAYER(SPECIES_TAUROS) { Ability(ABILITY_CUD_CHEW); Innates(ABILITY_SHEER_FORCE); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(opponent, MOVE_WRAP); }
+        TURN { MOVE(opponent, MOVE_STEALTH_ROCK); MOVE(player, MOVE_RAPID_SPIN); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_STEALTH_ROCK, opponent);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_RAPID_SPIN, player);
+        NOT ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, player);
+        MESSAGE("Tauros was freed from Wrap!");
+        MESSAGE("The pointed stones disappeared from your side!");
+    } THEN {
+        EXPECT_EQ(player->statStages[STAT_SPEED], DEFAULT_STAT_STAGE);
+        for (u32 i = 0; i < ARRAY_COUNT(gBattleStruct->hazardsQueue[B_SIDE_PLAYER]); i++)
+        {
+            EXPECT_EQ(gBattleStruct->hazardsQueue[B_SIDE_PLAYER][i], HAZARDS_NONE);
+        }
+    }
+}
+
+SINGLE_BATTLE_TEST("Sheer Force boosted Rapid Spin doesn't trigger Eject Button or Emergency Exit (Gen 8) (Traits)")
+{
+    GIVEN {
+        WITH_CONFIG(B_SPEED_BUFFING_RAPID_SPIN, GEN_8);
+        ASSUME(GetMoveEffect(MOVE_RAPID_SPIN) == EFFECT_RAPID_SPIN);
+        ASSUME_MOVE_EFFECT_STAT_CHANGE(MOVE_RAPID_SPIN, self: TRUE, speed: 1);
+        ASSUME(GetItemHoldEffect(ITEM_EJECT_BUTTON) == HOLD_EFFECT_EJECT_BUTTON);
+        PLAYER(SPECIES_TAUROS) { Ability(ABILITY_CUD_CHEW); Innates(ABILITY_SHEER_FORCE); Attack(1); }
+        OPPONENT(SPECIES_GOLISOPOD) { Ability(ABILITY_LIGHT_METAL); Innates(ABILITY_EMERGENCY_EXIT); Item(ITEM_EJECT_BUTTON); MaxHP(200); HP(101); Defense(999); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(player, MOVE_RAPID_SPIN); MOVE(opponent, MOVE_SCRATCH); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_RAPID_SPIN, player);
+        HP_BAR(opponent);
+        NONE_OF {
+            ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_EFFECT, opponent);
+            ABILITY_POPUP(opponent, ABILITY_EMERGENCY_EXIT);
+        }
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_SCRATCH, opponent);
+    } THEN {
+        EXPECT_EQ(opponent->species, SPECIES_GOLISOPOD);
+        EXPECT_EQ(opponent->item, ITEM_EJECT_BUTTON);
     }
 }
 
 SINGLE_BATTLE_TEST("Rapid Spin doesn't blow away Wrap, hazards or raise Speed when Sheer Force boosted (Gen 9+) (Traits)")
 {
     GIVEN {
-        ASSUME(GetMoveEffect(MOVE_RAPID_SPIN) == EFFECT_RAPID_SPIN);
         #if B_SPEED_BUFFING_RAPID_SPIN >= GEN_8
         ASSUME_MOVE_EFFECT_STAT_CHANGE(MOVE_RAPID_SPIN, self: TRUE, speed: 1);
         #endif
@@ -231,8 +344,79 @@ SINGLE_BATTLE_TEST("Rapid Spin doesn't blow away Wrap, hazards or raise Speed wh
             MESSAGE("Tauros's Speed rose!");
         #endif
             MESSAGE("Tauros was freed from Wrap!");
-            MESSAGE("The pointed stones disappeared from around your team!");
+            MESSAGE("The pointed stones disappeared from your side!");
         }
+    }
+}
+
+SINGLE_BATTLE_TEST("Rapid Spin and Mortal Spin don't remove hazards if the user faints (Gen9) (Traits)")
+{
+    enum Move move;
+
+    PARAMETRIZE { move = MOVE_RAPID_SPIN; }
+    PARAMETRIZE { move = MOVE_MORTAL_SPIN; }
+
+    GIVEN {
+        WITH_CONFIG(B_FAINT_MOVE_EFFECT_TIMING, GEN_9);
+        PLAYER(SPECIES_WOBBUFFET) { HP(1); }
+        OPPONENT(SPECIES_GARCHOMP) { Ability(ABILITY_SAND_VEIL); Innates(ABILITY_ROUGH_SKIN); }
+    } WHEN {
+        TURN { MOVE(opponent, MOVE_STEALTH_ROCK); MOVE(player, move); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, move, player);
+        ABILITY_POPUP(opponent, ABILITY_ROUGH_SKIN);
+        NONE_OF {
+            MESSAGE("The pointed stones disappeared from your side!");
+        }
+    }
+}
+
+SINGLE_BATTLE_TEST("Rapid Spin and Mortal Spin remove hazards even if the user faints (Champions) (Traits)")
+{
+    enum Move move;
+
+    PARAMETRIZE { move = MOVE_RAPID_SPIN; }
+    PARAMETRIZE { move = MOVE_MORTAL_SPIN; }
+
+    GIVEN {
+        WITH_CONFIG(B_FAINT_MOVE_EFFECT_TIMING, GEN_CHAMPIONS);
+        PLAYER(SPECIES_WOBBUFFET) { HP(1); }
+        OPPONENT(SPECIES_GARCHOMP) { Ability(ABILITY_SAND_VEIL); Innates(ABILITY_ROUGH_SKIN); }
+    } WHEN {
+        TURN { MOVE(opponent, MOVE_STEALTH_ROCK); MOVE(player, move); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, move, player);
+        ABILITY_POPUP(opponent, ABILITY_ROUGH_SKIN);
+        MESSAGE("The pointed stones disappeared from your side!");
+    }
+}
+#endif
+
+
+#if MAX_MON_ITEMS > 1
+SINGLE_BATTLE_TEST("Sheer Force boosted Rapid Spin doesn't trigger Eject Button or Emergency Exit (Gen 8) (Items)")
+{
+    GIVEN {
+        WITH_CONFIG(B_SPEED_BUFFING_RAPID_SPIN, GEN_8);
+        ASSUME(GetMoveEffect(MOVE_RAPID_SPIN) == EFFECT_RAPID_SPIN);
+        ASSUME_MOVE_EFFECT_STAT_CHANGE(MOVE_RAPID_SPIN, self: TRUE, speed: 1);
+        ASSUME(GetItemHoldEffect(ITEM_EJECT_BUTTON) == HOLD_EFFECT_EJECT_BUTTON);
+        PLAYER(SPECIES_TAUROS) { Ability(ABILITY_SHEER_FORCE); Attack(1); }
+        OPPONENT(SPECIES_GOLISOPOD) { Ability(ABILITY_EMERGENCY_EXIT); Items(ITEM_PECHA_BERRY, ITEM_EJECT_BUTTON); MaxHP(200); HP(101); Defense(999); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(player, MOVE_RAPID_SPIN); MOVE(opponent, MOVE_SCRATCH); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_RAPID_SPIN, player);
+        HP_BAR(opponent);
+        NONE_OF {
+            ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_EFFECT, opponent);
+            ABILITY_POPUP(opponent, ABILITY_EMERGENCY_EXIT);
+        }
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_SCRATCH, opponent);
+    } THEN {
+        EXPECT_EQ(opponent->species, SPECIES_GOLISOPOD);
+        EXPECT_EQ(opponent->items[1], ITEM_EJECT_BUTTON);
     }
 }
 #endif

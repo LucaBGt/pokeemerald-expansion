@@ -383,7 +383,7 @@ SINGLE_BATTLE_TEST("Protosynthesis boosts the highest stat (Traits)")
 
 SINGLE_BATTLE_TEST("Protosynthesis boosts either Attack or Special Attack, not both (Traits)")
 {
-    u16 species;
+    enum Species species;
     enum Move move;
     s16 damage[2];
 
@@ -560,7 +560,7 @@ SINGLE_BATTLE_TEST("Protosynthesis activates even if the Pokémon is holding an 
 
 SINGLE_BATTLE_TEST("Protosynthesis doesn't activate if Cloud Nine/Air Lock is on the field (Traits)")
 {
-    u32 species;
+    enum Species species;
     enum Ability ability;
     PARAMETRIZE { species = SPECIES_RAYQUAZA; ability = ABILITY_AIR_LOCK; }
     PARAMETRIZE { species = SPECIES_GOLDUCK; ability = ABILITY_CLOUD_NINE; }

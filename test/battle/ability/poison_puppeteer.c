@@ -285,7 +285,7 @@ SINGLE_BATTLE_TEST("Poison Puppeteer does not trigger when poison came from Pois
         EXPECT_EQ(player->types[0], TYPE_WATER);
         EXPECT_EQ(player->types[1], TYPE_WATER);
         EXPECT(player->status1 & STATUS1_POISON);
-        EXPECT(opponent->volatiles.confusionTurns == 0);
+        EXPECT(opponent->volatiles.confusionTimer == 0);
     }
 }
 
@@ -314,8 +314,8 @@ SINGLE_BATTLE_TEST("Poison Puppeteer confuses target (not user) after Flame Body
     } THEN {
         EXPECT(player->status1 & STATUS1_BURN);
         EXPECT(opponent->status1 & STATUS1_POISON);
-        EXPECT(player->volatiles.confusionTurns == 0);
-        EXPECT(opponent->volatiles.confusionTurns > 0);
+        EXPECT(player->volatiles.confusionTimer == 0);
+        EXPECT(opponent->volatiles.confusionTimer > 0);
     }
 }
 
@@ -348,7 +348,7 @@ SINGLE_BATTLE_TEST("Poison Puppeteer consumes its pending target after triggerin
     } THEN {
         EXPECT_EQ(opponent->item, ITEM_NONE);
         EXPECT(opponent->status1 & STATUS1_POISON);
-        EXPECT(opponent->volatiles.confusionTurns == 0);
+        EXPECT(opponent->volatiles.confusionTimer == 0);
     }
 }
 
@@ -375,8 +375,8 @@ DOUBLE_BATTLE_TEST("Poison Puppeteer does not leak confusion to second target (T
     } THEN {
         EXPECT(opponentLeft->status1 & STATUS1_POISON);
         EXPECT_EQ(opponentRight->status1, STATUS1_NONE);
-        EXPECT(opponentLeft->volatiles.confusionTurns == 0);
-        EXPECT(opponentRight->volatiles.confusionTurns == 0);
+        EXPECT(opponentLeft->volatiles.confusionTimer == 0);
+        EXPECT(opponentRight->volatiles.confusionTimer == 0);
     }
 }
 #endif
@@ -411,7 +411,7 @@ SINGLE_BATTLE_TEST("Poison Puppeteer consumes its pending target after triggerin
     } THEN {
         EXPECT_EQ(opponent->items[1], ITEM_NONE);
         EXPECT(opponent->status1 & STATUS1_POISON);
-        EXPECT(opponent->volatiles.confusionTurns == 0);
+        EXPECT(opponent->volatiles.confusionTimer == 0);
     }
 }
 #endif

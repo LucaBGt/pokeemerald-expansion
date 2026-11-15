@@ -155,10 +155,33 @@ SINGLE_BATTLE_TEST("Charge will expire if user flinches while using an electric 
     }
 }
 
+SINGLE_BATTLE_TEST("Charge does not apply its damage boost to Electro Shot on its second turn charge")
+{
+    s16 dmgBefore, dmgAfter;
+
+    GIVEN {
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(player, MOVE_CHARGE); }
+        TURN { MOVE(player, MOVE_ELECTRO_SHOT); }
+        TURN { SKIP_TURN(player); MOVE(opponent, MOVE_HAZE); }
+        TURN { MOVE(player, MOVE_CHARGE); MOVE(opponent, MOVE_RAIN_DANCE); }
+        TURN { MOVE(player, MOVE_ELECTRO_SHOT); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_ELECTRO_SHOT, player);
+        HP_BAR(opponent, captureDamage: &dmgBefore);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_ELECTRO_SHOT, player);
+        HP_BAR(opponent, captureDamage: &dmgAfter);
+    } THEN {
+        EXPECT_MUL_EQ(dmgBefore, Q_4_12(2.0), dmgAfter);
+    }
+}
+
 #if MAX_MON_TRAITS > 1
 SINGLE_BATTLE_TEST("Charge's effect does not stack with Electromorphosis or Wind Power (Traits)")
 {
-    u32 species;
+    enum Species species;
     enum Ability ability;
     s16 damage[2];
 
@@ -171,7 +194,7 @@ SINGLE_BATTLE_TEST("Charge's effect does not stack with Electromorphosis or Wind
         OPPONENT(SPECIES_WOBBUFFET);
     } WHEN {
         TURN { MOVE(player, MOVE_THUNDERBOLT); }
-        TURN { MOVE(player, MOVE_CHARGE); MOVE(opponent, MOVE_AIR_CUTTER); }
+        TURN { MOVE(player, MOVE_CHARGE); MOVE(opponent, MOVE_AIR_CUTTER, WITH_RNG(RNG_PARALYSIS, FALSE)); }
         TURN { MOVE(player, MOVE_THUNDERBOLT); }
     } SCENE {
         ANIMATION(ANIM_TYPE_MOVE, MOVE_THUNDERBOLT, player);

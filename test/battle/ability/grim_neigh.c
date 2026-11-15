@@ -107,7 +107,7 @@ DOUBLE_BATTLE_TEST("Grim Neigh does not increase damage done by the same move th
 #if MAX_MON_TRAITS > 1
 DOUBLE_BATTLE_TEST("Grim Neigh raises Sp. Attack by one stage after directly causing a Pokemon to faint (Traits)")
 {
-    u32 species = SPECIES_NONE;
+    enum Species species = SPECIES_NONE;
     enum Ability abilityPopUp = ABILITY_NONE, ability = ABILITY_NONE;
     PARAMETRIZE { species = SPECIES_SPECTRIER;            ability = ABILITY_GRIM_NEIGH;          abilityPopUp = ABILITY_GRIM_NEIGH; }
     PARAMETRIZE { species = SPECIES_CALYREX_SHADOW; ability = ABILITY_AS_ONE_SHADOW_RIDER; abilityPopUp = ABILITY_GRIM_NEIGH; }
@@ -138,7 +138,7 @@ DOUBLE_BATTLE_TEST("Grim Neigh raises Sp. Attack by one stage after directly cau
 
 DOUBLE_BATTLE_TEST("Grim Neigh does not trigger if Pokemon faint to indirect damage or damage from other Pokemon (Traits)")
 {
-    u32 species = SPECIES_NONE;
+    enum Species species = SPECIES_NONE;
     enum Ability abilityPopUp = ABILITY_NONE, ability = ABILITY_NONE;
     PARAMETRIZE { species = SPECIES_SPECTRIER;            ability = ABILITY_GRIM_NEIGH;          abilityPopUp = ABILITY_GRIM_NEIGH; }
     PARAMETRIZE { species = SPECIES_CALYREX_SHADOW; ability = ABILITY_AS_ONE_SHADOW_RIDER; abilityPopUp = ABILITY_GRIM_NEIGH; }
@@ -176,7 +176,7 @@ DOUBLE_BATTLE_TEST("Grim Neigh does not trigger if Pokemon faint to indirect dam
 DOUBLE_BATTLE_TEST("Grim Neigh does not increase damage done by the same move that causes another Pokemon to faint (Traits)")
 {
     s16 damage[2];
-    u32 species = SPECIES_NONE;
+    enum Species species = SPECIES_NONE;
     enum Ability abilityPopUp = ABILITY_NONE, ability = ABILITY_NONE;
     PARAMETRIZE { species = SPECIES_SPECTRIER;            ability = ABILITY_GRIM_NEIGH;          abilityPopUp = ABILITY_GRIM_NEIGH; }
     PARAMETRIZE { species = SPECIES_CALYREX_SHADOW; ability = ABILITY_AS_ONE_SHADOW_RIDER; abilityPopUp = ABILITY_GRIM_NEIGH; }

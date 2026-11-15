@@ -48,3 +48,29 @@ SINGLE_BATTLE_TEST("Clear Amulet does not prevent Guard Swap from transferring l
         EXPECT_EQ(opponent->statStages[STAT_SPDEF], DEFAULT_STAT_STAGE - 1);
     }
 }
+
+
+#if MAX_MON_ITEMS > 1
+SINGLE_BATTLE_TEST("Clear Amulet does not prevent Guard Swap from transferring lowered stat stages (Items)")
+{
+    GIVEN {
+        ASSUME(GetMoveEffect(MOVE_GUARD_SWAP) == EFFECT_GUARD_SWAP);
+        ASSUME_MOVE_EFFECT_STAT_CHANGE(MOVE_CLOSE_COMBAT, self: TRUE, defense: -1, spDef: -1);
+        ASSUME(GetItemHoldEffect(ITEM_CLEAR_AMULET) == HOLD_EFFECT_CLEAR_AMULET);
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET) { Items(ITEM_PECHA_BERRY, ITEM_CLEAR_AMULET); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_CLOSE_COMBAT); }
+        TURN { MOVE(player, MOVE_GUARD_SWAP); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_CLOSE_COMBAT, player);
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, player);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_GUARD_SWAP, player);
+    } THEN {
+        EXPECT_EQ(player->statStages[STAT_DEF], DEFAULT_STAT_STAGE);
+        EXPECT_EQ(player->statStages[STAT_SPDEF], DEFAULT_STAT_STAGE);
+        EXPECT_EQ(opponent->statStages[STAT_DEF], DEFAULT_STAT_STAGE - 1);
+        EXPECT_EQ(opponent->statStages[STAT_SPDEF], DEFAULT_STAT_STAGE - 1);
+    }
+}
+#endif

@@ -60,7 +60,7 @@ SINGLE_BATTLE_TEST("Swagger raises the target's Attack even when protected Own T
         ABILITY_POPUP(opponent, ABILITY_OWN_TEMPO);
     } THEN {
         EXPECT_EQ(opponent->statStages[STAT_ATK], DEFAULT_STAT_STAGE + 2);
-        EXPECT(opponent->volatiles.confusionTurns == 0);
+        EXPECT(opponent->volatiles.confusionTimer == 0);
     }
 }
 #endif

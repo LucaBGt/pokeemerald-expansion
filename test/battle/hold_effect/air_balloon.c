@@ -158,7 +158,7 @@ SINGLE_BATTLE_TEST("Air Balloon pops when Disguise is broken")
     enum Species species, newSpecies;
     PARAMETRIZE { species = SPECIES_MIMIKYU_DISGUISED;       newSpecies = SPECIES_MIMIKYU_BUSTED; }
     PARAMETRIZE { species = SPECIES_MIMIKYU_TOTEM_DISGUISED; newSpecies = SPECIES_MIMIKYU_BUSTED_TOTEM; }
-
+    
     GIVEN {
         PLAYER(species) { Ability(ABILITY_DISGUISE); Item(ITEM_AIR_BALLOON); }
         OPPONENT(SPECIES_WOBBUFFET);
@@ -209,7 +209,7 @@ SINGLE_BATTLE_TEST("Air Balloon pops before it can be stolen with Magician (Trai
 
 SINGLE_BATTLE_TEST("Air Balloon pops when Disguise is broken (Traits)")
 {
-    u32 species, newSpecies;
+    enum Species species, newSpecies;
     PARAMETRIZE { species = SPECIES_MIMIKYU_DISGUISED;       newSpecies = SPECIES_MIMIKYU_BUSTED; }
     PARAMETRIZE { species = SPECIES_MIMIKYU_TOTEM_DISGUISED; newSpecies = SPECIES_MIMIKYU_BUSTED_TOTEM; }
     
@@ -313,7 +313,8 @@ SINGLE_BATTLE_TEST("Air Balloon can not be restored with Recycle after it has be
 SINGLE_BATTLE_TEST("Air Balloon prevents the user from being healed by Grassy Terrain (Items)")
 {
     GIVEN {
-        ASSUME(GetMoveEffect(MOVE_GRASSY_TERRAIN) == EFFECT_GRASSY_TERRAIN);
+        ASSUME(GetMoveEffect(MOVE_GRASSY_TERRAIN) == EFFECT_TERRAIN);
+        ASSUME(GetMoveTerrainType(MOVE_GRASSY_TERRAIN) == B_TERRAIN_GRASSY);
         PLAYER(SPECIES_WOBBUFFET) { Items(ITEM_PECHA_BERRY, ITEM_AIR_BALLOON); MaxHP(100); HP(1); };
         OPPONENT(SPECIES_WOBBUFFET);
     } WHEN {
@@ -376,7 +377,7 @@ SINGLE_BATTLE_TEST("Air Balloon pops if a damaging move hits the holder's Substi
 
 SINGLE_BATTLE_TEST("Air Balloon pops when Disguise is broken (Items)")
 {
-    u32 species, newSpecies;
+    enum Species species, newSpecies;
     PARAMETRIZE { species = SPECIES_MIMIKYU_DISGUISED;       newSpecies = SPECIES_MIMIKYU_BUSTED; }
     PARAMETRIZE { species = SPECIES_MIMIKYU_TOTEM_DISGUISED; newSpecies = SPECIES_MIMIKYU_BUSTED_TOTEM; }
     

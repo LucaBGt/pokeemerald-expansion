@@ -659,7 +659,7 @@ SINGLE_BATTLE_TEST("Multi - Leftovers can stack if dupes enabled")
 SINGLE_BATTLE_TEST("Multi - Black Sludge can stack if dupes enabled")
 {
     bool16 dupe = FALSE;
-    u32 species = SPECIES_NONE;
+    enum Species species = SPECIES_NONE;
 
     PARAMETRIZE { species = SPECIES_WOBBUFFET; dupe = FALSE; }
     PARAMETRIZE { species = SPECIES_WOBBUFFET; dupe = TRUE; }

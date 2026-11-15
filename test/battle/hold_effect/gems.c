@@ -185,26 +185,25 @@ SINGLE_BATTLE_TEST("Gem is not consumed when using Struggle (Items)", s16 damage
     enum Item item = ITEM_NONE;
 
     PARAMETRIZE { item = ITEM_NONE; }
-    PARAMETRIZE { item = ITEM_NORMAL_GEM; }
+    for (u32 j = 0; j < ARRAY_COUNT(sStruggleGemItems); j++)
+        PARAMETRIZE { item = sStruggleGemItems[j]; }
 
     GIVEN {
-        if (item != ITEM_NONE) {
+        if (item != ITEM_NONE)
             ASSUME(GetItemHoldEffect(item) == HOLD_EFFECT_GEMS);
-            ASSUME(GetItemSecondaryId(item) == GetMoveType(MOVE_STRUGGLE));
-        }
         PLAYER(SPECIES_WOBBUFFET) { Items(ITEM_PECHA_BERRY, item); }
         OPPONENT(SPECIES_WOBBUFFET);
     } WHEN {
         TURN { MOVE(player, MOVE_STRUGGLE); }
     } SCENE {
-        NONE_OF {
-            ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_EFFECT, player);
-            MESSAGE("The Normal Gem strengthened Wobbuffet's power!");
-        }
+        NOT ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_EFFECT, player);
         ANIMATION(ANIM_TYPE_MOVE, MOVE_STRUGGLE, player);
         HP_BAR(opponent, captureDamage: &results[i].damage);
+    } THEN {
+        EXPECT_EQ(player->item, item);
     } FINALLY {
-        EXPECT_EQ(results[0].damage, results[1].damage);
+        for (u32 j = 0; j < ARRAY_COUNT(sStruggleGemItems); j++)
+            EXPECT_EQ(results[0].damage, results[j + 1].damage);
     }
 }
 

@@ -1756,81 +1756,112 @@ AI_MULTI_BATTLE_TEST("Trainer Slide: Multi: Opponent Tera")
 
 // MULTI TESTS END
 
-#if MAX_MON_TRAITS > 1
 
-#endif
 
 #if MAX_MON_ITEMS > 1
 
-AI_SINGLE_BATTLE_TEST("Trainer Slide: Singles: Mega Evolution (Items)")
+AI_SINGLE_BATTLE_TEST("Trainer Slide: Singles: Attacker Mega Evolution (Items)")
 {
     GIVEN {
         FLAG_SET(TESTING_FLAG_TRAINER_SLIDES);
-        VAR_SET(TESTING_VAR_TRAINER_SLIDES, TRAINER_SLIDE_MEGA_EVOLUTION);
+        VAR_SET(TESTING_VAR_TRAINER_SLIDES, TRAINER_SLIDE_ATTACKER_MEGA_EVOLUTION);
         PLAYER(SPECIES_WOBBUFFET);
-        OPPONENT(SPECIES_LOPUNNY) { Items(ITEM_PECHA_BERRY, ITEM_LOPUNNITE); Moves(MOVE_CELEBRATE); }
+        OPPONENT(SPECIES_LOPUNNY) { Items(ITEM_PECHA_BERRY, ITEM_LOPUNNITE); }
     } WHEN {
         TURN { EXPECT_MOVE(opponent, MOVE_CELEBRATE, gimmick: GIMMICK_MEGA); }
     } SCENE {
-        MESSAGE("Trainer A: This message plays before the enemy activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
+        MESSAGE("Trainer A: This message plays before the attacker activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
         ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_MEGA_EVOLUTION, opponent);
         MESSAGE("The opposing Lopunny has Mega Evolved into Mega Lopunny!");
     }
 }
 
-AI_SINGLE_BATTLE_TEST("Trainer Slide: Singles: Z Move (Items)")
+AI_SINGLE_BATTLE_TEST("Trainer Slide: Singles: Attacker Z Move (Items)")
 {
     GIVEN {
         FLAG_SET(TESTING_FLAG_TRAINER_SLIDES);
-        VAR_SET(TESTING_VAR_TRAINER_SLIDES, TRAINER_SLIDE_Z_MOVE);
+        VAR_SET(TESTING_VAR_TRAINER_SLIDES, TRAINER_SLIDE_ATTACKER_Z_MOVE);
         PLAYER(SPECIES_WOBBUFFET);
         OPPONENT(SPECIES_WOBBUFFET) { Items(ITEM_PECHA_BERRY, ITEM_NORMALIUM_Z); }
     } WHEN {
         TURN { EXPECT_MOVE(opponent, MOVE_QUICK_ATTACK, gimmick: GIMMICK_Z_MOVE); }
     } SCENE {
-        MESSAGE("Trainer A: This message plays before the enemy activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
+        MESSAGE("Trainer A: This message plays before the attacker activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
         MESSAGE("The opposing Wobbuffet surrounded itself with its Z-Power!");
         MESSAGE("The opposing Wobbuffet unleashes its full-force Z-Move!");
         ANIMATION(ANIM_TYPE_MOVE, MOVE_BREAKNECK_BLITZ, opponent);
     }
 }
 
-AI_DOUBLE_BATTLE_TEST("Trainer Slide: Doubles: Mega Evolution (Items)")
+AI_SINGLE_BATTLE_TEST("Trainer Slide: Singles: Opponent Mega Evolution (Items)")
 {
     GIVEN {
         FLAG_SET(TESTING_FLAG_TRAINER_SLIDES);
-        VAR_SET(TESTING_VAR_TRAINER_SLIDES, TRAINER_SLIDE_MEGA_EVOLUTION);
+        VAR_SET(TESTING_VAR_TRAINER_SLIDES, TRAINER_SLIDE_OPPONENT_MEGA_EVOLUTION);
+        PLAYER(SPECIES_LOPUNNY) {Items(ITEM_PECHA_BERRY, ITEM_LOPUNNITE); };
+        OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_CELEBRATE); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_CELEBRATE, gimmick: GIMMICK_MEGA); }
+    } SCENE {
+        MESSAGE("Trainer A: This message plays before the opponent activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_MEGA_EVOLUTION, player);
+        MESSAGE("Lopunny has Mega Evolved into Mega Lopunny!");
+    }
+}
+
+AI_SINGLE_BATTLE_TEST("Trainer Slide: Singles: Opponent Z Move (Items)")
+{
+    GIVEN {
+        FLAG_SET(TESTING_FLAG_TRAINER_SLIDES);
+        VAR_SET(TESTING_VAR_TRAINER_SLIDES, TRAINER_SLIDE_OPPONENT_Z_MOVE);
+        PLAYER(SPECIES_WOBBUFFET) { Items(ITEM_PECHA_BERRY, ITEM_NORMALIUM_Z); }
+        OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_CELEBRATE); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_QUICK_ATTACK, gimmick: GIMMICK_Z_MOVE); }
+    } SCENE {
+        MESSAGE("Trainer A: This message plays before the opponent activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
+        MESSAGE("Wobbuffet surrounded itself with its Z-Power!");
+        MESSAGE("Wobbuffet unleashes its full-force Z-Move!");
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_BREAKNECK_BLITZ, player);
+    }
+}
+
+AI_DOUBLE_BATTLE_TEST("Trainer Slide: Doubles: Attacker Mega Evolution (Items)")
+{
+    GIVEN {
+        FLAG_SET(TESTING_FLAG_TRAINER_SLIDES);
+        VAR_SET(TESTING_VAR_TRAINER_SLIDES, TRAINER_SLIDE_ATTACKER_MEGA_EVOLUTION);
         PLAYER(SPECIES_WOBBUFFET);
         PLAYER(SPECIES_WOBBUFFET);
         OPPONENT(SPECIES_LOPUNNY) { Items(ITEM_PECHA_BERRY, ITEM_LOPUNNITE); };
-        OPPONENT(SPECIES_LOPUNNY) { Moves(MOVE_CELEBRATE); }
+        OPPONENT(SPECIES_LOPUNNY);
     } WHEN {
         TURN { EXPECT_MOVE(opponentLeft, MOVE_CELEBRATE, gimmick: GIMMICK_MEGA); }
     } SCENE {
-        MESSAGE("Trainer A: This message plays before the enemy activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
+        MESSAGE("Trainer A: This message plays before the attacker activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
         NONE_OF {
-            MESSAGE("Trainer A: This message plays before the enemy activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
+            MESSAGE("Trainer A: This message plays before the attacker activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
         }
         ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_MEGA_EVOLUTION, opponentLeft);
         MESSAGE("The opposing Lopunny has Mega Evolved into Mega Lopunny!");
     }
 }
 
-AI_DOUBLE_BATTLE_TEST("Trainer Slide: Doubles: Z Move (Items)")
+AI_DOUBLE_BATTLE_TEST("Trainer Slide: Doubles: Attacker Z Move (Items)")
 {
     GIVEN {
         FLAG_SET(TESTING_FLAG_TRAINER_SLIDES);
-        VAR_SET(TESTING_VAR_TRAINER_SLIDES, TRAINER_SLIDE_Z_MOVE);
+        VAR_SET(TESTING_VAR_TRAINER_SLIDES, TRAINER_SLIDE_ATTACKER_Z_MOVE);
         PLAYER(SPECIES_WOBBUFFET);
         PLAYER(SPECIES_WOBBUFFET);
         OPPONENT(SPECIES_WOBBUFFET) { Items(ITEM_PECHA_BERRY, ITEM_NORMALIUM_Z); }
-        OPPONENT(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_CELEBRATE); }
     } WHEN {
         TURN { EXPECT_MOVE(opponentLeft, MOVE_QUICK_ATTACK, gimmick: GIMMICK_Z_MOVE); }
     } SCENE {
-        MESSAGE("Trainer A: This message plays before the enemy activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
+        MESSAGE("Trainer A: This message plays before the attacker activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
         NONE_OF {
-            MESSAGE("Trainer A: This message plays before the enemy activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
+            MESSAGE("Trainer A: This message plays before the attacker activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
         }
         MESSAGE("The opposing Wobbuffet surrounded itself with its Z-Power!");
         MESSAGE("The opposing Wobbuffet unleashes its full-force Z-Move!");
@@ -1838,58 +1869,208 @@ AI_DOUBLE_BATTLE_TEST("Trainer Slide: Doubles: Z Move (Items)")
     }
 }
 
-AI_MULTI_BATTLE_TEST("Trainer Slide: Multi: Mega Evolution (Items)")
+AI_DOUBLE_BATTLE_TEST("Trainer Slide: Doubles: Opponent Mega Evolution (Items)")
 {
     GIVEN {
         FLAG_SET(TESTING_FLAG_TRAINER_SLIDES);
-        VAR_SET(TESTING_VAR_TRAINER_SLIDES, TRAINER_SLIDE_MEGA_EVOLUTION);
+        VAR_SET(TESTING_VAR_TRAINER_SLIDES, TRAINER_SLIDE_OPPONENT_MEGA_EVOLUTION);
+        PLAYER(SPECIES_LOPUNNY) { Items(ITEM_PECHA_BERRY, ITEM_LOPUNNITE); };
+        PLAYER(SPECIES_LOPUNNY);
+        OPPONENT(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(playerLeft, MOVE_CELEBRATE, gimmick: GIMMICK_MEGA); }
+    } SCENE {
+        MESSAGE("Trainer A: This message plays before the opponent activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
+        NONE_OF {
+            MESSAGE("Trainer A: This message plays before the opponent activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
+        }
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_MEGA_EVOLUTION, playerLeft);
+        MESSAGE("Lopunny has Mega Evolved into Mega Lopunny!");
+    }
+}
+
+AI_DOUBLE_BATTLE_TEST("Trainer Slide: Doubles: Opponent Z Move (Items)")
+{
+    GIVEN {
+        FLAG_SET(TESTING_FLAG_TRAINER_SLIDES);
+        VAR_SET(TESTING_VAR_TRAINER_SLIDES, TRAINER_SLIDE_OPPONENT_Z_MOVE);
+        PLAYER(SPECIES_WOBBUFFET) { Items(ITEM_PECHA_BERRY, ITEM_NORMALIUM_Z); }
+        PLAYER(SPECIES_WOBBUFFET) { Moves(MOVE_CELEBRATE); }
+        OPPONENT(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(playerLeft, MOVE_QUICK_ATTACK, gimmick: GIMMICK_Z_MOVE); }
+    } SCENE {
+        MESSAGE("Trainer A: This message plays before the opponent activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
+        NONE_OF {
+            MESSAGE("Trainer A: This message plays before the opponent activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
+        }
+        MESSAGE("Wobbuffet surrounded itself with its Z-Power!");
+        MESSAGE("Wobbuffet unleashes its full-force Z-Move!");
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_BREAKNECK_BLITZ, playerLeft);
+    }
+}
+
+AI_MULTI_BATTLE_TEST("Trainer Slide: Multi: Attacker Mega Evolution (Items)")
+{
+    GIVEN {
+        FLAG_SET(TESTING_FLAG_TRAINER_SLIDES);
+        VAR_SET(TESTING_VAR_TRAINER_SLIDES, TRAINER_SLIDE_ATTACKER_MEGA_EVOLUTION);
         PLAYER(SPECIES_WOBBUFFET) { Speed(4); }
         PARTNER(SPECIES_AERODACTYL) { Speed(2); Items(ITEM_PECHA_BERRY, ITEM_AERODACTYLITE); }
         OPPONENT_A(SPECIES_LOPUNNY) { Speed(3); Items(ITEM_PECHA_BERRY, ITEM_LOPUNNITE); }
         OPPONENT_B(SPECIES_MEDICHAM) { Speed(1); Items(ITEM_PECHA_BERRY, ITEM_MEDICHAMITE); }
     } WHEN {
-        TURN { EXPECT_MOVE(opponentLeft, MOVE_CELEBRATE, gimmick: GIMMICK_MEGA); 
+        TURN { EXPECT_MOVE(opponentLeft, MOVE_CELEBRATE, gimmick: GIMMICK_MEGA);
             MOVE(playerRight, MOVE_CELEBRATE, gimmick: GIMMICK_MEGA);
             EXPECT_MOVE(opponentRight, MOVE_CELEBRATE, gimmick: GIMMICK_MEGA); }
     } SCENE {
-        MESSAGE("Trainer A: This message plays before the enemy activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
+        MESSAGE("Trainer A: This message plays before the attacker activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
         ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_MEGA_EVOLUTION, opponentLeft);
         MESSAGE("The opposing Lopunny has Mega Evolved into Mega Lopunny!");
-        MESSAGE("Trainer Partner: This message plays before the enemy activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
+
+        MESSAGE("Trainer Partner: This message plays before the attacker activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
         ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_MEGA_EVOLUTION, playerRight);
         MESSAGE("Aerodactyl has Mega Evolved into Mega Aerodactyl!");
-        MESSAGE("Trainer B: This message plays before the enemy activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
+
+        MESSAGE("Trainer B: This message plays before the attacker activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
         ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_MEGA_EVOLUTION, opponentRight);
         MESSAGE("The opposing Medicham has Mega Evolved into Mega Medicham!");
     }
 }
 
-AI_MULTI_BATTLE_TEST("Trainer Slide: Multi: Z Move (Items)")
+AI_MULTI_BATTLE_TEST("Trainer Slide: Multi: Attacker Z Move (Items)")
 {
     GIVEN {
         FLAG_SET(TESTING_FLAG_TRAINER_SLIDES);
-        VAR_SET(TESTING_VAR_TRAINER_SLIDES, TRAINER_SLIDE_Z_MOVE);
+        VAR_SET(TESTING_VAR_TRAINER_SLIDES, TRAINER_SLIDE_ATTACKER_Z_MOVE);
         TIE_BREAK_TARGET(TARGET_TIE_LO, 0);
         PLAYER(SPECIES_WOBBUFFET) { Speed(4); }
         PARTNER(SPECIES_WOBBUFFET) { Speed(2); Items(ITEM_PECHA_BERRY, ITEM_NORMALIUM_Z); }
         OPPONENT_A(SPECIES_WOBBUFFET) { Speed(3); Items(ITEM_PECHA_BERRY, ITEM_NORMALIUM_Z); }
         OPPONENT_B(SPECIES_WOBBUFFET) { Speed(1); Items(ITEM_PECHA_BERRY, ITEM_NORMALIUM_Z); }
     } WHEN {
-        TURN { 
-            EXPECT_MOVE(opponentLeft, MOVE_QUICK_ATTACK, gimmick: GIMMICK_Z_MOVE); 
-            MOVE(playerRight, MOVE_QUICK_ATTACK, gimmick: GIMMICK_Z_MOVE, target: opponentLeft); 
-            EXPECT_MOVE(opponentRight, MOVE_QUICK_ATTACK, gimmick: GIMMICK_Z_MOVE); 
+        TURN {
+            EXPECT_MOVE(opponentLeft, MOVE_QUICK_ATTACK, gimmick: GIMMICK_Z_MOVE);
+            MOVE(playerRight, MOVE_QUICK_ATTACK, gimmick: GIMMICK_Z_MOVE, target: opponentLeft);
+            EXPECT_MOVE(opponentRight, MOVE_QUICK_ATTACK, gimmick: GIMMICK_Z_MOVE);
         }
     } SCENE {
-        MESSAGE("Trainer A: This message plays before the enemy activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
+        MESSAGE("Trainer A: This message plays before the attacker activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
         MESSAGE("The opposing Wobbuffet surrounded itself with its Z-Power!");
         MESSAGE("The opposing Wobbuffet unleashes its full-force Z-Move!");
         ANIMATION(ANIM_TYPE_MOVE, MOVE_BREAKNECK_BLITZ, opponentLeft);
-        MESSAGE("Trainer Partner: This message plays before the enemy activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
+
+        MESSAGE("Trainer Partner: This message plays before the attacker activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
         MESSAGE("Wobbuffet surrounded itself with its Z-Power!");
         MESSAGE("Wobbuffet unleashes its full-force Z-Move!");
         ANIMATION(ANIM_TYPE_MOVE, MOVE_BREAKNECK_BLITZ, playerRight);
-        MESSAGE("Trainer B: This message plays before the enemy activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
+
+        MESSAGE("Trainer B: This message plays before the attacker activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
+        MESSAGE("The opposing Wobbuffet surrounded itself with its Z-Power!");
+        MESSAGE("The opposing Wobbuffet unleashes its full-force Z-Move!");
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_BREAKNECK_BLITZ, opponentRight);
+    }
+}
+
+AI_MULTI_BATTLE_TEST("Trainer Slide: Multi: Opponent Mega Evolution (Items)")
+{
+    GIVEN {
+        FLAG_SET(TESTING_FLAG_TRAINER_SLIDES);
+        VAR_SET(TESTING_VAR_TRAINER_SLIDES, TRAINER_SLIDE_OPPONENT_MEGA_EVOLUTION);
+        PLAYER(SPECIES_MANECTRIC) { Speed(4); Items(ITEM_PECHA_BERRY, ITEM_MANECTITE); }
+        PARTNER(SPECIES_AERODACTYL) { Speed(2); Items(ITEM_PECHA_BERRY, ITEM_AERODACTYLITE); }
+        OPPONENT_A(SPECIES_LOPUNNY) { Speed(3); Items(ITEM_PECHA_BERRY, ITEM_LOPUNNITE); }
+        OPPONENT_B(SPECIES_MEDICHAM) { Speed(1); Items(ITEM_PECHA_BERRY, ITEM_MEDICHAMITE); }
+    } WHEN {
+        TURN {
+            MOVE(playerLeft, MOVE_CELEBRATE, gimmick: GIMMICK_MEGA);
+            EXPECT_MOVE(opponentLeft, MOVE_CELEBRATE, gimmick: GIMMICK_MEGA);
+            MOVE(playerRight, MOVE_CELEBRATE, gimmick: GIMMICK_MEGA);
+            EXPECT_MOVE(opponentRight, MOVE_CELEBRATE, gimmick: GIMMICK_MEGA); }
+    } SCENE {
+
+        NOT MESSAGE("Trainer Partner: This message plays before the attacker activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
+        MESSAGE("Trainer A: This message plays before the opponent activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
+        MESSAGE("Trainer B: This message plays before the opponent activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
+        NOT MESSAGE("Trainer Partner: This message plays before the attacker activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_MEGA_EVOLUTION, playerLeft);
+        MESSAGE("Manectric has Mega Evolved into Mega Manectric!");
+
+        NONE_OF {
+            MESSAGE("Trainer A: This message plays before the opponent activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
+            MESSAGE("Trainer B: This message plays before the opponent activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
+        }
+        MESSAGE("Trainer Partner: This message plays before the opponent activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
+        NONE_OF {
+            MESSAGE("Trainer A: This message plays before the opponent activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
+            MESSAGE("Trainer B: This message plays before the opponent activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
+        }
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_MEGA_EVOLUTION, opponentLeft);
+        MESSAGE("The opposing Lopunny has Mega Evolved into Mega Lopunny!");
+
+        NOT MESSAGE("Trainer Partner: This message plays before the attacker activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_MEGA_EVOLUTION, playerRight);
+        MESSAGE("Aerodactyl has Mega Evolved into Mega Aerodactyl!");
+
+        NONE_OF {
+            MESSAGE("Trainer A: This message plays before the opponent activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
+            MESSAGE("Trainer Partner: This message plays before the opponent activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
+            MESSAGE("Trainer B: This message plays before the opponent activates the Mega Evolution gimmick.{PAUSE_UNTIL_PRESS}");
+        }
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_MEGA_EVOLUTION, opponentRight);
+        MESSAGE("The opposing Medicham has Mega Evolved into Mega Medicham!");
+    }
+}
+
+AI_MULTI_BATTLE_TEST("Trainer Slide: Multi: Opponent Z Move (Items)")
+{
+    GIVEN {
+        FLAG_SET(TESTING_FLAG_TRAINER_SLIDES);
+        VAR_SET(TESTING_VAR_TRAINER_SLIDES, TRAINER_SLIDE_OPPONENT_Z_MOVE);
+        TIE_BREAK_TARGET(TARGET_TIE_LO, 0);
+        PLAYER(SPECIES_WOBBUFFET) { Speed(4); Items(ITEM_PECHA_BERRY, ITEM_NORMALIUM_Z); }
+        PARTNER(SPECIES_WOBBUFFET) { Speed(2); Items(ITEM_PECHA_BERRY, ITEM_NORMALIUM_Z); }
+        OPPONENT_A(SPECIES_WOBBUFFET) { Speed(3); Items(ITEM_PECHA_BERRY, ITEM_NORMALIUM_Z); }
+        OPPONENT_B(SPECIES_WOBBUFFET) { Speed(1); Items(ITEM_PECHA_BERRY, ITEM_NORMALIUM_Z); }
+    } WHEN {
+        TURN {
+            MOVE(playerLeft, MOVE_QUICK_ATTACK, gimmick: GIMMICK_Z_MOVE, target: opponentLeft);
+            EXPECT_MOVE(opponentLeft, MOVE_QUICK_ATTACK, gimmick: GIMMICK_Z_MOVE);
+            MOVE(playerRight, MOVE_QUICK_ATTACK, gimmick: GIMMICK_Z_MOVE, target: opponentLeft);
+            EXPECT_MOVE(opponentRight, MOVE_QUICK_ATTACK, gimmick: GIMMICK_Z_MOVE);
+        }
+    } SCENE {
+        NONE_OF {
+            MESSAGE("Trainer Partner: This message plays before the opponent activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
+            MESSAGE("Trainer B: This message plays before the opponent activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
+        }
+        MESSAGE("Trainer A: This message plays before the opponent activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
+        MESSAGE("Trainer B: This message plays before the opponent activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
+        NONE_OF {
+            MESSAGE("Trainer Partner: This message plays before the opponent activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
+            MESSAGE("Trainer A: This message plays before the opponent activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
+        }
+        MESSAGE("Wobbuffet surrounded itself with its Z-Power!");
+        MESSAGE("Wobbuffet unleashes its full-force Z-Move!");
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_BREAKNECK_BLITZ, playerLeft);
+
+        MESSAGE("Trainer Partner: This message plays before the opponent activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
+        MESSAGE("The opposing Wobbuffet surrounded itself with its Z-Power!");
+        MESSAGE("The opposing Wobbuffet unleashes its full-force Z-Move!");
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_BREAKNECK_BLITZ, opponentLeft);
+
+        NONE_OF {
+            MESSAGE("Trainer Partner: This message plays before the opponent activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
+            MESSAGE("Trainer A: This message plays before the opponent activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
+            MESSAGE("Trainer B: This message plays before the opponent activates the Z-Move gimmick.{PAUSE_UNTIL_PRESS}");
+        }
+
+        MESSAGE("Wobbuffet surrounded itself with its Z-Power!");
+        MESSAGE("Wobbuffet unleashes its full-force Z-Move!");
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_BREAKNECK_BLITZ, playerRight);
+
         MESSAGE("The opposing Wobbuffet surrounded itself with its Z-Power!");
         MESSAGE("The opposing Wobbuffet unleashes its full-force Z-Move!");
         ANIMATION(ANIM_TYPE_MOVE, MOVE_BREAKNECK_BLITZ, opponentRight);

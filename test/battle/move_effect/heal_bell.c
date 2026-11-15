@@ -237,6 +237,25 @@ SINGLE_BATTLE_TEST("Aromatherapy cures inactive Soundproof Pokemon regardless of
     }
 }
 
+DOUBLE_BATTLE_TEST("Aromatherapy will be blocked on ally by Sap Sipper but not user")
+{
+    GIVEN {
+        ASSUME(GetMoveType(MOVE_AROMATHERAPY) == TYPE_GRASS);
+        PLAYER(SPECIES_MARILL) { Ability(ABILITY_SAP_SIPPER); }
+        PLAYER(SPECIES_MARILL) { Ability(ABILITY_SAP_SIPPER); }
+        OPPONENT(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(playerLeft, MOVE_AROMATHERAPY); }
+    } SCENE {
+        ABILITY_POPUP(playerRight, ABILITY_SAP_SIPPER);
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, playerRight);
+        MESSAGE("Marill's Attack rose!");
+    } THEN {
+        EXPECT_EQ(playerRight->statStages[STAT_ATK], DEFAULT_STAT_STAGE + 1);
+    }
+}
+
 #if MAX_MON_TRAITS > 1
 DOUBLE_BATTLE_TEST("Heal Bell does not cure Soundproof partners (Gen 4, Gen 6+) (Traits)")
 {
@@ -351,7 +370,8 @@ DOUBLE_BATTLE_TEST("Aromatherapy cure Soundproof battlers regardless of config (
 
 SINGLE_BATTLE_TEST("Aromatherapy cures inactive Soundproof Pokemon regardless of config (Traits)")
 {
-    u32 config, ability;
+    u32 config;
+    enum Ability ability;
 
     PARAMETRIZE { config = GEN_4, ability = ABILITY_SOUNDPROOF; }
     PARAMETRIZE { config = GEN_5, ability = ABILITY_SOUNDPROOF; }
@@ -369,6 +389,25 @@ SINGLE_BATTLE_TEST("Aromatherapy cures inactive Soundproof Pokemon regardless of
         ANIMATION(ANIM_TYPE_MOVE, MOVE_AROMATHERAPY, player);
         SEND_IN_MESSAGE("Exploud");
         NOT MESSAGE("Exploud was hurt by its poisoning!");
+    }
+}
+
+DOUBLE_BATTLE_TEST("Aromatherapy will be blocked on ally by Sap Sipper but not user (Traits)")
+{
+    GIVEN {
+        ASSUME(GetMoveType(MOVE_AROMATHERAPY) == TYPE_GRASS);
+        PLAYER(SPECIES_MARILL) { Ability(ABILITY_THICK_FAT); Innates(ABILITY_SAP_SIPPER); }
+        PLAYER(SPECIES_MARILL) { Ability(ABILITY_THICK_FAT); Innates(ABILITY_SAP_SIPPER); }
+        OPPONENT(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(playerLeft, MOVE_AROMATHERAPY); }
+    } SCENE {
+        ABILITY_POPUP(playerRight, ABILITY_SAP_SIPPER);
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, playerRight);
+        MESSAGE("Marill's Attack rose!");
+    } THEN {
+        EXPECT_EQ(playerRight->statStages[STAT_ATK], DEFAULT_STAT_STAGE + 1);
     }
 }
 #endif

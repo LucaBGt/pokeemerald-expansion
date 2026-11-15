@@ -289,6 +289,47 @@ SINGLE_BATTLE_TEST("Contrary does not invert stat changes that have been Baton-p
     }
 }
 
+SINGLE_BATTLE_TEST("Contrary inverts stat changes from X items")
+{
+    enum Item item;
+    enum Stat stat;
+
+    PARAMETRIZE { item = ITEM_X_ATTACK;   stat = STAT_ATK; }
+    PARAMETRIZE { item = ITEM_X_DEFENSE;  stat = STAT_DEF; }
+    PARAMETRIZE { item = ITEM_X_SP_ATK;   stat = STAT_SPATK; }
+    PARAMETRIZE { item = ITEM_X_SP_DEF;   stat = STAT_SPDEF; }
+    PARAMETRIZE { item = ITEM_X_SPEED;    stat = STAT_SPEED; }
+    PARAMETRIZE { item = ITEM_X_ACCURACY; stat = STAT_ACC; }
+
+    GIVEN {
+        WITH_CONFIG(B_X_ITEMS_BUFF, GEN_7);
+        ASSUME(gItemsInfo[item].battleUsage == EFFECT_ITEM_INCREASE_STAT);
+        PLAYER(SPECIES_SNIVY) { Ability(ABILITY_CONTRARY); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { USE_ITEM(player, item); }
+    } THEN {
+        EXPECT_EQ(player->statStages[stat], DEFAULT_STAT_STAGE - 2);
+    }
+}
+
+SINGLE_BATTLE_TEST("Contrary inverts stat changes from Max Mushrooms")
+{
+    GIVEN {
+        ASSUME(gItemsInfo[ITEM_MAX_MUSHROOMS].battleUsage == EFFECT_ITEM_INCREASE_ALL_STATS);
+        PLAYER(SPECIES_SNIVY) { Ability(ABILITY_CONTRARY); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { USE_ITEM(player, ITEM_MAX_MUSHROOMS); }
+    } THEN {
+        EXPECT_EQ(player->statStages[STAT_ATK], DEFAULT_STAT_STAGE - 1);
+        EXPECT_EQ(player->statStages[STAT_DEF], DEFAULT_STAT_STAGE - 1);
+        EXPECT_EQ(player->statStages[STAT_SPATK], DEFAULT_STAT_STAGE - 1);
+        EXPECT_EQ(player->statStages[STAT_SPDEF], DEFAULT_STAT_STAGE - 1);
+        EXPECT_EQ(player->statStages[STAT_SPEED], DEFAULT_STAT_STAGE - 1);
+    }
+}
+
 TO_DO_BATTLE_TEST("Contrary inverts stat changes from X Attack and other stat-boosting items.")
 
 #if MAX_MON_TRAITS > 1
@@ -520,7 +561,7 @@ SINGLE_BATTLE_TEST("Sticky Web raises Speed by 1 for Contrary mon on switch-in (
         TURN {}
     } SCENE {
         ANIMATION(ANIM_TYPE_MOVE, MOVE_STICKY_WEB, player);
-        MESSAGE("A sticky web has been laid out on the ground around the opposing team!");
+        MESSAGE("A sticky web has been laid out on the ground on the opposing side!");
         MESSAGE("2 sent out Snivy!");
         MESSAGE("The opposing Snivy was caught in a sticky web!");
         ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, opponent);
@@ -555,7 +596,7 @@ AI_SINGLE_BATTLE_TEST("AI sees Contrary-effected moves correctly in MoveEffectIn
     }
 }
 
-SINGLE_BATTLE_TEST("Contrary does not invert stat changes that have been Baton-passed")
+SINGLE_BATTLE_TEST("Contrary does not invert stat changes that have been Baton-passed (Traits)")
 {
     GIVEN {
         ASSUME_STAT_CHANGE(MOVE_SWORDS_DANCE, attack: +2);
@@ -574,6 +615,48 @@ SINGLE_BATTLE_TEST("Contrary does not invert stat changes that have been Baton-p
         EXPECT_EQ(opponent->statStages[STAT_ATK], DEFAULT_STAT_STAGE + 2);
     }
 }
+
+SINGLE_BATTLE_TEST("Contrary inverts stat changes from X items (Traits)")
+{
+    enum Item item;
+    enum Stat stat;
+
+    PARAMETRIZE { item = ITEM_X_ATTACK;   stat = STAT_ATK; }
+    PARAMETRIZE { item = ITEM_X_DEFENSE;  stat = STAT_DEF; }
+    PARAMETRIZE { item = ITEM_X_SP_ATK;   stat = STAT_SPATK; }
+    PARAMETRIZE { item = ITEM_X_SP_DEF;   stat = STAT_SPDEF; }
+    PARAMETRIZE { item = ITEM_X_SPEED;    stat = STAT_SPEED; }
+    PARAMETRIZE { item = ITEM_X_ACCURACY; stat = STAT_ACC; }
+
+    GIVEN {
+        WITH_CONFIG(B_X_ITEMS_BUFF, GEN_7);
+        ASSUME(gItemsInfo[item].battleUsage == EFFECT_ITEM_INCREASE_STAT);
+        PLAYER(SPECIES_SNIVY) { Ability(ABILITY_OVERGROW); Innates(ABILITY_CONTRARY); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { USE_ITEM(player, item); }
+    } THEN {
+        EXPECT_EQ(player->statStages[stat], DEFAULT_STAT_STAGE - 2);
+    }
+}
+
+SINGLE_BATTLE_TEST("Contrary inverts stat changes from Max Mushrooms (Traits)")
+{
+    GIVEN {
+        ASSUME(gItemsInfo[ITEM_MAX_MUSHROOMS].battleUsage == EFFECT_ITEM_INCREASE_ALL_STATS);
+        PLAYER(SPECIES_SNIVY) { Ability(ABILITY_OVERGROW); Innates(ABILITY_CONTRARY); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { USE_ITEM(player, ITEM_MAX_MUSHROOMS); }
+    } THEN {
+        EXPECT_EQ(player->statStages[STAT_ATK], DEFAULT_STAT_STAGE - 1);
+        EXPECT_EQ(player->statStages[STAT_DEF], DEFAULT_STAT_STAGE - 1);
+        EXPECT_EQ(player->statStages[STAT_SPATK], DEFAULT_STAT_STAGE - 1);
+        EXPECT_EQ(player->statStages[STAT_SPDEF], DEFAULT_STAT_STAGE - 1);
+        EXPECT_EQ(player->statStages[STAT_SPEED], DEFAULT_STAT_STAGE - 1);
+    }
+}
+
 #endif
 
 #if MAX_MON_ITEMS > 1

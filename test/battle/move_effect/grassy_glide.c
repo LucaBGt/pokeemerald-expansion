@@ -35,3 +35,34 @@ SINGLE_BATTLE_TEST("Dynamax: Grassy Glide's priority does not increase for the M
         ANIMATION(ANIM_TYPE_MOVE, MOVE_MAX_OVERGROWTH, player);
     }
 }
+
+
+#if MAX_MON_TRAITS > 1
+SINGLE_BATTLE_TEST("Grassy Glide's priority increases by 1 when the user is affected by Grassy Terrain (Traits)")
+{
+    GIVEN {
+        PLAYER(SPECIES_TAPU_BULU) { Ability(ABILITY_LIGHT_METAL); Innates(ABILITY_GRASSY_SURGE); Speed(1); }
+        OPPONENT(SPECIES_WOBBUFFET) { Speed(2); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_GRASSY_GLIDE); MOVE(opponent, MOVE_SCRATCH); }
+    } SCENE {
+        ABILITY_POPUP(player, ABILITY_GRASSY_SURGE);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_GRASSY_GLIDE, player);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_SCRATCH, opponent);
+    }
+}
+
+SINGLE_BATTLE_TEST("Dynamax: Grassy Glide's priority does not increase for the Max Move it becomes (Traits)")
+{
+    GIVEN {
+        PLAYER(SPECIES_TAPU_BULU) { Ability(ABILITY_LIGHT_METAL); Innates(ABILITY_GRASSY_SURGE); Speed(1); }
+        OPPONENT(SPECIES_WOBBUFFET) { Speed(2); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_GRASSY_GLIDE, gimmick: GIMMICK_DYNAMAX); MOVE(opponent, MOVE_SCRATCH); }
+    } SCENE {
+        ABILITY_POPUP(player, ABILITY_GRASSY_SURGE);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_SCRATCH, opponent);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_MAX_OVERGROWTH, player);
+    }
+}
+#endif

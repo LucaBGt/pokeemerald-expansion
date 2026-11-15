@@ -242,7 +242,7 @@ TO_DO_BATTLE_TEST("OHKO moves faints the target, skipping regular damage calcula
 TO_DO_BATTLE_TEST("OHKO moves's accuracy increases by 1% for every level the user has over the target")
 TO_DO_BATTLE_TEST("OHKO moves's ignores non-stage accuracy modifiers") // Gravity, Wide Lens, Compound Eyes
 TO_DO_BATTLE_TEST("OHKO moves ignore non-stage accuracy modifiers") // Gravity, Wide Lens, Compound Eyes
-TO_DO_BATTLE_TEST("OHKO: Sheer Cold's accuracy decreasaes by 10% if the user is not Ice type")
+
 
 #if MAX_MON_TRAITS > 1
 SINGLE_BATTLE_TEST("OHKO moves can hit semi-invulnerable mons when the user has No-Guard (Traits)")

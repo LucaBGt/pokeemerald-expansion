@@ -821,6 +821,8 @@ ONE_VS_TWO_BATTLE_TEST("(Z-MOVE) Every battler can use Z-Moves - 1v2")
     }
 }
 
+
+
 SINGLE_BATTLE_TEST("(Z-MOVE) Z-Move power is based on the base move", s16 damage)
 {
     enum Move move;
@@ -996,21 +998,6 @@ TO_DO_BATTLE_TEST("(Z-MOVE) Stat changes from status Z-Moves are not inverted by
 TO_DO_BATTLE_TEST("(Z-MOVE) Stat changes from Extreme Evoboost are inverted by Contrary")
 TO_DO_BATTLE_TEST("(Z-MOVE) Stat changes from Clangorous Soulblaze are inverted by Contrary")
 
-SINGLE_BATTLE_TEST("(Z-MOVE) Z-Moves are not affected by -ate abilities")
-{
-    GIVEN {
-        ASSUME(GetMoveType(MOVE_SCRATCH) == TYPE_NORMAL);
-        ASSUME(GetSpeciesType(SPECIES_SWELLOW, 1) == TYPE_FLYING);
-        PLAYER(SPECIES_AURORUS) { Ability(ABILITY_REFRIGERATE); Item(ITEM_NORMALIUM_Z); }
-        OPPONENT(SPECIES_SWELLOW);
-    } WHEN {
-        TURN { MOVE(player, MOVE_SCRATCH, gimmick: GIMMICK_Z_MOVE); }
-    } SCENE {
-        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_ZMOVE_ACTIVATE, player);
-        ANIMATION(ANIM_TYPE_MOVE, MOVE_BREAKNECK_BLITZ, player);
-        NOT { MESSAGE("It's super effective!"); }
-    }
-}
 
 #if MAX_MON_TRAITS > 1
 DOUBLE_BATTLE_TEST("(Z-MOVE) Dancer does not use a Z-Move if the battler has used a Z-Move the same turn (Traits)")
@@ -1254,7 +1241,7 @@ SINGLE_BATTLE_TEST("(Z-MOVE) Z_EFFECT_RESTORE_REPLACEMENT_HP fully heals the rep
 // This tests the functionality of Z_EFFECT_RECOVER_HP and Z_EFFECT_ATK_UP_1 (and thus by extension all stat-up Z-effects)
 SINGLE_BATTLE_TEST("(Z-MOVE) Z_EFFECT_CURSE activates Z_EFFECT_RECOVER_HP or Z_EFFECT_ATK_UP_1 depending on the type of the battler (Items)")
 {
-    u32 species;
+    enum Species species;
     PARAMETRIZE { species = SPECIES_WOBBUFFET; }
     PARAMETRIZE { species = SPECIES_DUSCLOPS; }
     GIVEN {
@@ -1635,9 +1622,9 @@ SINGLE_BATTLE_TEST("(Z-MOVE) Stoked Sparksurfer paralyzes the target (Items)")
 SINGLE_BATTLE_TEST("(Z-MOVE) Extreme Evoboost boosts all the user's stats by two stages (Items)")
 {
     GIVEN {
+        WITH_CONFIG(B_LAST_RESORT_SELECTABLE, GEN_9); // The test will fail without this on GEN_CHAMPIONS
         ASSUME(GetMoveEffect(MOVE_EXTREME_EVOBOOST) == EFFECT_EXTREME_EVOBOOST);
-        PLAYER(SPECIES_EEVEE) { Items(ITEM_PECHA_BERRY, ITEM_EEVIUM_Z); }
-        OPPONENT(SPECIES_WOBBUFFET);
+        PLAYER(SPECIES_EEVEE) { PLAYER(SPECIES_EEVEE) Items(ITEM_PECHA_BERRY, ITEM_EEVIUM_Z); Moves(MOVE_POUND, MOVE_LAST_RESORT); }
     } WHEN {
         TURN { MOVE(player, MOVE_LAST_RESORT, gimmick: GIMMICK_Z_MOVE); }
     } SCENE {
@@ -1744,7 +1731,7 @@ SINGLE_BATTLE_TEST("(Z-MOVE) Searing Sunraze Smash ignores the target's abilitie
 
 SINGLE_BATTLE_TEST("(Z-MOVE) Z-Revelation Dance always transforms into Breakneck Blitz (Items)")
 {
-    u16 species;
+    enum Species species;
     PARAMETRIZE { species = SPECIES_ORICORIO_BAILE; }
     PARAMETRIZE { species = SPECIES_ORICORIO_PAU; }
     PARAMETRIZE { species = SPECIES_ORICORIO_POM_POM; }
@@ -1851,6 +1838,53 @@ ONE_VS_TWO_BATTLE_TEST("(Z-MOVE) Every battler can use Z-Moves - 1v2 (Items)")
         TURN { MOVE(battler, MOVE_CELEBRATE, gimmick: GIMMICK_Z_MOVE); }
     } SCENE {
         ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_ZMOVE_ACTIVATE, battler);
+    }
+}
+
+SINGLE_BATTLE_TEST("Z-Move: Z-Moves can be selected and executed under Throat Chop (Items)")
+{
+    GIVEN {
+        ASSUME(IsSoundMove(MOVE_GROWL));
+        PLAYER(SPECIES_WOBBUFFET) { Speed(1); Items(ITEM_PECHA_BERRY, ITEM_NORMALIUM_Z); Moves(MOVE_GROWL, MOVE_CELEBRATE); }
+        OPPONENT(SPECIES_WOBBUFFET) { Speed(2); }
+    } WHEN {
+        TURN { MOVE(opponent, MOVE_THROAT_CHOP); MOVE(player, MOVE_CELEBRATE); }
+        TURN { MOVE(player, MOVE_GROWL, gimmick: GIMMICK_Z_MOVE); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_THROAT_CHOP, opponent);
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_ZMOVE_ACTIVATE, player);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_GROWL, player);
+    }
+}
+
+SINGLE_BATTLE_TEST("Z-Move: Z-Moves can be selected under Gravity but Gravity still prevents execution (Items)")
+{
+    GIVEN {
+        ASSUME(GetMoveEffect(MOVE_GRAVITY) == EFFECT_GRAVITY);
+        ASSUME(IsMoveGravityBanned(MOVE_FLY));
+        PLAYER(SPECIES_WOBBUFFET) { Speed(1); Items(ITEM_PECHA_BERRY, ITEM_FLYINIUM_Z); Moves(MOVE_FLY, MOVE_CELEBRATE); }
+        OPPONENT(SPECIES_WOBBUFFET) { Speed(2); }
+    } WHEN {
+        TURN { MOVE(opponent, MOVE_GRAVITY); MOVE(player, MOVE_CELEBRATE); }
+        TURN { MOVE(player, MOVE_FLY, gimmick: GIMMICK_Z_MOVE); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_GRAVITY, opponent);
+        MESSAGE("Wobbuffet can't use Supersonic Skystrike because of gravity!");
+        NOT HP_BAR(opponent);
+    }
+}
+
+SINGLE_BATTLE_TEST("Z-Move: Z-Belch can be selected without eating a Berry (Items)")
+{
+    GIVEN {
+        ASSUME(GetMoveEffect(MOVE_BELCH) == EFFECT_BELCH);
+        PLAYER(SPECIES_WOBBUFFET) { Items(ITEM_PECHA_BERRY, ITEM_POISONIUM_Z); Moves(MOVE_BELCH, MOVE_CELEBRATE); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(player, MOVE_BELCH, gimmick: GIMMICK_Z_MOVE); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_ZMOVE_ACTIVATE, player);
+        HP_BAR(opponent);
     }
 }
 

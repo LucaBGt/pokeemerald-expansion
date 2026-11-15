@@ -46,6 +46,7 @@ SINGLE_BATTLE_TEST("Rough Skin and Iron Barbs cause the attacker to take damage 
             ABILITY_POPUP(opponent, ABILITY_ROUGH_SKIN);
         else
             ABILITY_POPUP(opponent, ABILITY_IRON_BARBS);
+        MESSAGE("Wobbuffet was hurt!");
     }
 }
 
@@ -71,7 +72,7 @@ SINGLE_BATTLE_TEST("Iron Barbs: Damages attackers that make contact (Traits)")
         ANIMATION(ANIM_TYPE_MOVE, MOVE_POPULATION_BOMB, player);
         ANIMATION(ANIM_TYPE_MOVE, MOVE_POPULATION_BOMB, player);
         ANIMATION(ANIM_TYPE_MOVE, MOVE_POPULATION_BOMB, player);
-        MESSAGE("The Pokémon was hit 4 time(s)!");
+        MESSAGE("The Pokémon was hit 4 times!");
         NONE_OF {
             HP_BAR(player);
             MESSAGE("Wobbuffet was hurt by the opposing Ferroseed's Iron Barbs!");
@@ -83,7 +84,7 @@ SINGLE_BATTLE_TEST("Iron Barbs: Damages attackers that make contact (Traits)")
 
 SINGLE_BATTLE_TEST("Rough Skin and Iron Barbs cause the attacker to take damage when using a contact move (Traits)")
 {
-    u32 species;
+    enum Species species;
     enum Ability ability;
 
     PARAMETRIZE { species = SPECIES_GARCHOMP; ability = ABILITY_ROUGH_SKIN; }
@@ -124,7 +125,7 @@ SINGLE_BATTLE_TEST("Iron Barbs: Damages attackers that make contact (Items)")
         ANIMATION(ANIM_TYPE_MOVE, MOVE_POPULATION_BOMB, player);
         ANIMATION(ANIM_TYPE_MOVE, MOVE_POPULATION_BOMB, player);
         ANIMATION(ANIM_TYPE_MOVE, MOVE_POPULATION_BOMB, player);
-        MESSAGE("The Pokémon was hit 4 time(s)!");
+        MESSAGE("The Pokémon was hit 4 times!");
         NONE_OF {
             HP_BAR(player);
             MESSAGE("Wobbuffet was hurt by the opposing Ferroseed's Iron Barbs!");

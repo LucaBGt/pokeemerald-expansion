@@ -145,6 +145,28 @@ SINGLE_BATTLE_TEST("Innards Out does not trigger when Core Enforcer suppresses i
     }
 }
 
+SINGLE_BATTLE_TEST("Innards Out does not trigger after Gastro Acid has been used")
+{
+    GIVEN {
+        ASSUME(GetMoveCategory(MOVE_PSYCHIC) != DAMAGE_CATEGORY_STATUS);
+        ASSUME(GetMoveEffect(MOVE_GASTRO_ACID) == EFFECT_GASTRO_ACID);
+        PLAYER(SPECIES_PYUKUMUKU) { HP(1); Ability(ABILITY_INNARDS_OUT); }
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(opponent, MOVE_GASTRO_ACID); }
+        TURN { MOVE(opponent, MOVE_PSYCHIC); SEND_OUT(player, 1); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_GASTRO_ACID, opponent);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_PSYCHIC, opponent);
+        HP_BAR(player);
+        NONE_OF {
+            ABILITY_POPUP(player, ABILITY_INNARDS_OUT);
+            HP_BAR(opponent);
+        }
+    }
+}
+
 // According to Showdown Innards Out triggers, but does nothing.
 SINGLE_BATTLE_TEST("Innards Out does not damage Magic Guard Pokemon")
 {
@@ -348,6 +370,28 @@ SINGLE_BATTLE_TEST("Innards Out should not include Substitute damage in accumula
         HP_BAR(opponent, captureDamage: &captured);
     } THEN {
         EXPECT_EQ(captured, 3);
+    }
+}
+
+SINGLE_BATTLE_TEST("Innards Out does not trigger after Gastro Acid has been used (Traits)")
+{
+    GIVEN {
+        ASSUME(GetMoveCategory(MOVE_PSYCHIC) != DAMAGE_CATEGORY_STATUS);
+        ASSUME(GetMoveEffect(MOVE_GASTRO_ACID) == EFFECT_GASTRO_ACID);
+        PLAYER(SPECIES_PYUKUMUKU) { HP(1); Ability(ABILITY_UNAWARE); Innates(ABILITY_INNARDS_OUT); }
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(opponent, MOVE_GASTRO_ACID); }
+        TURN { MOVE(opponent, MOVE_PSYCHIC); SEND_OUT(player, 1); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_GASTRO_ACID, opponent);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_PSYCHIC, opponent);
+        HP_BAR(player);
+        NONE_OF {
+            ABILITY_POPUP(player, ABILITY_INNARDS_OUT);
+            HP_BAR(opponent);
+        }
     }
 }
 

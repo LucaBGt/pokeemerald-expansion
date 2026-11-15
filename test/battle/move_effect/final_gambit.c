@@ -277,3 +277,160 @@ SINGLE_BATTLE_TEST("Final Gambit triggers the target's Endure")
 
 TO_DO_BATTLE_TEST("Final Gambit fails in Max Raids")
 TO_DO_BATTLE_TEST("Final Gambit fails in Tera Raids")
+
+
+
+#if MAX_MON_TRAITS > 1
+// Using CONFIG_UPDATED_MOVE_FLAGS doesn't work yet, commented out so they don't cause surprise failures
+
+// SINGLE_BATTLE_TEST("Final Gambit faints the user before abilities can activate (Gen 5) (Traits)")
+// {
+//     GIVEN {
+//         WITH_CONFIG(B_UPDATED_MOVE_FLAGS, GEN_5);
+//         PLAYER(SPECIES_WOBBUFFET);
+//         OPPONENT(SPECIES_PYUKUMUKU) { Ability(ABILITY_ROCK_HEAD); Innates(ABILITY_INNARDS_OUT); HP(1); }
+//     } WHEN {
+//         TURN { MOVE(player, MOVE_FINAL_GAMBIT); }
+//     } SCENE {
+//         NOT ABILITY_POPUP(opponent, ABILITY_INNARDS_OUT);
+//         MESSAGE("Wobbuffet fainted!");
+//         NOT ABILITY_POPUP(opponent, ABILITY_INNARDS_OUT);
+//     }
+// }
+
+// SINGLE_BATTLE_TEST("Final Gambit faints the user after abilities can activate (Gen 6+) (Traits)")
+// {
+//     GIVEN {
+//         WITH_CONFIG(B_UPDATED_MOVE_FLAGS, GEN_6);
+//         PLAYER(SPECIES_WOBBUFFET);
+//         OPPONENT(SPECIES_PYUKUMUKU) { Ability(ABILITY_ROCK_HEAD); Innates(ABILITY_INNARDS_OUT); HP(1); }
+//     } WHEN {
+//         TURN { MOVE(player, MOVE_FINAL_GAMBIT); }
+//     } SCENE {
+//         ABILITY_POPUP(opponent, ABILITY_INNARDS_OUT);
+//         MESSAGE("Wobbuffet fainted!");
+//     }
+// }
+
+SINGLE_BATTLE_TEST("Final Gambit does not trigger the user's Sturdy (Traits)")
+{
+    GIVEN {
+        WITH_CONFIG(B_STURDY, GEN_5);
+        PLAYER(SPECIES_GEODUDE) { MaxHP(3); HP(3); Ability(ABILITY_ROCK_HEAD); Innates(ABILITY_STURDY); }
+        PLAYER(SPECIES_GRAVELER);
+        OPPONENT(SPECIES_WOBBUFFET) { MaxHP(10); HP(10); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_FINAL_GAMBIT); SEND_OUT(player, 1); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_FINAL_GAMBIT, player);
+        HP_BAR(opponent, damage: 3);
+        HP_BAR(player, hp: 0);
+        NOT ABILITY_POPUP(player, ABILITY_STURDY);
+    } THEN {
+        EXPECT_EQ(GetMonData(&gParties[B_TRAINER_PLAYER][0], MON_DATA_HP), 0);
+    }
+}
+
+SINGLE_BATTLE_TEST("Final Gambit triggers the target's Sturdy (Traits)")
+{
+    GIVEN {
+        WITH_CONFIG(B_STURDY, GEN_5);
+        PLAYER(SPECIES_WOBBUFFET) { MaxHP(3); HP(3); }
+        PLAYER(SPECIES_WYNAUT);
+        OPPONENT(SPECIES_GEODUDE) { MaxHP(2); HP(2); Ability(ABILITY_ROCK_HEAD); Innates(ABILITY_STURDY); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_FINAL_GAMBIT); SEND_OUT(player, 1); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_FINAL_GAMBIT, player);
+        HP_BAR(opponent, hp: 1);
+        ABILITY_POPUP(opponent, ABILITY_STURDY);
+        HP_BAR(player, hp: 0);
+    } THEN {
+        EXPECT_EQ(opponent->hp, 1);
+    }
+}
+#endif
+
+
+#if MAX_MON_ITEMS > 1
+SINGLE_BATTLE_TEST("Final Gambit does not trigger the user's Focus Band (Items)")
+{
+    GIVEN {
+        ASSUME(GetItemHoldEffect(ITEM_FOCUS_BAND) == HOLD_EFFECT_FOCUS_BAND);
+        PLAYER(SPECIES_WOBBUFFET) { MaxHP(3); HP(3); Items(ITEM_PECHA_BERRY, ITEM_FOCUS_BAND); }
+        PLAYER(SPECIES_WYNAUT);
+        OPPONENT(SPECIES_WOBBUFFET) { MaxHP(10); HP(10); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_FINAL_GAMBIT); SEND_OUT(player, 1); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_FINAL_GAMBIT, player);
+        HP_BAR(opponent, damage: 3);
+        HP_BAR(player, hp: 0);
+        NOT ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_EFFECT, player);
+    } THEN {
+        EXPECT_EQ(GetMonData(&gParties[B_TRAINER_PLAYER][0], MON_DATA_HP), 0);
+        EXPECT_EQ(GetMonData(&gParties[B_TRAINER_PLAYER][0], MON_DATA_HELD_ITEM), ITEM_FOCUS_BAND);
+    }
+}
+
+SINGLE_BATTLE_TEST("Final Gambit does not trigger the user's Focus Sash (Items)")
+{
+    GIVEN {
+        ASSUME(GetItemHoldEffect(ITEM_FOCUS_SASH) == HOLD_EFFECT_FOCUS_SASH);
+        PLAYER(SPECIES_WOBBUFFET) { MaxHP(3); HP(3); Items(ITEM_PECHA_BERRY, ITEM_FOCUS_SASH); }
+        PLAYER(SPECIES_WYNAUT);
+        OPPONENT(SPECIES_WOBBUFFET) { MaxHP(10); HP(10); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_FINAL_GAMBIT); SEND_OUT(player, 1); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_FINAL_GAMBIT, player);
+        HP_BAR(opponent, damage: 3);
+        HP_BAR(player, hp: 0);
+        NOT ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_EFFECT, player);
+    } THEN {
+        EXPECT_EQ(GetMonData(&gParties[B_TRAINER_PLAYER][0], MON_DATA_HP), 0);
+        EXPECT_EQ(GetMonData(&gParties[B_TRAINER_PLAYER][0], MON_DATA_HELD_ITEM), ITEM_FOCUS_SASH);
+    }
+}
+
+SINGLE_BATTLE_TEST("Final Gambit triggers the target's Focus Band (Items)")
+{
+    GIVEN {
+        ASSUME(GetItemHoldEffect(ITEM_FOCUS_BAND) == HOLD_EFFECT_FOCUS_BAND);
+        RNGSeed(((rng_value_t){ .ctr = 1 })); // Force Focus Band's 10% check to succeed.
+        PLAYER(SPECIES_WOBBUFFET) { MaxHP(3); HP(3); }
+        PLAYER(SPECIES_WYNAUT);
+        OPPONENT(SPECIES_WOBBUFFET) { MaxHP(2); HP(2); Items(ITEM_PECHA_BERRY, ITEM_FOCUS_BAND); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_FINAL_GAMBIT); SEND_OUT(player, 1); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_FINAL_GAMBIT, player);
+        HP_BAR(opponent, hp: 1);
+        MESSAGE("The opposing Wobbuffet hung on using its Focus Band!");
+        HP_BAR(player, hp: 0);
+    } THEN {
+        EXPECT_EQ(opponent->hp, 1);
+    }
+}
+
+SINGLE_BATTLE_TEST("Final Gambit triggers the target's Focus Sash (Items)")
+{
+    GIVEN {
+        ASSUME(GetItemHoldEffect(ITEM_FOCUS_SASH) == HOLD_EFFECT_FOCUS_SASH);
+        PLAYER(SPECIES_WOBBUFFET) { MaxHP(3); HP(3); }
+        PLAYER(SPECIES_WYNAUT);
+        OPPONENT(SPECIES_WOBBUFFET) { MaxHP(2); HP(2); Items(ITEM_PECHA_BERRY, ITEM_FOCUS_SASH); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_FINAL_GAMBIT); SEND_OUT(player, 1); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_FINAL_GAMBIT, player);
+        HP_BAR(opponent, hp: 1);
+        MESSAGE("The opposing Wobbuffet hung on using its Focus Sash!");
+        HP_BAR(player, hp: 0);
+    } THEN {
+        EXPECT_EQ(opponent->hp, 1);
+        EXPECT_EQ(opponent->items[1], ITEM_NONE);
+    }
+}
+
+#endif

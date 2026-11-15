@@ -38,7 +38,7 @@ SINGLE_BATTLE_TEST("Ogerpon Masks increase the base power of moves by 20%", s16 
 #if MAX_MON_ITEMS > 1
 SINGLE_BATTLE_TEST("Ogerpon Masks increase the base power of moves by 20% (Items)", s16 damage)
 {
-    u32 species;
+    enum Species species;
     enum Item item;
     PARAMETRIZE { species = SPECIES_OGERPON_TEAL; item = ITEM_NONE; }
     PARAMETRIZE { species = SPECIES_OGERPON_WELLSPRING; item = ITEM_CORNERSTONE_MASK; }

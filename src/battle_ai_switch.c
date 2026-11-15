@@ -2874,7 +2874,7 @@ static void SetBattlerVolatilesForSwitchin(enum BattlerId battler, u32 weather, 
     if (AI_BATTLER_HAS_TRAIT(battler, ABILITY_BEADS_OF_RUIN))
         gBattleMons[battler].volatiles.beadsOfRuin = TRUE;
     if (AI_BATTLER_HAS_TRAIT(battler, ABILITY_QUARK_DRIVE))
-        if ((gFieldTimers.terrain == B_TERRAIN_ELECTRIC_TERRAIN) || Ai_BattlerHasHoldEffect(battler, HOLD_EFFECT_BOOSTER_ENERGY, gAiLogicData))
+        if ((gFieldTimers.terrain == B_TERRAIN_ELECTRIC) || Ai_BattlerHasHoldEffect(battler, HOLD_EFFECT_BOOSTER_ENERGY, gAiLogicData))
             gBattleMons[battler].volatiles.boosterEnergyActivated = TRUE;
     if (AI_BATTLER_HAS_TRAIT(battler, ABILITY_PROTOSYNTHESIS))
         if ((weather & B_WEATHER_SUN) || Ai_BattlerHasHoldEffect(battler, HOLD_EFFECT_BOOSTER_ENERGY, gAiLogicData))

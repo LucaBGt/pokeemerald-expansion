@@ -75,7 +75,7 @@ SINGLE_BATTLE_TEST("Swift Swim doubles speed if it's raining (Traits)")
 
 SINGLE_BATTLE_TEST("Swift Swim doesn't double speed if Cloud Nine/Air Lock is on the field (Traits)")
 {
-    u16 species;
+    enum Species species;
     enum Ability ability;
 
     PARAMETRIZE { species = SPECIES_GOLDUCK; ability = ABILITY_CLOUD_NINE; }

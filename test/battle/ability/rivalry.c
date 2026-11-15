@@ -105,7 +105,7 @@ SINGLE_BATTLE_TEST("Rivalry doesn't modify power if the target is genderless", s
 #if MAX_MON_TRAITS > 1
 SINGLE_BATTLE_TEST("Rivalry increases power by x1.25 towards Pokémon of the same gender (Traits)", s16 damage)
 {
-    u16 species;
+    enum Species species;
     enum Ability ability;
     PARAMETRIZE { species = SPECIES_NIDOKING; ability = ABILITY_POISON_POINT; }
     PARAMETRIZE { species = SPECIES_NIDOKING; ability = ABILITY_RIVALRY; }
@@ -128,7 +128,7 @@ SINGLE_BATTLE_TEST("Rivalry increases power by x1.25 towards Pokémon of the sam
 
 SINGLE_BATTLE_TEST("Rivalry decreases power by x0.75 towards Pokémon of different gender (Traits)", s16 damage)
 {
-    u16 species1, species2;
+    enum Species species1, species2;
     enum Ability ability;
     PARAMETRIZE { species1 = SPECIES_NIDOKING; species2 = SPECIES_NIDOQUEEN; ability = ABILITY_POISON_POINT; }
     PARAMETRIZE { species1 = SPECIES_NIDOKING; species2 = SPECIES_NIDOQUEEN; ability = ABILITY_RIVALRY; }
@@ -151,7 +151,7 @@ SINGLE_BATTLE_TEST("Rivalry decreases power by x0.75 towards Pokémon of differe
 
 SINGLE_BATTLE_TEST("Rivalry doesn't modify power if the attacker is genderless (Traits)", s16 damage)
 {
-    u16 species;
+    enum Species species;
     enum Ability ability;
     PARAMETRIZE { species = SPECIES_NIDOKING; ability = ABILITY_POISON_POINT; }
     PARAMETRIZE { species = SPECIES_NIDOKING; ability = ABILITY_RIVALRY; }
@@ -176,7 +176,7 @@ SINGLE_BATTLE_TEST("Rivalry doesn't modify power if the attacker is genderless (
 
 SINGLE_BATTLE_TEST("Rivalry doesn't modify power if the target is genderless (Traits)", s16 damage)
 {
-    u16 species;
+    enum Species species;
     enum Ability ability;
     PARAMETRIZE { species = SPECIES_NIDOKING; ability = ABILITY_POISON_POINT; }
     PARAMETRIZE { species = SPECIES_NIDOKING; ability = ABILITY_RIVALRY; }

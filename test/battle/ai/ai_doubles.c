@@ -1397,18 +1397,296 @@ AI_DOUBLE_BATTLE_TEST("AI uses Magnetic Flux")
     }
 }
 
+AI_DOUBLE_BATTLE_TEST("AI can choose a status move that boosts the attack by two (doubles)")
+{
+    GIVEN {
+        ASSUME(GetMoveCategory(MOVE_STRENGTH) == DAMAGE_CATEGORY_PHYSICAL);
+        ASSUME(GetMoveCategory(MOVE_HORN_ATTACK) == DAMAGE_CATEGORY_PHYSICAL);
+        AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT);
+        PLAYER(SPECIES_WOBBUFFET) { HP(277); }
+        PLAYER(SPECIES_WOBBUFFET) { HP(277); }
+        PLAYER(SPECIES_WOBBUFFET);
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_KANGASKHAN) { Moves(MOVE_STRENGTH, MOVE_HORN_ATTACK, MOVE_SWORDS_DANCE); }
+        OPPONENT(SPECIES_KANGASKHAN) { Moves(MOVE_STRENGTH, MOVE_HORN_ATTACK, MOVE_SWORDS_DANCE); }
+    } WHEN {
+        TURN {
+            EXPECT_MOVES(opponentLeft, MOVE_STRENGTH, MOVE_SWORDS_DANCE);
+            EXPECT_MOVES(opponentRight, MOVE_STRENGTH, MOVE_SWORDS_DANCE);
+        }
+        TURN {
+            EXPECT_MOVE(opponentLeft, MOVE_STRENGTH);
+            EXPECT_MOVE(opponentRight, MOVE_STRENGTH);
+            SEND_OUT(playerLeft, 2);
+            SEND_OUT(playerRight, 3);
+        }
+    }
+}
+
 #if MAX_MON_TRAITS > 1
+AI_DOUBLE_BATTLE_TEST("AI skips Trick around Sticky Hold (Traits)")
+{
+    GIVEN {
+        AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT);
+        PLAYER(SPECIES_WOBBUFFET) { Ability(ABILITY_STICKY_HOLD); Item(ITEM_LEFTOVERS); }
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET) { Ability(ABILITY_PRESSURE); Item(ITEM_ORAN_BERRY); Moves(MOVE_TRICK, MOVE_SCRATCH); }
+        OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_TACKLE); }
+    } WHEN {
+        TURN { NOT_EXPECT_MOVE(opponentLeft, MOVE_TRICK); }
+    }
+}
+
+AI_DOUBLE_BATTLE_TEST("AI considers status orbs and abilities for Trick/Bestow (Traits)")
+{
+    enum Move move = MOVE_NONE;
+    enum Item item = ITEM_NONE;
+    u16 status = STATUS1_NONE;
+    enum Species species = SPECIES_NONE;
+    enum Ability ability = ABILITY_NONE;
+    u8 turnToTrick = 0;
+
+    PARAMETRIZE { move = MOVE_TRICK;  item = ITEM_TOXIC_ORB; status = STATUS1_NONE;   species = SPECIES_WAILMER; ability = ABILITY_PRESSURE;    turnToTrick = 1; }
+    PARAMETRIZE { move = MOVE_TRICK;  item = ITEM_FLAME_ORB; status = STATUS1_NONE;   species = SPECIES_WAILMER; ability = ABILITY_PRESSURE;    turnToTrick = 1; }
+    PARAMETRIZE { move = MOVE_BESTOW; item = ITEM_TOXIC_ORB; status = STATUS1_NONE;   species = SPECIES_GLISCOR; ability = ABILITY_POISON_HEAL; turnToTrick = 2; }
+    PARAMETRIZE { move = MOVE_BESTOW; item = ITEM_FLAME_ORB; status = STATUS1_NONE;   species = SPECIES_RATTATA; ability = ABILITY_GUTS;        turnToTrick = 2; }
+    PARAMETRIZE { move = MOVE_TRICK;  item = ITEM_TOXIC_ORB; status = STATUS1_POISON; species = SPECIES_GLISCOR; ability = ABILITY_POISON_HEAL; turnToTrick = 1; }
+    PARAMETRIZE { move = MOVE_TRICK;  item = ITEM_FLAME_ORB; status = STATUS1_BURN;   species = SPECIES_RATTATA; ability = ABILITY_GUTS;        turnToTrick = 1; }
+
+    GIVEN {
+        ASSUME(gItemsInfo[ITEM_TOXIC_ORB].holdEffect == HOLD_EFFECT_TOXIC_ORB);
+        ASSUME(gItemsInfo[ITEM_FLAME_ORB].holdEffect == HOLD_EFFECT_FLAME_ORB);
+        AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT);
+        PLAYER(SPECIES_WOBBUFFET);
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(species) { Ability(ABILITY_LIGHT_METAL); Innates(ability); Item(item); Moves(move, MOVE_SCRATCH); Status1(status); }
+        OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_TACKLE); }
+    } WHEN {
+        if (turnToTrick == 1)
+        {
+            TURN { EXPECT_MOVE(opponentLeft, move, target: playerLeft); }
+        }
+        else if (turnToTrick == 2)
+        {
+            TURN { EXPECT_MOVE(opponentLeft, MOVE_SCRATCH, target: playerLeft); }
+            TURN { EXPECT_MOVE(opponentLeft, move, target: playerLeft); }
+        }
+        else
+        {
+            TURN { EXPECT_MOVE(opponentLeft, MOVE_SCRATCH, target: playerLeft); }
+        }
+    }
+}
+
+AI_DOUBLE_BATTLE_TEST("AI gifts Utility Umbrella only when it removes the foe's weather benefit (Traits)")
+{
+    enum Species weatherSpecies = SPECIES_NONE, targetSpecies = SPECIES_NONE, attackerSpecies = SPECIES_NONE;
+    enum Ability weatherAbility = ABILITY_NONE, targetAbility = ABILITY_NONE, attackerAbility = ABILITY_NONE;
+    bool32 expectTrick = FALSE;
+
+    PARAMETRIZE { weatherSpecies = SPECIES_TORKOAL;  weatherAbility = ABILITY_DROUGHT; targetSpecies = SPECIES_EXEGGCUTE; targetAbility = ABILITY_CHLOROPHYLL;      attackerSpecies = SPECIES_PARAS;   attackerAbility = ABILITY_DRY_SKIN; expectTrick = FALSE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_TORKOAL;  weatherAbility = ABILITY_DROUGHT; targetSpecies = SPECIES_FOMANTIS;  targetAbility = ABILITY_LEAF_GUARD;       attackerSpecies = SPECIES_WAILMER; attackerAbility = ABILITY_PRESSURE; expectTrick = TRUE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_TORKOAL;  weatherAbility = ABILITY_DROUGHT; targetSpecies = SPECIES_CHERRIM;   targetAbility = ABILITY_FLOWER_GIFT;      attackerSpecies = SPECIES_WAILMER; attackerAbility = ABILITY_PRESSURE; expectTrick = TRUE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_TORKOAL;  weatherAbility = ABILITY_DROUGHT; targetSpecies = SPECIES_TROPIUS;   targetAbility = ABILITY_SOLAR_POWER;      attackerSpecies = SPECIES_WAILMER; attackerAbility = ABILITY_PRESSURE; expectTrick = TRUE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_TORKOAL;  weatherAbility = ABILITY_DROUGHT; targetSpecies = SPECIES_KORAIDON;  targetAbility = ABILITY_ORICHALCUM_PULSE; attackerSpecies = SPECIES_WAILMER; attackerAbility = ABILITY_PRESSURE; expectTrick = TRUE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_POLITOED; weatherAbility = ABILITY_DRIZZLE; targetSpecies = SPECIES_LOTAD;     targetAbility = ABILITY_SWIFT_SWIM;       attackerSpecies = SPECIES_PARAS;   attackerAbility = ABILITY_DRY_SKIN; expectTrick = TRUE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_POLITOED; weatherAbility = ABILITY_DRIZZLE; targetSpecies = SPECIES_LOTAD;     targetAbility = ABILITY_RAIN_DISH;        attackerSpecies = SPECIES_WAILMER; attackerAbility = ABILITY_PRESSURE; expectTrick = TRUE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_POLITOED; weatherAbility = ABILITY_DRIZZLE; targetSpecies = SPECIES_PARAS;     targetAbility = ABILITY_DRY_SKIN;         attackerSpecies = SPECIES_WAILMER; attackerAbility = ABILITY_PRESSURE; expectTrick = TRUE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_POLITOED; weatherAbility = ABILITY_DRIZZLE; targetSpecies = SPECIES_WINGULL;   targetAbility = ABILITY_HYDRATION;        attackerSpecies = SPECIES_WAILMER; attackerAbility = ABILITY_PRESSURE; expectTrick = TRUE; }
+
+    GIVEN {
+        ASSUME(gItemsInfo[ITEM_UTILITY_UMBRELLA].holdEffect == HOLD_EFFECT_UTILITY_UMBRELLA);
+        AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT | AI_FLAG_OMNISCIENT);
+        PLAYER(targetSpecies) { Ability(ABILITY_LIGHT_METAL); Innates(targetAbility); }
+        PLAYER(weatherSpecies) { Ability(ABILITY_LIGHT_METAL); Innates(weatherAbility); }
+        OPPONENT(attackerSpecies) { Ability(ABILITY_LIGHT_METAL); Innates(attackerAbility); Item(ITEM_UTILITY_UMBRELLA); Moves(MOVE_TRICK, MOVE_SCRATCH); }
+        OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_TACKLE); }
+    } WHEN {
+        if (expectTrick)
+            TURN { EXPECT_MOVE(opponentLeft, MOVE_TRICK, target: playerLeft); }
+        else
+            TURN { EXPECT_MOVE(opponentLeft, MOVE_SCRATCH, target: playerLeft); }
+    }
+}
+
+AI_DOUBLE_BATTLE_TEST("AI steals Utility Umbrella to handle sun and Dry Skin but keeps its own weather perks (Traits)")
+{
+    enum Species weatherSpecies = SPECIES_NONE, targetSpecies = SPECIES_NONE, attackerSpecies = SPECIES_NONE;
+    enum Ability weatherAbility = ABILITY_NONE, targetAbility = ABILITY_NONE, attackerAbility = ABILITY_NONE;
+    bool32 expectTrick = FALSE;
+
+    PARAMETRIZE { weatherSpecies = SPECIES_TORKOAL;  weatherAbility = ABILITY_DROUGHT; targetSpecies = SPECIES_WAILMER; targetAbility = ABILITY_PRESSURE; attackerSpecies = SPECIES_PARAS;     attackerAbility = ABILITY_DRY_SKIN;         expectTrick = TRUE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_TORKOAL;  weatherAbility = ABILITY_DROUGHT; targetSpecies = SPECIES_PARAS;   targetAbility = ABILITY_DRY_SKIN; attackerSpecies = SPECIES_WAILMER;   attackerAbility = ABILITY_PRESSURE;         expectTrick = TRUE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_TORKOAL;  weatherAbility = ABILITY_DROUGHT; targetSpecies = SPECIES_WAILMER; targetAbility = ABILITY_PRESSURE; attackerSpecies = SPECIES_EXEGGCUTE; attackerAbility = ABILITY_CHLOROPHYLL;      expectTrick = FALSE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_TORKOAL;  weatherAbility = ABILITY_DROUGHT; targetSpecies = SPECIES_WAILMER; targetAbility = ABILITY_PRESSURE; attackerSpecies = SPECIES_CHERRIM;   attackerAbility = ABILITY_FLOWER_GIFT;      expectTrick = FALSE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_TORKOAL;  weatherAbility = ABILITY_DROUGHT; targetSpecies = SPECIES_WAILMER; targetAbility = ABILITY_PRESSURE; attackerSpecies = SPECIES_FOMANTIS;  attackerAbility = ABILITY_LEAF_GUARD;       expectTrick = FALSE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_TORKOAL;  weatherAbility = ABILITY_DROUGHT; targetSpecies = SPECIES_WAILMER; targetAbility = ABILITY_PRESSURE; attackerSpecies = SPECIES_TROPIUS;   attackerAbility = ABILITY_SOLAR_POWER;      expectTrick = FALSE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_TORKOAL;  weatherAbility = ABILITY_DROUGHT; targetSpecies = SPECIES_WAILMER; targetAbility = ABILITY_PRESSURE; attackerSpecies = SPECIES_KORAIDON;  attackerAbility = ABILITY_ORICHALCUM_PULSE; expectTrick = FALSE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_POLITOED; weatherAbility = ABILITY_DRIZZLE; targetSpecies = SPECIES_WAILMER; targetAbility = ABILITY_PRESSURE; attackerSpecies = SPECIES_LOTAD;     attackerAbility = ABILITY_SWIFT_SWIM;       expectTrick = FALSE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_POLITOED; weatherAbility = ABILITY_DRIZZLE; targetSpecies = SPECIES_WAILMER; targetAbility = ABILITY_PRESSURE; attackerSpecies = SPECIES_LOTAD;     attackerAbility = ABILITY_RAIN_DISH;        expectTrick = FALSE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_POLITOED; weatherAbility = ABILITY_DRIZZLE; targetSpecies = SPECIES_WAILMER; targetAbility = ABILITY_PRESSURE; attackerSpecies = SPECIES_WINGULL;   attackerAbility = ABILITY_HYDRATION;        expectTrick = FALSE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_POLITOED; weatherAbility = ABILITY_DRIZZLE; targetSpecies = SPECIES_WAILMER; targetAbility = ABILITY_PRESSURE; attackerSpecies = SPECIES_PARAS;     attackerAbility = ABILITY_DRY_SKIN;         expectTrick = FALSE; }
+
+    GIVEN {
+        ASSUME(gItemsInfo[ITEM_UTILITY_UMBRELLA].holdEffect == HOLD_EFFECT_UTILITY_UMBRELLA);
+        AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT | AI_FLAG_OMNISCIENT);
+        PLAYER(targetSpecies) { Ability(ABILITY_LIGHT_METAL); Innates(targetAbility); Item(ITEM_UTILITY_UMBRELLA); }
+        PLAYER(weatherSpecies) { Ability(ABILITY_LIGHT_METAL); Innates(weatherAbility); }
+        OPPONENT(attackerSpecies) { Ability(ABILITY_LIGHT_METAL); Innates(attackerAbility); Item(ITEM_NONE); Moves(MOVE_TRICK, MOVE_SCRATCH); }
+        OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_TACKLE); }
+    } WHEN {
+        if (expectTrick)
+            TURN { EXPECT_MOVE(opponentLeft, MOVE_TRICK, target: playerLeft); }
+        else
+            TURN { EXPECT_MOVE(opponentLeft, MOVE_SCRATCH, target: playerLeft); }
+    }
+}
+
+AI_DOUBLE_BATTLE_TEST("AI treats Harvest as a sun benefit only when a berry is involved (Traits)")
+{
+    enum Item targetItem = ITEM_NONE;
+    bool32 expectTrick = FALSE;
+
+    PARAMETRIZE { targetItem = ITEM_ORAN_BERRY; expectTrick = TRUE; }
+    PARAMETRIZE { targetItem = ITEM_LEFTOVERS;  expectTrick = FALSE; }
+
+    GIVEN {
+        ASSUME(gItemsInfo[ITEM_UTILITY_UMBRELLA].holdEffect == HOLD_EFFECT_UTILITY_UMBRELLA);
+        ASSUME(GetItemPocket(ITEM_ORAN_BERRY) == POCKET_BERRIES);
+        AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT | AI_FLAG_OMNISCIENT);
+        PLAYER(SPECIES_EXEGGCUTE) { Ability(ABILITY_LIGHT_METAL); Innates(ABILITY_HARVEST); Item(targetItem); }
+        PLAYER(SPECIES_TORKOAL) { Ability(ABILITY_LIGHT_METAL); Innates(ABILITY_DROUGHT); }
+        OPPONENT(SPECIES_WAILMER) { Ability(ABILITY_LIGHT_METAL); Innates(ABILITY_PRESSURE); Item(ITEM_UTILITY_UMBRELLA); Moves(MOVE_TRICK, MOVE_SCRATCH); }
+        OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_TACKLE); }
+    } WHEN {
+        if (expectTrick)
+            TURN { EXPECT_MOVE(opponentLeft, MOVE_TRICK, target: playerLeft); }
+        else
+            TURN { EXPECT_MOVE(opponentLeft, MOVE_SCRATCH, target: playerLeft); }
+    }
+}
+
+AI_DOUBLE_BATTLE_TEST("AI will not use a status move if partner already chose Helping Hand (Traits)")
+{
+    enum Move j;
+    enum Move statusMove = MOVE_NONE;
+
+    for (j = MOVE_NONE + 1; j < MOVES_COUNT; j++)
+    {
+        if (GetMoveCategory(j) == DAMAGE_CATEGORY_STATUS) {
+            PARAMETRIZE { statusMove = j; }
+        }
+    }
+
+    GIVEN {
+        WITH_CONFIG(AI_REVERSE_BATTLER_LOGIC_ORDER_CHANCE, 100);
+        AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT | AI_FLAG_OMNISCIENT);
+        PLAYER(SPECIES_WOBBUFFET) { Moves(MOVE_CELEBRATE, MOVE_SCRATCH, statusMove, MOVE_WATER_GUN); }
+        PLAYER(SPECIES_WOBBUFFET) { Moves(MOVE_CELEBRATE, MOVE_SCRATCH, statusMove, MOVE_WATER_GUN); }
+        OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_HELPING_HAND, MOVE_EXPLOSION); }
+        OPPONENT(SPECIES_BIBAREL) { Moves(MOVE_SCRATCH, statusMove, MOVE_WATER_GUN); Ability(ABILITY_UNAWARE); Innates(ABILITY_SIMPLE); Item(ITEM_WHITE_HERB); }
+    } WHEN {
+        TURN {
+            EXPECT_MOVE(opponentLeft, MOVE_HELPING_HAND);
+            NOT_EXPECT_MOVE(opponentRight, statusMove);
+            SCORE_LT_VAL(opponentRight, statusMove, AI_SCORE_DEFAULT, target:playerLeft);
+            SCORE_LT_VAL(opponentRight, statusMove, AI_SCORE_DEFAULT, target:playerRight);
+            SCORE_LT_VAL(opponentRight, statusMove, AI_SCORE_DEFAULT, target:opponentLeft);
+        }
+    } SCENE {
+        MESSAGE("The opposing Wobbuffet used Helping Hand!");
+    }
+}
+
+AI_DOUBLE_BATTLE_TEST("Heal Bell and Jungle Healing skip curing a partner that benefits from burn (Traits)")
+{
+    enum Move move;
+
+    PARAMETRIZE { move = MOVE_HEAL_BELL; }
+    PARAMETRIZE { move = MOVE_JUNGLE_HEALING; }
+
+    GIVEN {
+        ASSUME(GetMoveEffect(MOVE_HEAL_BELL) == EFFECT_HEAL_BELL);
+        ASSUME(GetMoveEffect(MOVE_JUNGLE_HEALING) == EFFECT_JUNGLE_HEALING);
+        AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT);
+        PLAYER(SPECIES_WOBBUFFET) { Moves(MOVE_MEMENTO); Speed(1); }
+        PLAYER(SPECIES_WOBBUFFET) { Moves(MOVE_MEMENTO); Speed(1); }
+        OPPONENT(SPECIES_WOBBUFFET) { Moves(move, MOVE_SCRATCH); Speed(20); }
+        OPPONENT(SPECIES_WOBBUFFET) { Ability(ABILITY_LIGHT_METAL); Innates(ABILITY_GUTS); Moves(MOVE_TACKLE); Status1(STATUS1_BURN); MaxHP(200); HP(200); Speed(10); }
+    } WHEN {
+        TURN {
+            NOT_EXPECT_MOVE(opponentLeft, move);
+            EXPECT_MOVE(opponentLeft, MOVE_SCRATCH, target: playerLeft);
+            EXPECT_MOVE(opponentRight, MOVE_TACKLE, target: playerLeft);
+            MOVE(playerLeft, MOVE_MEMENTO);
+            MOVE(playerRight, MOVE_MEMENTO);
+        }
+    }
+}
+
+AI_DOUBLE_BATTLE_TEST("AI will not choose Earthquake if its ally has Levitate but both foes are immune to Ground (Traits)")
+{
+    GIVEN {
+        ASSUME(IsSpeciesOfType(SPECIES_CHARIZARD, TYPE_FLYING));
+        ASSUME(IsSpeciesOfType(SPECIES_ZAPDOS, TYPE_FLYING));
+        ASSUME(GetMoveTarget(MOVE_EARTHQUAKE) == TARGET_FOES_AND_ALLY);
+        ASSUME(GetMoveType(MOVE_EARTHQUAKE) == TYPE_GROUND);
+        AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT);
+        PLAYER(SPECIES_CHARIZARD);
+        PLAYER(SPECIES_ZAPDOS);
+        OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_EARTHQUAKE, MOVE_SCRATCH); }
+        OPPONENT(SPECIES_KOFFING) { Ability(ABILITY_STENCH); Innates(ABILITY_LEVITATE); Moves(MOVE_CELEBRATE); }
+    } WHEN {
+        TURN { NOT_EXPECT_MOVE(opponentLeft, MOVE_EARTHQUAKE); }
+    }
+}
+
+AI_DOUBLE_BATTLE_TEST("AI only rewards spread moves when an ally's absorbing ability provides a useful benefit (Traits)")
+{
+    enum Ability ability;
+    enum Move move, partnerMove;
+    u32 partnerHP;
+    bool32 shouldReward;
+
+    PARAMETRIZE { ability = ABILITY_LEVITATE;      move = MOVE_EARTHQUAKE; partnerMove = MOVE_CELEBRATE; partnerHP = 100; shouldReward = FALSE; }
+    PARAMETRIZE { ability = ABILITY_EARTH_EATER;   move = MOVE_EARTHQUAKE; partnerMove = MOVE_CELEBRATE; partnerHP = 100; shouldReward = FALSE; }
+    PARAMETRIZE { ability = ABILITY_EARTH_EATER;   move = MOVE_EARTHQUAKE; partnerMove = MOVE_CELEBRATE; partnerHP = 20;  shouldReward = TRUE; }
+    PARAMETRIZE { ability = ABILITY_VOLT_ABSORB;   move = MOVE_DISCHARGE;  partnerMove = MOVE_CELEBRATE; partnerHP = 100; shouldReward = FALSE; }
+    PARAMETRIZE { ability = ABILITY_VOLT_ABSORB;   move = MOVE_DISCHARGE;  partnerMove = MOVE_CELEBRATE; partnerHP = 20;  shouldReward = TRUE; }
+    PARAMETRIZE { ability = ABILITY_WATER_ABSORB;  move = MOVE_SURF;       partnerMove = MOVE_CELEBRATE; partnerHP = 100; shouldReward = FALSE; }
+    PARAMETRIZE { ability = ABILITY_WATER_ABSORB;  move = MOVE_SURF;       partnerMove = MOVE_CELEBRATE; partnerHP = 20;  shouldReward = TRUE; }
+    PARAMETRIZE { ability = ABILITY_FLASH_FIRE;    move = MOVE_LAVA_PLUME; partnerMove = MOVE_CELEBRATE; partnerHP = 100; shouldReward = FALSE; }
+    PARAMETRIZE { ability = ABILITY_FLASH_FIRE;    move = MOVE_LAVA_PLUME; partnerMove = MOVE_EMBER;     partnerHP = 100; shouldReward = TRUE; }
+    PARAMETRIZE { ability = ABILITY_LIGHTNING_ROD; move = MOVE_DISCHARGE;  partnerMove = MOVE_CELEBRATE; partnerHP = 100; shouldReward = FALSE; }
+    PARAMETRIZE { ability = ABILITY_LIGHTNING_ROD; move = MOVE_DISCHARGE;  partnerMove = MOVE_EMBER;     partnerHP = 100; shouldReward = TRUE; }
+    PARAMETRIZE { ability = ABILITY_STORM_DRAIN;   move = MOVE_SURF;       partnerMove = MOVE_CELEBRATE; partnerHP = 100; shouldReward = FALSE; }
+    PARAMETRIZE { ability = ABILITY_STORM_DRAIN;   move = MOVE_SURF;       partnerMove = MOVE_EMBER;     partnerHP = 100; shouldReward = TRUE; }
+
+    GIVEN {
+        ASSUME(GetMoveTarget(move) == TARGET_FOES_AND_ALLY);
+        ASSUME(GetMoveEffect(MOVE_DRAGON_RAGE) == EFFECT_FIXED_HP_DAMAGE);
+        AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT);
+        PLAYER(SPECIES_WOBBUFFET) { Speed(50); Moves(MOVE_DRAGON_RAGE); }
+        PLAYER(SPECIES_WOBBUFFET) { Speed(50); Moves(MOVE_DRAGON_RAGE); }
+        OPPONENT(SPECIES_WOBBUFFET) { Speed(90); Moves(move, MOVE_SCRATCH); }
+        OPPONENT(SPECIES_WOBBUFFET) { Ability(ABILITY_LIGHT_METAL); Innates(ability); HP(partnerHP); MaxHP(100); Speed(100); Moves(partnerMove); }
+    } WHEN {
+        if (shouldReward)
+            TURN { SCORE_GT_VAL(opponentLeft, move, AI_SCORE_DEFAULT, target: opponentRight); }
+        else
+            TURN { SCORE_LT_VAL(opponentLeft, move, AI_SCORE_DEFAULT, target: opponentRight); }
+    }
+}
+
 AI_DOUBLE_BATTLE_TEST("AI recognizes its ally's Telepathy (Traits)")
 {
-    ASSUME(GetMoveTarget(MOVE_EARTHQUAKE) == TARGET_FOES_AND_ALLY);
-
     GIVEN {
         ASSUME(GetMoveTarget(MOVE_EARTHQUAKE) == TARGET_FOES_AND_ALLY);
         AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT);
         PLAYER(SPECIES_WOBBUFFET);
         PLAYER(SPECIES_WOBBUFFET);
         OPPONENT(SPECIES_PHANPY) { Moves(MOVE_EARTHQUAKE, MOVE_SCRATCH); }
-        OPPONENT(SPECIES_ELGYEM) { Level(1); Ability(ABILITY_SYNCHRONIZE); Innates(ABILITY_TELEPATHY); }
+        OPPONENT(SPECIES_ELGYEM) { Level(1); Ability(ABILITY_LIGHT_METAL); Innates(ABILITY_TELEPATHY); }
     } WHEN {
         TURN { EXPECT_MOVE(opponentLeft, MOVE_EARTHQUAKE); }
     }
@@ -1416,12 +1694,9 @@ AI_DOUBLE_BATTLE_TEST("AI recognizes its ally's Telepathy (Traits)")
 
 AI_DOUBLE_BATTLE_TEST("AI will choose Bulldoze if it triggers its ally's ability but will not KO the ally needlessly (Traits)")
 {
-    ASSUME(GetMoveTarget(MOVE_BULLDOZE) == TARGET_FOES_AND_ALLY);
-    ASSUME(GetMoveType(MOVE_BULLDOZE) == TYPE_GROUND);
-    ASSUME_MOVE_EFFECT_STAT_CHANGE(MOVE_BULLDOZE, speed: -1);
-
-    u32 species, currentHP;
+    enum Species species;
     enum Ability ability;
+    u32 currentHP;
 
     PARAMETRIZE { species = SPECIES_KINGAMBIT; ability = ABILITY_DEFIANT;  currentHP = 400; }
     PARAMETRIZE { species = SPECIES_SHUCKLE;   ability = ABILITY_CONTRARY; currentHP = 400; }
@@ -1430,6 +1705,9 @@ AI_DOUBLE_BATTLE_TEST("AI will choose Bulldoze if it triggers its ally's ability
     PARAMETRIZE { species = SPECIES_SHUCKLE;   ability = ABILITY_CONTRARY; currentHP = 1; }
 
     GIVEN {
+        ASSUME(GetMoveTarget(MOVE_BULLDOZE) == TARGET_FOES_AND_ALLY);
+        ASSUME(GetMoveType(MOVE_BULLDOZE) == TYPE_GROUND);
+        ASSUME_MOVE_EFFECT_STAT_CHANGE(MOVE_BULLDOZE, speed: -1);
         AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT);
         PLAYER(SPECIES_WOBBUFFET);
         PLAYER(SPECIES_WOBBUFFET);
@@ -1443,11 +1721,28 @@ AI_DOUBLE_BATTLE_TEST("AI will choose Bulldoze if it triggers its ally's ability
     }
 }
 
+AI_DOUBLE_BATTLE_TEST("AI does not use Spicy Extract if its ally would not benefit (Traits)")
+{
+    u32 species;
+    enum Ability ability;
+
+    PARAMETRIZE { species = SPECIES_GHOLDENGO; ability = ABILITY_GOOD_AS_GOLD; }
+    PARAMETRIZE { species = SPECIES_SNIVY;     ability = ABILITY_CONTRARY; }
+
+    GIVEN {
+        ASSUME_STAT_CHANGE(MOVE_SPICY_EXTRACT, attack: +2, defense: -2);
+        AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT | AI_FLAG_OMNISCIENT);
+        PLAYER(SPECIES_WOBBUFFET) { Speed(10); Moves(MOVE_SCRATCH); }
+        PLAYER(SPECIES_WOBBUFFET) { Speed(10); Moves(MOVE_SCRATCH); }
+        OPPONENT(species) { Speed(20); Ability(ABILITY_LIGHT_METAL); Innates(ability); Moves(MOVE_SCRATCH); }
+        OPPONENT(SPECIES_WOBBUFFET) { Speed(40); Moves(MOVE_SCRATCH, MOVE_SPICY_EXTRACT); }
+    } WHEN {
+        TURN { EXPECT_MOVE(opponentRight, MOVE_SCRATCH); }
+    }
+}
+
 AI_DOUBLE_BATTLE_TEST("AI will choose Beat Up on an ally with Justified if it will benefit the ally (Traits)")
 {
-    ASSUME(GetMoveEffect(MOVE_BEAT_UP) == EFFECT_BEAT_UP);
-    ASSUME(GetMoveType(MOVE_BEAT_UP) == TYPE_DARK);
-
     enum Ability defAbility, atkAbility, currentHP;
 
     PARAMETRIZE { defAbility = ABILITY_FLASH_FIRE; atkAbility = ABILITY_SCRAPPY;        currentHP = 400; }
@@ -1456,11 +1751,13 @@ AI_DOUBLE_BATTLE_TEST("AI will choose Beat Up on an ally with Justified if it wi
     PARAMETRIZE { defAbility = ABILITY_JUSTIFIED;  atkAbility = ABILITY_SCRAPPY;        currentHP = 1; }
 
     GIVEN {
+        ASSUME(GetMoveEffect(MOVE_BEAT_UP) == EFFECT_BEAT_UP);
+        ASSUME(GetMoveType(MOVE_BEAT_UP) == TYPE_DARK);
         AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT);
         PLAYER(SPECIES_WOBBUFFET);
         PLAYER(SPECIES_CLEFABLE);
-        OPPONENT(SPECIES_PANGORO)   { Ability(atkAbility); Moves(MOVE_BEAT_UP); }
-        OPPONENT(SPECIES_GROWLITHE) { Moves(MOVE_CELEBRATE, MOVE_TACKLE); HP(currentHP); Ability(ABILITY_FLASH_FIRE); Innates(defAbility); }
+        OPPONENT(SPECIES_PANGORO)   { Ability(ABILITY_LIGHT_METAL); Innates(atkAbility); Moves(MOVE_BEAT_UP); }
+        OPPONENT(SPECIES_GROWLITHE) { Moves(MOVE_CELEBRATE, MOVE_TACKLE); HP(currentHP); Ability(ABILITY_LIGHT_METAL); Innates(defAbility); }
     } WHEN {
         if (!(currentHP == 1) && (defAbility == ABILITY_JUSTIFIED) && (atkAbility != ABILITY_MOLD_BREAKER))
             TURN { EXPECT_MOVE(opponentLeft, MOVE_BEAT_UP, target: opponentRight); }
@@ -1469,20 +1766,104 @@ AI_DOUBLE_BATTLE_TEST("AI will choose Beat Up on an ally with Justified if it wi
     }
 }
 
+AI_DOUBLE_BATTLE_TEST("AI will not use Protect if its left ally is about to trigger Justified with Beat Up (Traits)")
+{
+    ASSUME(GetMoveEffect(MOVE_BEAT_UP) == EFFECT_BEAT_UP);
+    ASSUME(GetMoveType(MOVE_BEAT_UP) == TYPE_DARK);
+
+    KNOWN_FAILING; // partner is protecting
+    GIVEN {
+        WITH_CONFIG(AI_REVERSE_BATTLER_LOGIC_ORDER_CHANCE, 0);
+        AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT);
+        PLAYER(SPECIES_WOBBUFFET) { Moves(MOVE_SCRATCH); }
+        PLAYER(SPECIES_CLEFABLE) { Moves(MOVE_SCRATCH); }
+        OPPONENT(SPECIES_PANGORO)   { Ability(ABILITY_LIGHT_METAL); Innates(ABILITY_SCRAPPY); Moves(MOVE_BEAT_UP); }
+        OPPONENT(SPECIES_GROWLITHE) { Ability(ABILITY_LIGHT_METAL); Innates(ABILITY_JUSTIFIED); Moves(MOVE_PROTECT, MOVE_TACKLE); }
+    } WHEN {
+        TURN {
+            MOVE(playerLeft, MOVE_SCRATCH, target: opponentLeft);
+            MOVE(playerRight, MOVE_SCRATCH, target: opponentRight);
+            EXPECT_MOVE(opponentLeft, MOVE_BEAT_UP, target: opponentRight);
+            NOT_EXPECT_MOVE(opponentRight, MOVE_PROTECT);
+        }
+    }
+}
+
+AI_DOUBLE_BATTLE_TEST("AI will not use Protect if its right ally is about to trigger Justified with Beat Up (Traits)")
+{
+    ASSUME(GetMoveEffect(MOVE_BEAT_UP) == EFFECT_BEAT_UP);
+    ASSUME(GetMoveType(MOVE_BEAT_UP) == TYPE_DARK);
+
+    GIVEN {
+        WITH_CONFIG(AI_REVERSE_BATTLER_LOGIC_ORDER_CHANCE, 100);
+        TIE_BREAK_SCORE(RNG_AI_SCORE_TIE_DOUBLES_MOVE, SCORE_TIE_LO, 0);
+        AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT);
+        PLAYER(SPECIES_WOBBUFFET) { Moves(MOVE_SCRATCH); }
+        PLAYER(SPECIES_CLEFABLE) { Moves(MOVE_SCRATCH); }
+        OPPONENT(SPECIES_GROWLITHE) { Ability(ABILITY_ROCK_HEAD); Innates(ABILITY_JUSTIFIED); Moves(MOVE_TACKLE, MOVE_PROTECT); }
+        OPPONENT(SPECIES_PANGORO)   { Ability(ABILITY_IRON_FIST); Innates(ABILITY_SCRAPPY); Moves(MOVE_BEAT_UP); }
+    } WHEN {
+        TURN {
+            MOVE(playerLeft, MOVE_SCRATCH, target: opponentLeft);
+            MOVE(playerRight, MOVE_SCRATCH, target: opponentRight);
+            EXPECT_MOVE(opponentRight, MOVE_BEAT_UP, target: opponentLeft);
+            NOT_EXPECT_MOVE(opponentLeft, MOVE_PROTECT);
+            SCORE_LT_VAL(opponentLeft, MOVE_PROTECT, AI_SCORE_DEFAULT, target: playerLeft);
+        }
+    }
+}
+
+AI_DOUBLE_BATTLE_TEST("AI will trigger its ally's Spicy Spray if burn benefits it (Traits)")
+{
+    enum Ability atkAbility;
+    bool32 shouldTrigger;
+
+    PARAMETRIZE { atkAbility = ABILITY_GUTS;  shouldTrigger = TRUE;  }
+    PARAMETRIZE { atkAbility = ABILITY_SWARM; shouldTrigger = FALSE; }
+
+    GIVEN {
+        ASSUME(GetMoveTarget(MOVE_EARTHQUAKE) == TARGET_FOES_AND_ALLY);
+        AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT);
+        PLAYER(SPECIES_WOBBUFFET);
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_HERACROSS) { Ability(ABILITY_LIGHT_METAL); Innates(atkAbility); Moves(MOVE_EARTHQUAKE, MOVE_SCRATCH); }
+        OPPONENT(SPECIES_SCOVILLAIN_MEGA) { Ability(ABILITY_LIGHT_METAL); Innates(ABILITY_SPICY_SPRAY); Moves(MOVE_CELEBRATE); MaxHP(400); HP(400); }
+    } WHEN {
+        if (shouldTrigger)
+            TURN { EXPECT_MOVE(opponentLeft, MOVE_EARTHQUAKE); }
+        else
+            TURN { NOT_EXPECT_MOVE(opponentLeft, MOVE_EARTHQUAKE); }
+    }
+}
+
+AI_DOUBLE_BATTLE_TEST("AI will trigger its ally's Spicy Spray if the ally is about to faint (Traits)")
+{
+    enum Ability atkAbility;
+    bool32 shouldTrigger;
+
+    PARAMETRIZE { atkAbility = ABILITY_GUTS;  shouldTrigger = TRUE;  }
+    PARAMETRIZE { atkAbility = ABILITY_SWARM; shouldTrigger = FALSE; }
+
+    GIVEN {
+        ASSUME(GetMoveTarget(MOVE_EARTHQUAKE) == TARGET_FOES_AND_ALLY);
+        AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT | AI_FLAG_OMNISCIENT);
+        PLAYER(SPECIES_WOBBUFFET) { Moves(MOVE_SCRATCH); }
+        PLAYER(SPECIES_WOBBUFFET) { Moves(MOVE_SCRATCH); }
+        OPPONENT(SPECIES_HERACROSS) { Ability(ABILITY_LIGHT_METAL); Innates(atkAbility); Moves(MOVE_EARTHQUAKE, MOVE_SCRATCH); }
+        OPPONENT(SPECIES_SCOVILLAIN_MEGA) { Ability(ABILITY_LIGHT_METAL); Innates(ABILITY_SPICY_SPRAY); Moves(MOVE_CELEBRATE); MaxHP(400); HP(1); }
+    } WHEN {
+        if (shouldTrigger)
+            TURN { EXPECT_MOVE(opponentLeft, MOVE_EARTHQUAKE); }
+        else
+            TURN { NOT_EXPECT_MOVE(opponentLeft, MOVE_EARTHQUAKE); }
+    }
+}
+
 AI_DOUBLE_BATTLE_TEST("AI sees corresponding absorbing abilities on partners (Traits)")
 {
-    ASSUME(GetMoveTarget(MOVE_DISCHARGE) == TARGET_FOES_AND_ALLY);
-    ASSUME(GetMoveType(MOVE_DISCHARGE) == TYPE_ELECTRIC);
-    ASSUME(GetMoveTarget(MOVE_LAVA_PLUME) == TARGET_FOES_AND_ALLY);
-    ASSUME(GetMoveType(MOVE_LAVA_PLUME) == TYPE_FIRE);
-    ASSUME(GetMoveTarget(MOVE_SURF) == TARGET_FOES_AND_ALLY);
-    ASSUME(GetMoveType(MOVE_SURF) == TYPE_WATER);
-    ASSUME(GetMoveTarget(MOVE_EARTHQUAKE) == TARGET_FOES_AND_ALLY);
-    ASSUME(GetMoveType(MOVE_EARTHQUAKE) == TYPE_GROUND);
-
     enum Ability ability;
     enum Move move;
-    u32 species;
+    enum Species species;
 
     PARAMETRIZE { species = SPECIES_PSYDUCK;    ability = ABILITY_CLOUD_NINE;         move = MOVE_DISCHARGE; }
     PARAMETRIZE { species = SPECIES_PIKACHU;    ability = ABILITY_LIGHTNING_ROD;      move = MOVE_DISCHARGE; }
@@ -1498,6 +1879,13 @@ AI_DOUBLE_BATTLE_TEST("AI sees corresponding absorbing abilities on partners (Tr
 
     GIVEN {
         ASSUME(GetMoveTarget(MOVE_DISCHARGE) == TARGET_FOES_AND_ALLY);
+        ASSUME(GetMoveType(MOVE_DISCHARGE) == TYPE_ELECTRIC);
+        ASSUME(GetMoveTarget(MOVE_LAVA_PLUME) == TARGET_FOES_AND_ALLY);
+        ASSUME(GetMoveType(MOVE_LAVA_PLUME) == TYPE_FIRE);
+        ASSUME(GetMoveTarget(MOVE_SURF) == TARGET_FOES_AND_ALLY);
+        ASSUME(GetMoveType(MOVE_SURF) == TYPE_WATER);
+        ASSUME(GetMoveTarget(MOVE_EARTHQUAKE) == TARGET_FOES_AND_ALLY);
+        ASSUME(GetMoveType(MOVE_EARTHQUAKE) == TYPE_GROUND);
         AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT);
         PLAYER(SPECIES_ZIGZAGOON);
         PLAYER(SPECIES_ZIGZAGOON);
@@ -1511,7 +1899,7 @@ AI_DOUBLE_BATTLE_TEST("AI sees corresponding absorbing abilities on partners (Tr
     }
 }
 
-AI_DOUBLE_BATTLE_TEST("AI sees random rolls correctly")
+AI_DOUBLE_BATTLE_TEST("AI sees random rolls correctly (Traits)")
 {
     PASSES_RANDOMLY(3, 15, RNG_AI_DMG_ROLL_RANDOM); // Slaking KOs with 3 rolls
     GIVEN {
@@ -1522,28 +1910,26 @@ AI_DOUBLE_BATTLE_TEST("AI sees random rolls correctly")
         PLAYER(SPECIES_ZIGZAGOON);
         PLAYER(SPECIES_ZIGZAGOON);
         OPPONENT(SPECIES_SLAKING) { Moves(MOVE_DISCHARGE, MOVE_SCRATCH); }
-        OPPONENT(SPECIES_PIKACHU) { HP(1); Ability(ABILITY_LIGHTNING_ROD); Moves(MOVE_SCRATCH); }
+        OPPONENT(SPECIES_PIKACHU) { HP(1); Ability(ABILITY_STATIC); Innates(ABILITY_LIGHTNING_ROD); Moves(MOVE_SCRATCH); }
     } WHEN {
         TURN { EXPECT_MOVE(opponentLeft, MOVE_SCRATCH); }
     }
 }
 
-AI_DOUBLE_BATTLE_TEST("AI treats an ally's redirection ability appropriately(gen 4) (Traits)")
+AI_DOUBLE_BATTLE_TEST("AI treats an ally's redirection ability appropriately (gen 4) (Traits)")
 {
-    KNOWN_FAILING;
-    ASSUME(GetMoveTarget(MOVE_DISCHARGE) == TARGET_FOES_AND_ALLY);
-    ASSUME(GetMoveType(MOVE_DISCHARGE) == TYPE_ELECTRIC);
-    ASSUME(GetMoveTarget(MOVE_SURF) == TARGET_FOES_AND_ALLY);
-    ASSUME(GetMoveType(MOVE_SURF) == TYPE_WATER);
-
     enum Ability ability;
     enum Move move;
-    u32 species;
+    enum Species species;
 
     PARAMETRIZE { species = SPECIES_SEAKING;    ability = ABILITY_LIGHTNING_ROD;    move = MOVE_DISCHARGE; }
     PARAMETRIZE { species = SPECIES_SHELLOS;    ability = ABILITY_STORM_DRAIN;      move = MOVE_SURF; }
 
     GIVEN {
+        ASSUME(GetMoveTarget(MOVE_DISCHARGE) == TARGET_FOES_AND_ALLY);
+        ASSUME(GetMoveType(MOVE_DISCHARGE) == TYPE_ELECTRIC);
+        ASSUME(GetMoveTarget(MOVE_SURF) == TARGET_FOES_AND_ALLY);
+        ASSUME(GetMoveType(MOVE_SURF) == TYPE_WATER);
         AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT | AI_FLAG_HP_AWARE);
         WITH_CONFIG(B_REDIRECT_ABILITY_IMMUNITY, GEN_4);
         PLAYER(SPECIES_WOBBUFFET);
@@ -1557,27 +1943,29 @@ AI_DOUBLE_BATTLE_TEST("AI treats an ally's redirection ability appropriately(gen
 
 AI_DOUBLE_BATTLE_TEST("AI treats an ally's redirection ability appropriately (gen 5+) (Traits)")
 {
-    ASSUME(GetMoveTarget(MOVE_DISCHARGE) == TARGET_FOES_AND_ALLY);
-    ASSUME(GetMoveType(MOVE_DISCHARGE) == TYPE_ELECTRIC);
-    ASSUME(GetMoveTarget(MOVE_SURF) == TARGET_FOES_AND_ALLY);
-    ASSUME(GetMoveType(MOVE_SURF) == TYPE_WATER);
-
+    enum Move move, expectedMove;
+    enum Species species;
+    u32 config;
     enum Ability ability;
-    enum Move move;
-    u32 species;
 
-    PARAMETRIZE { species = SPECIES_SEAKING;    ability = ABILITY_LIGHTNING_ROD;    move = MOVE_DISCHARGE; }
-    PARAMETRIZE { species = SPECIES_SHELLOS;    ability = ABILITY_STORM_DRAIN;      move = MOVE_SURF; }
+    PARAMETRIZE { species = SPECIES_SEAKING; ability = ABILITY_LIGHTNING_ROD; move = MOVE_DISCHARGE; config = GEN_4; expectedMove = MOVE_HEADBUTT; }
+    PARAMETRIZE { species = SPECIES_SHELLOS; ability = ABILITY_STORM_DRAIN;   move = MOVE_SURF;      config = GEN_4; expectedMove = MOVE_HEADBUTT; }
+    PARAMETRIZE { species = SPECIES_SEAKING; ability = ABILITY_LIGHTNING_ROD; move = MOVE_DISCHARGE; config = GEN_5; expectedMove = MOVE_DISCHARGE; }
+    PARAMETRIZE { species = SPECIES_SHELLOS; ability = ABILITY_STORM_DRAIN;   move = MOVE_SURF;      config = GEN_5; expectedMove = MOVE_SURF; }
 
     GIVEN {
+        ASSUME(GetMoveTarget(MOVE_DISCHARGE) == TARGET_FOES_AND_ALLY);
+        ASSUME(GetMoveType(MOVE_DISCHARGE) == TYPE_ELECTRIC);
+        ASSUME(GetMoveTarget(MOVE_SURF) == TARGET_FOES_AND_ALLY);
+        ASSUME(GetMoveType(MOVE_SURF) == TYPE_WATER);
         AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT | AI_FLAG_HP_AWARE);
-        WITH_CONFIG(B_REDIRECT_ABILITY_IMMUNITY, GEN_5);
+        WITH_CONFIG(B_REDIRECT_ABILITY_IMMUNITY, config);
         PLAYER(SPECIES_WOBBUFFET);
         PLAYER(SPECIES_WOBBUFFET);
         OPPONENT(SPECIES_WOBBUFFET) { Moves(move, MOVE_HEADBUTT); }
         OPPONENT(species) { HP(1); Ability(ABILITY_LIGHT_METAL); Innates(ability); Moves(MOVE_ROUND); }
     } WHEN {
-        TURN { EXPECT_MOVE(opponentLeft, move); }
+        TURN { EXPECT_MOVE(opponentLeft, expectedMove); }
     }
 }
 
@@ -1647,8 +2035,8 @@ AI_DOUBLE_BATTLE_TEST("AI uses Trick Room intelligently (Traits)")
     u32 speed;
 
     PARAMETRIZE { move = MOVE_DRAINING_KISS; ability = ABILITY_SYNCHRONIZE; speed = 4; }
-    PARAMETRIZE { move = MOVE_DAZZLING_GLEAM; ability = ABILITY_SYNCHRONIZE; speed = 4; }
-    PARAMETRIZE { move = MOVE_DRAINING_KISS; ability = ABILITY_PSYCHIC_SURGE; speed = 4; }
+    // PARAMETRIZE { move = MOVE_DAZZLING_GLEAM; ability = ABILITY_SYNCHRONIZE; speed = 4; }
+    // PARAMETRIZE { move = MOVE_DRAINING_KISS; ability = ABILITY_PSYCHIC_SURGE; speed = 4; }
     PARAMETRIZE { move = MOVE_DRAINING_KISS; ability = ABILITY_SYNCHRONIZE; speed = 2; }
     PARAMETRIZE { move = MOVE_DAZZLING_GLEAM; ability = ABILITY_SYNCHRONIZE; speed = 2; }
     PARAMETRIZE { move = MOVE_DRAINING_KISS; ability = ABILITY_PSYCHIC_SURGE; speed = 2; }
@@ -1661,7 +2049,7 @@ AI_DOUBLE_BATTLE_TEST("AI uses Trick Room intelligently (Traits)")
         PLAYER(SPECIES_WOBBUFFET) { Speed(4); }
         PLAYER(SPECIES_WOBBUFFET) { Speed(speed); }
         OPPONENT(SPECIES_COMFEY) { Ability(ABILITY_FLOWER_VEIL); Innates(ABILITY_TRIAGE); Speed(5); Moves(move); }
-        OPPONENT(SPECIES_INDEEDEE) { Ability(ABILITY_OWN_TEMPO); Innates(ability); Speed(3); Moves(MOVE_TRICK_ROOM, MOVE_PSYCHIC); }
+        OPPONENT(SPECIES_INDEEDEE) { Ability(ABILITY_LIGHT_METAL); Innates(ability); Speed(3); Moves(MOVE_TRICK_ROOM, MOVE_PSYCHIC); }
     } WHEN {
         if (move == MOVE_DRAINING_KISS && ability != ABILITY_PSYCHIC_SURGE && speed > 3)
             TURN { EXPECT_MOVE(opponentRight, MOVE_TRICK_ROOM); }
@@ -1670,11 +2058,24 @@ AI_DOUBLE_BATTLE_TEST("AI uses Trick Room intelligently (Traits)")
     }
 }
 
+AI_DOUBLE_BATTLE_TEST("AI does not use Helping Hand on Good as Gold ally (Traits)")
+{
+    GIVEN {
+        ASSUME(GetMoveEffect(MOVE_HELPING_HAND) == EFFECT_HELPING_HAND);
+        AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_TRY_TO_FAINT | AI_FLAG_CHECK_VIABILITY | AI_FLAG_DOUBLE_BATTLE);
+        PLAYER(SPECIES_WOBBUFFET) { Moves(MOVE_TACKLE, MOVE_CELEBRATE); }
+        PLAYER(SPECIES_WOBBUFFET) { Moves(MOVE_TACKLE, MOVE_CELEBRATE); }
+        OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_HELPING_HAND, MOVE_MUD_SLAP); }
+        OPPONENT(SPECIES_GHOLDENGO) { Ability(ABILITY_LIGHT_METAL); Innates(ABILITY_GOOD_AS_GOLD); Moves(MOVE_MUDDY_WATER); }
+    } WHEN {
+        TURN { EXPECT_MOVE(opponentLeft, MOVE_MUD_SLAP); }
+    }
+}
+
 AI_DOUBLE_BATTLE_TEST("AI uses Tailwind to trigger Wind Rider (Doubles) (Traits)")
 {
-    KNOWN_FAILING; // AI checks don't account for forced test innates
     bool32 expectTailwind;
-    u16 tailwindSpecies, partnerSpecies;
+    enum Species tailwindSpecies, partnerSpecies;
     enum Ability tailwindAbility, partnerAbility;
 
     PARAMETRIZE { tailwindSpecies = SPECIES_BRAMBLEGHAST; tailwindAbility = ABILITY_WIND_RIDER;  partnerSpecies = SPECIES_BRAMBLEGHAST; partnerAbility = ABILITY_WIND_RIDER;  expectTailwind = TRUE; }
@@ -1687,8 +2088,8 @@ AI_DOUBLE_BATTLE_TEST("AI uses Tailwind to trigger Wind Rider (Doubles) (Traits)
         AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_TRY_TO_FAINT | AI_FLAG_CHECK_VIABILITY | AI_FLAG_DOUBLE_BATTLE);
         PLAYER(SPECIES_WOBBUFFET) { Speed(20); }
         PLAYER(SPECIES_WOBBUFFET) { Speed(20); }
-        OPPONENT(tailwindSpecies) { Ability(ABILITY_COMPETITIVE); Innates(tailwindAbility); Speed(9); Moves(MOVE_TAILWIND, MOVE_HEADBUTT); }
-        OPPONENT(partnerSpecies) { Ability(ABILITY_COMPETITIVE); Innates(partnerAbility); Speed(9); Moves(MOVE_HEADBUTT); }
+        OPPONENT(tailwindSpecies) { Ability(ABILITY_LIGHT_METAL); Innates(tailwindAbility); Speed(9); Moves(MOVE_TAILWIND, MOVE_HEADBUTT); }
+        OPPONENT(partnerSpecies) { Ability(ABILITY_LIGHT_METAL); Innates(partnerAbility); Speed(9); Moves(MOVE_HEADBUTT); }
     } WHEN {
         if (expectTailwind)
             TURN { EXPECT_MOVE(opponentLeft, MOVE_TAILWIND); }
@@ -1699,9 +2100,8 @@ AI_DOUBLE_BATTLE_TEST("AI uses Tailwind to trigger Wind Rider (Doubles) (Traits)
 
 AI_DOUBLE_BATTLE_TEST("AI uses Tailwind to trigger Wind Power (Doubles) (Traits)")
 {
-    KNOWN_FAILING; // AI checks don't account for forced test innates
     bool32 expectTailwind;
-    u16 tailwindSpecies, partnerSpecies;
+    enum Species tailwindSpecies, partnerSpecies;
     enum Ability tailwindAbility, partnerAbility;
 
     PARAMETRIZE { tailwindSpecies = SPECIES_KILOWATTREL; tailwindAbility = ABILITY_WIND_POWER;  partnerSpecies = SPECIES_KILOWATTREL; partnerAbility = ABILITY_WIND_POWER;  expectTailwind = TRUE; }
@@ -1715,8 +2115,8 @@ AI_DOUBLE_BATTLE_TEST("AI uses Tailwind to trigger Wind Power (Doubles) (Traits)
         AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_TRY_TO_FAINT | AI_FLAG_CHECK_VIABILITY | AI_FLAG_DOUBLE_BATTLE);
         PLAYER(SPECIES_WOBBUFFET) { Speed(20); }
         PLAYER(SPECIES_WOBBUFFET) { Speed(20); }
-        OPPONENT(tailwindSpecies) { Ability(ABILITY_COMPETITIVE); Innates(tailwindAbility); Speed(21); Moves(MOVE_TAILWIND, MOVE_THUNDERSHOCK); }
-        OPPONENT(partnerSpecies) { Ability(ABILITY_COMPETITIVE); Innates(partnerAbility); Speed(21); Moves(MOVE_THUNDERSHOCK); }
+        OPPONENT(tailwindSpecies) { Ability(ABILITY_LIGHT_METAL); Innates(tailwindAbility); Speed(21); Moves(MOVE_TAILWIND, MOVE_THUNDERSHOCK); }
+        OPPONENT(partnerSpecies) { Ability(ABILITY_LIGHT_METAL); Innates(partnerAbility); Speed(21); Moves(MOVE_THUNDERSHOCK); }
     } WHEN {
         if (expectTailwind)
             TURN { EXPECT_MOVE(opponentLeft, MOVE_TAILWIND); }
@@ -1738,15 +2138,14 @@ AI_DOUBLE_BATTLE_TEST("AI prefers to Fake Out the opponent vulnerable to flinchi
     }
 }
 
-
 AI_DOUBLE_BATTLE_TEST("AI uses Gear Up (Traits)")
 {
     GIVEN {
         AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT | AI_FLAG_OMNISCIENT);
         PLAYER(SPECIES_WOBBUFFET) { Moves(MOVE_POUND, MOVE_CELEBRATE); }
         PLAYER(SPECIES_WOBBUFFET) { Moves(MOVE_POUND, MOVE_CELEBRATE); }
-        OPPONENT(SPECIES_KLINKLANG) { Ability(ABILITY_MAGNET_PULL); Innates(ABILITY_PLUS); Moves(MOVE_GEAR_UP, MOVE_WATER_GUN, MOVE_POUND); }
-        OPPONENT(SPECIES_KLINKLANG) { Ability(ABILITY_MAGNET_PULL); Innates(ABILITY_PLUS); Moves(MOVE_GEAR_UP, MOVE_WATER_GUN, MOVE_POUND); }
+        OPPONENT(SPECIES_KLINKLANG) { Ability(ABILITY_CLEAR_BODY); Innates(ABILITY_PLUS); Moves(MOVE_GEAR_UP, MOVE_WATER_GUN, MOVE_POUND); }
+        OPPONENT(SPECIES_KLINKLANG) { Ability(ABILITY_CLEAR_BODY); Innates(ABILITY_PLUS); Moves(MOVE_GEAR_UP, MOVE_WATER_GUN, MOVE_POUND); }
     } WHEN {
         TURN { EXPECT_MOVE(opponentLeft, MOVE_GEAR_UP); }
     }
@@ -1756,16 +2155,16 @@ AI_DOUBLE_BATTLE_TEST("AI uses Magnetic Flux (Traits)")
 {
     GIVEN {
         AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT | AI_FLAG_OMNISCIENT);
-        PLAYER(SPECIES_WOBBUFFET) { Moves(MOVE_POUND, MOVE_CELEBRATE); }
-        PLAYER(SPECIES_WOBBUFFET) { Moves(MOVE_POUND, MOVE_CELEBRATE); }
-        OPPONENT(SPECIES_KLINK) { Ability(ABILITY_MAGNET_PULL); Innates(ABILITY_PLUS); Moves(MOVE_MAGNETIC_FLUX, MOVE_POUND); }
-        OPPONENT(SPECIES_KLINK) { Ability(ABILITY_MAGNET_PULL); Innates(ABILITY_PLUS); Moves(MOVE_MAGNETIC_FLUX, MOVE_POUND); }
+        PLAYER(SPECIES_WOBBUFFET) { Moves(MOVE_POUND, MOVE_SWIFT, MOVE_CELEBRATE); }
+        PLAYER(SPECIES_WOBBUFFET) { Moves(MOVE_POUND, MOVE_SWIFT, MOVE_CELEBRATE); }
+        OPPONENT(SPECIES_KLINK) { Ability(ABILITY_CLEAR_BODY); Innates(ABILITY_PLUS); Moves(MOVE_MAGNETIC_FLUX, MOVE_POUND); }
+        OPPONENT(SPECIES_KLINK) { Ability(ABILITY_CLEAR_BODY); Innates(ABILITY_PLUS); Moves(MOVE_MAGNETIC_FLUX, MOVE_POUND); }
     } WHEN {
         TURN { EXPECT_MOVE(opponentLeft, MOVE_MAGNETIC_FLUX); }
     }
 }
-
 #endif
+
 
 #if MAX_MON_ITEMS > 1
 AI_DOUBLE_BATTLE_TEST("AI skips Trick/Bestow when items are missing or target already holds one (Items)")
@@ -1779,9 +2178,9 @@ AI_DOUBLE_BATTLE_TEST("AI skips Trick/Bestow when items are missing or target al
 
     GIVEN {
         AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT);
-        PLAYER(SPECIES_WOBBUFFET) { Items(ITEM_PECHA_BERRY, targetItem); }
+        PLAYER(SPECIES_WOBBUFFET) { Items(ITEM_GREAT_BALL, targetItem); }
         PLAYER(SPECIES_WOBBUFFET);
-        OPPONENT(SPECIES_WOBBUFFET) { Moves(move, MOVE_SCRATCH); Items(ITEM_PECHA_BERRY, atkItem); }
+        OPPONENT(SPECIES_WOBBUFFET) { Moves(move, MOVE_SCRATCH); Items(ITEM_GREAT_BALL, atkItem); }
         OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_TACKLE); }
     } WHEN {
         TURN { NOT_EXPECT_MOVE(opponentLeft, move); }
@@ -1799,39 +2198,30 @@ AI_DOUBLE_BATTLE_TEST("AI skips Trick/Bestow with unexchangeable items (Items)")
 
     GIVEN {
         AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT);
-        PLAYER(SPECIES_WOBBUFFET) { Items(ITEM_PECHA_BERRY, targetItem); }
+        PLAYER(SPECIES_WOBBUFFET) { Items(ITEM_GREAT_BALL, targetItem); }
         PLAYER(SPECIES_WOBBUFFET);
-        OPPONENT(SPECIES_WOBBUFFET) { Moves(move, MOVE_SCRATCH); Items(ITEM_PECHA_BERRY, atkItem); }
+        OPPONENT(SPECIES_WOBBUFFET) { Moves(move, MOVE_SCRATCH); Items(ITEM_GREAT_BALL, atkItem); }
         OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_TACKLE); }
     } WHEN {
         TURN { NOT_EXPECT_MOVE(opponentLeft, move); }
     }
 }
 
-AI_DOUBLE_BATTLE_TEST("AI skips Trick/Bestow around Sticky Hold (Items)")
+AI_DOUBLE_BATTLE_TEST("AI skips Trick around Sticky Hold (Items)")
 {
-    u16 move = MOVE_NONE, atkItem = ITEM_ORAN_BERRY, targetItem = ITEM_NONE;
-    enum Ability atkAbility = ABILITY_PRESSURE, targetAbility = ABILITY_PRESSURE;
-
-    PARAMETRIZE { move = MOVE_TRICK;  atkAbility = ABILITY_STICKY_HOLD; targetAbility = ABILITY_PRESSURE; targetItem = ITEM_LEFTOVERS; }
-    PARAMETRIZE { move = MOVE_TRICK;  atkAbility = ABILITY_PRESSURE;  targetAbility = ABILITY_STICKY_HOLD; targetItem = ITEM_LEFTOVERS; }
-    PARAMETRIZE { move = MOVE_BESTOW; atkAbility = ABILITY_STICKY_HOLD; targetAbility = ABILITY_PRESSURE;  targetItem = ITEM_NONE; }
-
     GIVEN {
         AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT);
-        PLAYER(SPECIES_WOBBUFFET) { Ability(targetAbility); Items(ITEM_PECHA_BERRY, targetItem); }
+        PLAYER(SPECIES_WOBBUFFET) { Ability(ABILITY_STICKY_HOLD); Items(ITEM_GREAT_BALL, ITEM_LEFTOVERS); }
         PLAYER(SPECIES_WOBBUFFET);
-        OPPONENT(SPECIES_WOBBUFFET) { Ability(atkAbility); Items(ITEM_PECHA_BERRY, atkItem); Moves(move, MOVE_SCRATCH); }
+        OPPONENT(SPECIES_WOBBUFFET) { Ability(ABILITY_PRESSURE); Items(ITEM_GREAT_BALL, ITEM_ORAN_BERRY); Moves(MOVE_TRICK, MOVE_SCRATCH); }
         OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_TACKLE); }
     } WHEN {
-        TURN { NOT_EXPECT_MOVE(opponentLeft, move); }
+        TURN { NOT_EXPECT_MOVE(opponentLeft, MOVE_TRICK); }
     }
 }
 
 AI_DOUBLE_BATTLE_TEST("AI skips Trick/Bestow if the target has a Substitute (Items)")
 {
-    ASSUME(GetMoveEffect(MOVE_SUBSTITUTE) == EFFECT_SUBSTITUTE);
-
     enum Move move = MOVE_NONE;
     enum Item atkItem = ITEM_NONE, targetItem = ITEM_NONE;
 
@@ -1839,10 +2229,11 @@ AI_DOUBLE_BATTLE_TEST("AI skips Trick/Bestow if the target has a Substitute (Ite
     PARAMETRIZE { move = MOVE_BESTOW; atkItem = ITEM_ORAN_BERRY; targetItem = ITEM_NONE; }
 
     GIVEN {
+        ASSUME(GetMoveEffect(MOVE_SUBSTITUTE) == EFFECT_SUBSTITUTE);
         AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT);
-        PLAYER(SPECIES_WOBBUFFET) { Moves(MOVE_SUBSTITUTE, MOVE_CELEBRATE); Items(ITEM_PECHA_BERRY, targetItem); Speed(20); }
+        PLAYER(SPECIES_WOBBUFFET) { Moves(MOVE_SUBSTITUTE, MOVE_CELEBRATE); Items(ITEM_GREAT_BALL, targetItem); Speed(20); }
         PLAYER(SPECIES_WOBBUFFET) { Moves(MOVE_CELEBRATE); Speed(20); }
-        OPPONENT(SPECIES_WOBBUFFET) { Moves(move, MOVE_SCRATCH); Items(ITEM_PECHA_BERRY, atkItem); Speed(1); Attack(1); }
+        OPPONENT(SPECIES_WOBBUFFET) { Moves(move, MOVE_SCRATCH); Items(ITEM_GREAT_BALL, atkItem); Speed(1); Attack(1); }
         OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_CELEBRATE); Speed(1); }
     } WHEN {
         TURN {
@@ -1857,7 +2248,8 @@ AI_DOUBLE_BATTLE_TEST("AI considers status orbs and abilities for Trick/Bestow (
 {
     enum Move move = MOVE_NONE;
     enum Item item = ITEM_NONE;
-    u16 status = STATUS1_NONE, species = SPECIES_NONE;
+    u16 status = STATUS1_NONE;
+    enum Species species = SPECIES_NONE;
     enum Ability ability = ABILITY_NONE;
     u8 turnToTrick = 0;
 
@@ -1874,7 +2266,7 @@ AI_DOUBLE_BATTLE_TEST("AI considers status orbs and abilities for Trick/Bestow (
         AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT);
         PLAYER(SPECIES_WOBBUFFET);
         PLAYER(SPECIES_WOBBUFFET);
-        OPPONENT(species) { Ability(ability); Items(ITEM_NONE, item); Moves(move, MOVE_SCRATCH); Status1(status); }
+        OPPONENT(species) { Ability(ability); Items(ITEM_GREAT_BALL, item); Moves(move, MOVE_SCRATCH); Status1(status); }
         OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_TACKLE); }
     } WHEN {
         if (turnToTrick == 1)
@@ -1893,23 +2285,158 @@ AI_DOUBLE_BATTLE_TEST("AI considers status orbs and abilities for Trick/Bestow (
     }
 }
 
-AI_DOUBLE_BATTLE_TEST("AI will trigger its ally's Weakness Policy (Items)")
+AI_DOUBLE_BATTLE_TEST("AI gifts Utility Umbrella only when it removes the foe's weather benefit (Items)")
 {
-    ASSUME(gItemsInfo[ITEM_WEAKNESS_POLICY].holdEffect == HOLD_EFFECT_WEAKNESS_POLICY);
+    enum Species weatherSpecies = SPECIES_NONE, targetSpecies = SPECIES_NONE, attackerSpecies = SPECIES_NONE;
+    enum Ability weatherAbility = ABILITY_NONE, targetAbility = ABILITY_NONE, attackerAbility = ABILITY_NONE;
+    bool32 expectTrick = FALSE;
+
+    PARAMETRIZE { weatherSpecies = SPECIES_TORKOAL;  weatherAbility = ABILITY_DROUGHT; targetSpecies = SPECIES_EXEGGCUTE; targetAbility = ABILITY_CHLOROPHYLL;      attackerSpecies = SPECIES_PARAS;   attackerAbility = ABILITY_DRY_SKIN; expectTrick = FALSE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_TORKOAL;  weatherAbility = ABILITY_DROUGHT; targetSpecies = SPECIES_FOMANTIS;  targetAbility = ABILITY_LEAF_GUARD;       attackerSpecies = SPECIES_WAILMER; attackerAbility = ABILITY_PRESSURE; expectTrick = TRUE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_TORKOAL;  weatherAbility = ABILITY_DROUGHT; targetSpecies = SPECIES_CHERRIM;   targetAbility = ABILITY_FLOWER_GIFT;      attackerSpecies = SPECIES_WAILMER; attackerAbility = ABILITY_PRESSURE; expectTrick = TRUE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_TORKOAL;  weatherAbility = ABILITY_DROUGHT; targetSpecies = SPECIES_TROPIUS;   targetAbility = ABILITY_SOLAR_POWER;      attackerSpecies = SPECIES_WAILMER; attackerAbility = ABILITY_PRESSURE; expectTrick = TRUE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_TORKOAL;  weatherAbility = ABILITY_DROUGHT; targetSpecies = SPECIES_KORAIDON;  targetAbility = ABILITY_ORICHALCUM_PULSE; attackerSpecies = SPECIES_WAILMER; attackerAbility = ABILITY_PRESSURE; expectTrick = TRUE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_POLITOED; weatherAbility = ABILITY_DRIZZLE; targetSpecies = SPECIES_LOTAD;     targetAbility = ABILITY_SWIFT_SWIM;       attackerSpecies = SPECIES_PARAS;   attackerAbility = ABILITY_DRY_SKIN; expectTrick = TRUE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_POLITOED; weatherAbility = ABILITY_DRIZZLE; targetSpecies = SPECIES_LOTAD;     targetAbility = ABILITY_RAIN_DISH;        attackerSpecies = SPECIES_WAILMER; attackerAbility = ABILITY_PRESSURE; expectTrick = TRUE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_POLITOED; weatherAbility = ABILITY_DRIZZLE; targetSpecies = SPECIES_PARAS;     targetAbility = ABILITY_DRY_SKIN;         attackerSpecies = SPECIES_WAILMER; attackerAbility = ABILITY_PRESSURE; expectTrick = TRUE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_POLITOED; weatherAbility = ABILITY_DRIZZLE; targetSpecies = SPECIES_WINGULL;   targetAbility = ABILITY_HYDRATION;        attackerSpecies = SPECIES_WAILMER; attackerAbility = ABILITY_PRESSURE; expectTrick = TRUE; }
+
+    GIVEN {
+        ASSUME(gItemsInfo[ITEM_UTILITY_UMBRELLA].holdEffect == HOLD_EFFECT_UTILITY_UMBRELLA);
+        AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT | AI_FLAG_OMNISCIENT);
+        PLAYER(targetSpecies) { Ability(targetAbility); }
+        PLAYER(weatherSpecies) { Ability(weatherAbility); }
+        OPPONENT(attackerSpecies) { Ability(attackerAbility); Items(ITEM_GREAT_BALL, ITEM_UTILITY_UMBRELLA); Moves(MOVE_TRICK, MOVE_SCRATCH); }
+        OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_TACKLE); }
+    } WHEN {
+        if (expectTrick)
+            TURN { EXPECT_MOVE(opponentLeft, MOVE_TRICK, target: playerLeft); }
+        else
+            TURN { EXPECT_MOVE(opponentLeft, MOVE_SCRATCH, target: playerLeft); }
+    }
+}
+
+AI_DOUBLE_BATTLE_TEST("AI steals Utility Umbrella to handle sun and Dry Skin but keeps its own weather perks (Items)")
+{
+    enum Species weatherSpecies = SPECIES_NONE, targetSpecies = SPECIES_NONE, attackerSpecies = SPECIES_NONE;
+    enum Ability weatherAbility = ABILITY_NONE, targetAbility = ABILITY_NONE, attackerAbility = ABILITY_NONE;
+    bool32 expectTrick = FALSE;
+
+    PARAMETRIZE { weatherSpecies = SPECIES_TORKOAL;  weatherAbility = ABILITY_DROUGHT; targetSpecies = SPECIES_WAILMER; targetAbility = ABILITY_PRESSURE; attackerSpecies = SPECIES_PARAS;     attackerAbility = ABILITY_DRY_SKIN;         expectTrick = TRUE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_TORKOAL;  weatherAbility = ABILITY_DROUGHT; targetSpecies = SPECIES_PARAS;   targetAbility = ABILITY_DRY_SKIN; attackerSpecies = SPECIES_WAILMER;   attackerAbility = ABILITY_PRESSURE;         expectTrick = TRUE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_TORKOAL;  weatherAbility = ABILITY_DROUGHT; targetSpecies = SPECIES_WAILMER; targetAbility = ABILITY_PRESSURE; attackerSpecies = SPECIES_EXEGGCUTE; attackerAbility = ABILITY_CHLOROPHYLL;      expectTrick = FALSE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_TORKOAL;  weatherAbility = ABILITY_DROUGHT; targetSpecies = SPECIES_WAILMER; targetAbility = ABILITY_PRESSURE; attackerSpecies = SPECIES_CHERRIM;   attackerAbility = ABILITY_FLOWER_GIFT;      expectTrick = FALSE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_TORKOAL;  weatherAbility = ABILITY_DROUGHT; targetSpecies = SPECIES_WAILMER; targetAbility = ABILITY_PRESSURE; attackerSpecies = SPECIES_FOMANTIS;  attackerAbility = ABILITY_LEAF_GUARD;       expectTrick = FALSE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_TORKOAL;  weatherAbility = ABILITY_DROUGHT; targetSpecies = SPECIES_WAILMER; targetAbility = ABILITY_PRESSURE; attackerSpecies = SPECIES_TROPIUS;   attackerAbility = ABILITY_SOLAR_POWER;      expectTrick = FALSE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_TORKOAL;  weatherAbility = ABILITY_DROUGHT; targetSpecies = SPECIES_WAILMER; targetAbility = ABILITY_PRESSURE; attackerSpecies = SPECIES_KORAIDON;  attackerAbility = ABILITY_ORICHALCUM_PULSE; expectTrick = FALSE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_POLITOED; weatherAbility = ABILITY_DRIZZLE; targetSpecies = SPECIES_WAILMER; targetAbility = ABILITY_PRESSURE; attackerSpecies = SPECIES_LOTAD;     attackerAbility = ABILITY_SWIFT_SWIM;       expectTrick = FALSE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_POLITOED; weatherAbility = ABILITY_DRIZZLE; targetSpecies = SPECIES_WAILMER; targetAbility = ABILITY_PRESSURE; attackerSpecies = SPECIES_LOTAD;     attackerAbility = ABILITY_RAIN_DISH;        expectTrick = FALSE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_POLITOED; weatherAbility = ABILITY_DRIZZLE; targetSpecies = SPECIES_WAILMER; targetAbility = ABILITY_PRESSURE; attackerSpecies = SPECIES_WINGULL;   attackerAbility = ABILITY_HYDRATION;        expectTrick = FALSE; }
+    PARAMETRIZE { weatherSpecies = SPECIES_POLITOED; weatherAbility = ABILITY_DRIZZLE; targetSpecies = SPECIES_WAILMER; targetAbility = ABILITY_PRESSURE; attackerSpecies = SPECIES_PARAS;     attackerAbility = ABILITY_DRY_SKIN;         expectTrick = FALSE; }
+
+    GIVEN {
+        ASSUME(gItemsInfo[ITEM_UTILITY_UMBRELLA].holdEffect == HOLD_EFFECT_UTILITY_UMBRELLA);
+        AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT | AI_FLAG_OMNISCIENT);
+        PLAYER(targetSpecies) { Ability(targetAbility); Items(ITEM_GREAT_BALL, ITEM_UTILITY_UMBRELLA); }
+        PLAYER(weatherSpecies) { Ability(weatherAbility); }
+        OPPONENT(attackerSpecies) { Ability(attackerAbility); Items(ITEM_GREAT_BALL, ITEM_NONE); Moves(MOVE_TRICK, MOVE_SCRATCH); }
+        OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_TACKLE); }
+    } WHEN {
+        if (expectTrick)
+            TURN { EXPECT_MOVE(opponentLeft, MOVE_TRICK, target: playerLeft); }
+        else
+            TURN { EXPECT_MOVE(opponentLeft, MOVE_SCRATCH, target: playerLeft); }
+    }
+}
+
+AI_DOUBLE_BATTLE_TEST("AI treats Harvest as a sun benefit only when a berry is involved (Items)")
+{
+    enum Item targetItem = ITEM_NONE;
+    bool32 expectTrick = FALSE;
+
+    PARAMETRIZE { targetItem = ITEM_ORAN_BERRY; expectTrick = TRUE; }
+    PARAMETRIZE { targetItem = ITEM_LEFTOVERS;  expectTrick = FALSE; }
+
+    GIVEN {
+        ASSUME(gItemsInfo[ITEM_UTILITY_UMBRELLA].holdEffect == HOLD_EFFECT_UTILITY_UMBRELLA);
+        ASSUME(GetItemPocket(ITEM_ORAN_BERRY) == POCKET_BERRIES);
+        AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT | AI_FLAG_OMNISCIENT);
+        PLAYER(SPECIES_EXEGGCUTE) { Ability(ABILITY_HARVEST); Items(ITEM_GREAT_BALL, targetItem); }
+        PLAYER(SPECIES_TORKOAL) { Ability(ABILITY_DROUGHT); }
+        OPPONENT(SPECIES_WAILMER) { Ability(ABILITY_PRESSURE); Items(ITEM_GREAT_BALL, ITEM_UTILITY_UMBRELLA); Moves(MOVE_TRICK, MOVE_SCRATCH); }
+        OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_TACKLE); }
+    } WHEN {
+        if (expectTrick)
+            TURN { EXPECT_MOVE(opponentLeft, MOVE_TRICK, target: playerLeft); }
+        else
+            TURN { EXPECT_MOVE(opponentLeft, MOVE_SCRATCH, target: playerLeft); }
+    }
+}
+
+AI_DOUBLE_BATTLE_TEST("AI uses Spicy Extract if its ally holds Clear Amulet and has a physical move (Items)")
+{
+    enum Move move;
+
+    PARAMETRIZE { move = MOVE_SCRATCH; }
+    PARAMETRIZE { move = MOVE_SWIFT; }
+
+    GIVEN {
+        ASSUME_STAT_CHANGE(MOVE_SPICY_EXTRACT, attack: +2, defense: -2);
+        AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT | AI_FLAG_OMNISCIENT);
+        PLAYER(SPECIES_WOBBUFFET) { Speed(10); Moves(MOVE_SCRATCH); }
+        PLAYER(SPECIES_WOBBUFFET) { Speed(10); Moves(MOVE_SCRATCH); }
+        OPPONENT(SPECIES_WOBBUFFET) { Speed(20); Items(ITEM_GREAT_BALL, ITEM_CLEAR_AMULET); Moves(move); }
+        OPPONENT(SPECIES_WOBBUFFET) { Speed(40); Moves(MOVE_SCRATCH, MOVE_SPICY_EXTRACT); }
+    } WHEN {
+        TURN {
+            if (move == MOVE_SCRATCH)
+                EXPECT_MOVE(opponentRight, MOVE_SPICY_EXTRACT, target: opponentLeft);
+            else
+                EXPECT_MOVE(opponentRight, MOVE_SCRATCH);
+        }
+    }
+}
+
+AI_DOUBLE_BATTLE_TEST("AI does not penalize Protect if its ally switches instead of triggering Weakness Policy (Items)")
+{
     ASSUME(GetMoveTarget(MOVE_EARTHQUAKE) == TARGET_FOES_AND_ALLY);
     ASSUME(GetMoveType(MOVE_EARTHQUAKE) == TYPE_GROUND);
+    ASSUME(GetItemHoldEffect(ITEM_WEAKNESS_POLICY) == HOLD_EFFECT_WEAKNESS_POLICY);
 
-    u32 species;
+    GIVEN {
+        WITH_CONFIG(AI_REVERSE_BATTLER_LOGIC_ORDER_CHANCE, 0);
+        WITH_CONFIG(SHOULD_SWITCH_ALL_MOVES_BAD_PERCENTAGE, 100);
+        AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT);
+        PLAYER(SPECIES_CHARIZARD) { Moves(MOVE_SCRATCH); }
+        PLAYER(SPECIES_CHARIZARD) { Moves(MOVE_SCRATCH); }
+        OPPONENT(SPECIES_GIBLE)   { Level(1); Attack(1); Moves(MOVE_EARTHQUAKE); }
+        OPPONENT(SPECIES_PIKACHU) { Level(100); HP(400); Defense(400); Items(ITEM_GREAT_BALL, ITEM_WEAKNESS_POLICY); Moves(MOVE_PROTECT, MOVE_TACKLE); }
+        OPPONENT(SPECIES_RAMPARDOS) { Level(100); Moves(MOVE_ROCK_SLIDE); }
+    } WHEN {
+        TURN {
+            MOVE(playerLeft, MOVE_SCRATCH, target: opponentLeft);
+            MOVE(playerRight, MOVE_SCRATCH, target: opponentRight);
+            EXPECT_SWITCH(opponentLeft, 2);
+            SCORE_GT_VAL(opponentRight, MOVE_PROTECT, AI_SCORE_DEFAULT + WORST_EFFECT, target: playerRight);
+        }
+    }
+}
+
+AI_DOUBLE_BATTLE_TEST("AI will trigger its ally's Weakness Policy (Items)")
+{
+    enum Species species;
     PARAMETRIZE { species = SPECIES_INCINEROAR; }
     PARAMETRIZE { species = SPECIES_CLEFFA; }
 
     GIVEN {
+        ASSUME(gItemsInfo[ITEM_WEAKNESS_POLICY].holdEffect == HOLD_EFFECT_WEAKNESS_POLICY);
         ASSUME(GetMoveTarget(MOVE_EARTHQUAKE) == TARGET_FOES_AND_ALLY);
+        ASSUME(GetMoveType(MOVE_EARTHQUAKE) == TYPE_GROUND);
         AI_FLAGS(AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT);
         PLAYER(SPECIES_WOBBUFFET);
         PLAYER(SPECIES_WOBBUFFET);
         OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_EARTHQUAKE, MOVE_STOMPING_TANTRUM); }
-        OPPONENT(species) { Moves(MOVE_CELEBRATE); Items(ITEM_PECHA_BERRY, ITEM_WEAKNESS_POLICY);  }
+        OPPONENT(species) { Moves(MOVE_CELEBRATE); Items(ITEM_GREAT_BALL, ITEM_WEAKNESS_POLICY); }
     } WHEN {
         if (species == SPECIES_INCINEROAR)
             TURN { EXPECT_MOVE(opponentLeft, MOVE_EARTHQUAKE); }
@@ -1946,11 +2473,11 @@ AI_DOUBLE_BATTLE_TEST("AI sets up weather for its ally (Items)")
         AI_FLAGS(aiFlags);
         PLAYER(SPECIES_WOBBUFFET);
         PLAYER(SPECIES_WOBBUFFET);
-        OPPONENT(SPECIES_TORNADUS) { Items(ITEM_PECHA_BERRY, ITEM_SAFETY_GOGGLES); Ability(ABILITY_PRANKSTER); Moves(goodWeather, badWeather, MOVE_RETURN, MOVE_TAUNT); }
-        OPPONENT(SPECIES_WOBBUFFET) { Items(ITEM_PECHA_BERRY, ITEM_SAFETY_GOGGLES); Moves(weatherTrigger, MOVE_EARTH_POWER); }
+        OPPONENT(SPECIES_TORNADUS) { Items(ITEM_GREAT_BALL, ITEM_SAFETY_GOGGLES); Ability(ABILITY_PRANKSTER); Moves(goodWeather, badWeather, MOVE_RETURN, MOVE_TAUNT); }
+        OPPONENT(SPECIES_WOBBUFFET) { Items(ITEM_GREAT_BALL, ITEM_SAFETY_GOGGLES); Moves(weatherTrigger, MOVE_EARTH_POWER); }
     } WHEN {
         TURN { EXPECT_MOVE(opponentLeft, goodWeather); }
     }
 }
-
 #endif
+

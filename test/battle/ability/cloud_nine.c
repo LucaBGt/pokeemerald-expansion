@@ -3,7 +3,7 @@
 
 SINGLE_BATTLE_TEST("Cloud Nine/Air Lock prevent basic weather effects, but without them disappearing - Sandstorm")
 {
-    enum Species species = SPECIES_NONE;
+    u32 species = 0;
     enum Ability ability = ABILITY_NONE;
     PARAMETRIZE { species = SPECIES_PSYDUCK;  ability = ABILITY_CLOUD_NINE; }
     PARAMETRIZE { species = SPECIES_RAYQUAZA; ability = ABILITY_AIR_LOCK; }
@@ -45,7 +45,7 @@ TO_DO_BATTLE_TEST("Cloud Nine/Air Lock prevent basic weather effects, but withou
 #if MAX_MON_TRAITS > 1
 SINGLE_BATTLE_TEST("Cloud Nine/Air Lock prevent basic weather effects, but without them disappearing - Sandstorm (Traits)")
 {
-    u32 species = 0;
+    enum Species species = SPECIES_NONE;
     enum Ability ability = ABILITY_NONE;
     PARAMETRIZE { species = SPECIES_PSYDUCK;  ability = ABILITY_CLOUD_NINE; }
     PARAMETRIZE { species = SPECIES_RAYQUAZA; ability = ABILITY_AIR_LOCK; }

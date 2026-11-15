@@ -160,7 +160,7 @@ DOUBLE_BATTLE_TEST("Sparkling Aria cures burns from all Pokemon on the field and
 }
 
 #if MAX_MON_TRAITS > 1
-SINGLE_BATTLE_TEST("Smelling Salts does not cure paralyzed pokemons behind substitutes or get increased power (Traits)")
+SINGLE_BATTLE_TEST("Smelling Salts does not cure paralyzed targets behind substitutes or get increased power (Traits)")
 {
     enum Ability ability;
     PARAMETRIZE { ability = ABILITY_INNER_FOCUS; }
@@ -171,7 +171,7 @@ SINGLE_BATTLE_TEST("Smelling Salts does not cure paralyzed pokemons behind subst
         PLAYER(SPECIES_CROBAT) { Ability(ABILITY_LIGHT_METAL); Innates(ability); }
         OPPONENT(SPECIES_SEISMITOAD) { Status1(STATUS1_PARALYSIS); }
     } WHEN {
-        TURN { MOVE(opponent, MOVE_SUBSTITUTE); MOVE(player, MOVE_CELEBRATE); }
+        TURN { MOVE(opponent, MOVE_SUBSTITUTE, WITH_RNG(RNG_PARALYSIS, FALSE)); MOVE(player, MOVE_CELEBRATE); }
         TURN { MOVE(opponent, MOVE_CELEBRATE); MOVE(player, MOVE_SMELLING_SALTS); }
     } SCENE {
         ANIMATION(ANIM_TYPE_MOVE, MOVE_SMELLING_SALTS, player);
@@ -220,6 +220,29 @@ SINGLE_BATTLE_TEST("Wake-Up Slap does not cure paralyzed pokemons behind substit
             MESSAGE("The opposing Seismitoad woke up!");
             STATUS_ICON(opponent, none: TRUE);
         }
+    }
+}
+
+SINGLE_BATTLE_TEST("Wake-Up Slap gets increased power against Pokémon with Comatose", s16 damage)
+{
+    enum Species species;
+    enum Ability ability;
+
+    PARAMETRIZE { species = SPECIES_LOPUNNY; ability = ABILITY_LIMBER; }
+    PARAMETRIZE { species = SPECIES_KOMALA;  ability = ABILITY_COMATOSE; }
+
+    GIVEN {
+        ASSUME(MoveHasAdditionalEffect(MOVE_WAKE_UP_SLAP, MOVE_EFFECT_REMOVE_STATUS) == TRUE);
+        ASSUME(GetMoveEffectArg_Status(MOVE_WAKE_UP_SLAP) == STATUS1_SLEEP);
+        PLAYER(SPECIES_CROBAT);
+        OPPONENT(species) { Ability(ABILITY_LIGHT_METAL); Innates(ability); HP(999); MaxHP(999); Defense(100); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_WAKE_UP_SLAP); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_WAKE_UP_SLAP, player);
+        HP_BAR(opponent, captureDamage: &results[i].damage);
+    } FINALLY {
+        EXPECT_MUL_EQ(results[0].damage, Q_4_12(2.0), results[1].damage);
     }
 }
 #endif

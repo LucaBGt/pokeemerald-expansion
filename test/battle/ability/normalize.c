@@ -645,9 +645,9 @@ SINGLE_BATTLE_TEST("Normalize makes Flying Press do Normal/Flying damage (Traits
     } SCENE {
         ANIMATION(ANIM_TYPE_MOVE, MOVE_FLYING_PRESS, player);
         if (ability == ABILITY_NORMALIZE)
-            MESSAGE("It's not very effective…");
+            MESSAGE("It's mostly ineffective…");
         else
-            NOT { MESSAGE("It's not very effective…"); }
+            NOT { MESSAGE("It's mostly ineffective…"); }
     }
 }
 
@@ -681,7 +681,7 @@ SINGLE_BATTLE_TEST("Normalize doesn't affect damaging Z-Move types (Traits)")
     } SCENE {
         ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_ZMOVE_ACTIVATE, player);
         ANIMATION(ANIM_TYPE_MOVE, MOVE_HYDRO_VORTEX, player);
-        MESSAGE("It's super effective!");
+        MESSAGE("It's extremely effective!");
     }
 }
 

@@ -22,7 +22,7 @@ SINGLE_BATTLE_TEST("Ability Shield protects against Neutralizing Gas")
         ABILITY_POPUP(opponent, ABILITY_NEUTRALIZING_GAS);
         MESSAGE("Neutralizing gas filled the area!");
         if (item == ITEM_ABILITY_SHIELD) {
-            MESSAGE("Torkoal's Ability is protected by the effects of its Ability Shield!");
+                        MESSAGE("Torkoal's Ability is protected by the effects of its Ability Shield!");
             ABILITY_POPUP(player, ABILITY_DROUGHT);
         } else {
             NONE_OF {
@@ -45,7 +45,7 @@ DOUBLE_BATTLE_TEST("Ability Shield prevents Intimidate from reactivating after N
     } SCENE {
         ABILITY_POPUP(opponentLeft, ABILITY_NEUTRALIZING_GAS);
         MESSAGE("Neutralizing gas filled the area!");
-        MESSAGE("The opposing Gyarados's Ability is protected by the effects of its Ability Shield!");
+                MESSAGE("The opposing Gyarados's Ability is protected by the effects of its Ability Shield!");
         ABILITY_POPUP(opponentRight, ABILITY_INTIMIDATE);
         ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, playerLeft);
         ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, playerRight);
@@ -351,10 +351,83 @@ DOUBLE_BATTLE_TEST("Ability Shield on fainted ally does not block Receiver/Power
     }
 }
 
-// These currently do not activate, but probably should do held item animation + message
-TO_DO_BATTLE_TEST("Ability Shield prevents the user's Trace from changing its ability");
-TO_DO_BATTLE_TEST("Ability Shield protects against Wandering Spirit");
-TO_DO_BATTLE_TEST("Ability Shield protects against Mummy/Lingering Aroma");
+SINGLE_BATTLE_TEST("Ability Shield prevents the user's Trace from changing its ability")
+{
+    enum Item item;
+
+    PARAMETRIZE { item = ITEM_ABILITY_SHIELD; }
+    PARAMETRIZE { item = ITEM_NONE; }
+
+    GIVEN {
+        ASSUME(!gAbilitiesInfo[ABILITY_BLAZE].cantBeTraced);
+        PLAYER(SPECIES_RALTS) { Ability(ABILITY_TRACE); Item(item); }
+        OPPONENT(SPECIES_TORCHIC) { Ability(ABILITY_BLAZE); }
+    } WHEN {
+        TURN {}
+    } SCENE {
+        if (item == ITEM_ABILITY_SHIELD) {
+            NOT ABILITY_POPUP(player, ABILITY_TRACE);
+        } else {
+            ABILITY_POPUP(player, ABILITY_TRACE);
+            MESSAGE("It traced the opposing Torchic's Blaze!");
+        }
+    } THEN {
+        EXPECT_EQ(player->ability, item == ITEM_ABILITY_SHIELD ? ABILITY_TRACE : ABILITY_BLAZE);
+    }
+}
+
+SINGLE_BATTLE_TEST("Ability Shield protects either holder against Wandering Spirit")
+{
+    enum Item playerItem, opponentItem;
+
+    PARAMETRIZE { playerItem = ITEM_ABILITY_SHIELD; opponentItem = ITEM_NONE; }
+    PARAMETRIZE { playerItem = ITEM_NONE; opponentItem = ITEM_ABILITY_SHIELD; }
+    PARAMETRIZE { playerItem = ITEM_NONE; opponentItem = ITEM_NONE; }
+
+    GIVEN {
+        ASSUME(MoveMakesContact(MOVE_AQUA_JET));
+        ASSUME(!gAbilitiesInfo[ABILITY_BLAZE].cantBeSwapped);
+        PLAYER(SPECIES_TORCHIC) { Ability(ABILITY_BLAZE); Item(playerItem); }
+        OPPONENT(SPECIES_YAMASK_GALAR) { Ability(ABILITY_WANDERING_SPIRIT); Item(opponentItem); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_AQUA_JET); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_AQUA_JET, player);
+    } THEN {
+        if (playerItem == ITEM_ABILITY_SHIELD || opponentItem == ITEM_ABILITY_SHIELD) {
+            EXPECT_EQ(player->ability, ABILITY_BLAZE);
+            EXPECT_EQ(opponent->ability, ABILITY_WANDERING_SPIRIT);
+        } else {
+            EXPECT_EQ(player->ability, ABILITY_WANDERING_SPIRIT);
+            EXPECT_EQ(opponent->ability, ABILITY_BLAZE);
+        }
+    }
+}
+
+SINGLE_BATTLE_TEST("Ability Shield protects against Mummy and Lingering Aroma")
+{
+    enum Ability ability;
+    enum Item item;
+    enum Species species;
+
+    PARAMETRIZE { ability = ABILITY_MUMMY; species = SPECIES_YAMASK; item = ITEM_ABILITY_SHIELD; }
+    PARAMETRIZE { ability = ABILITY_MUMMY; species = SPECIES_YAMASK; item = ITEM_NONE; }
+    PARAMETRIZE { ability = ABILITY_LINGERING_AROMA; species = SPECIES_OINKOLOGNE; item = ITEM_ABILITY_SHIELD; }
+    PARAMETRIZE { ability = ABILITY_LINGERING_AROMA; species = SPECIES_OINKOLOGNE; item = ITEM_NONE; }
+
+    GIVEN {
+        ASSUME(MoveMakesContact(MOVE_AQUA_JET));
+        ASSUME(!gAbilitiesInfo[ABILITY_SHADOW_TAG].cantBeSuppressed);
+        PLAYER(SPECIES_WOBBUFFET) { Ability(ABILITY_SHADOW_TAG); Item(item); }
+        OPPONENT(species) { Ability(ability); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_AQUA_JET); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_AQUA_JET, player);
+    } THEN {
+        EXPECT_EQ(player->ability, item == ITEM_ABILITY_SHIELD ? ABILITY_SHADOW_TAG : ability);
+    }
+}
 
 #if MAX_MON_TRAITS > 1
 DOUBLE_BATTLE_TEST("Ability Shield prevents Intimidate from reactivating after Neutralizing Gas ends (Traits)")
@@ -369,7 +442,6 @@ DOUBLE_BATTLE_TEST("Ability Shield prevents Intimidate from reactivating after N
     } SCENE {
         ABILITY_POPUP(opponentLeft, ABILITY_NEUTRALIZING_GAS);
         MESSAGE("Neutralizing gas filled the area!");
-        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_EFFECT, opponentRight);
         MESSAGE("The opposing Gyarados's Ability is protected by the effects of its Ability Shield!");
         ABILITY_POPUP(opponentRight, ABILITY_INTIMIDATE);
         ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, playerLeft);
@@ -450,6 +522,33 @@ SINGLE_BATTLE_TEST("Ability Shield protects against Mycelium Might (no message) 
 #endif
 
 #if MAX_MON_ITEMS > 1
+SINGLE_BATTLE_TEST("Ability Shield protects against Neutralizing Gas (Items)")
+{
+    enum Item item;
+
+    PARAMETRIZE { item = ITEM_ABILITY_SHIELD; }
+    PARAMETRIZE { item = ITEM_NONE; }
+
+    GIVEN {
+        PLAYER(SPECIES_TORKOAL) { Ability(ABILITY_DROUGHT); Items(ITEM_PECHA_BERRY, item); }
+        OPPONENT(SPECIES_KOFFING) { Ability(ABILITY_NEUTRALIZING_GAS); }
+    } WHEN {
+        TURN { }
+    } SCENE {
+        ABILITY_POPUP(opponent, ABILITY_NEUTRALIZING_GAS);
+        MESSAGE("Neutralizing gas filled the area!");
+        if (item == ITEM_ABILITY_SHIELD) {
+                        MESSAGE("Torkoal's Ability is protected by the effects of its Ability Shield!");
+            ABILITY_POPUP(player, ABILITY_DROUGHT);
+        } else {
+            NONE_OF {
+                MESSAGE("Torkoal's Ability is protected by the effects of its Ability Shield!");
+                ABILITY_POPUP(player, ABILITY_DROUGHT);
+            }
+        }
+    }
+}
+
 DOUBLE_BATTLE_TEST("Ability Shield prevents Intimidate from reactivating after Neutralizing Gas ends (Items)")
 {
     GIVEN {
@@ -479,35 +578,6 @@ DOUBLE_BATTLE_TEST("Ability Shield prevents Intimidate from reactivating after N
     } THEN {
         EXPECT_EQ(playerLeft->statStages[STAT_ATK], DEFAULT_STAT_STAGE - 1);
         EXPECT_EQ(playerRight->statStages[STAT_ATK], DEFAULT_STAT_STAGE - 1);
-    }
-}
-
-SINGLE_BATTLE_TEST("Ability Shield protects against Neutralizing Gas (Items)")
-{
-    enum Item item;
-
-    PARAMETRIZE { item = ITEM_ABILITY_SHIELD; }
-    PARAMETRIZE { item = ITEM_NONE; }
-
-    GIVEN {
-        PLAYER(SPECIES_TORKOAL) { Ability(ABILITY_DROUGHT); Items(ITEM_PECHA_BERRY, item); }
-        OPPONENT(SPECIES_KOFFING) { Ability(ABILITY_NEUTRALIZING_GAS); }
-    } WHEN {
-        TURN { }
-    } SCENE {
-        ABILITY_POPUP(opponent, ABILITY_NEUTRALIZING_GAS);
-        MESSAGE("Neutralizing gas filled the area!");
-        if (item == ITEM_ABILITY_SHIELD) {
-            ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_EFFECT, player);
-            MESSAGE("Torkoal's Ability is protected by the effects of its Ability Shield!");
-            ABILITY_POPUP(player, ABILITY_DROUGHT);
-        } else {
-            NONE_OF {
-                ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_EFFECT, player);
-                MESSAGE("Torkoal's Ability is protected by the effects of its Ability Shield!");
-                ABILITY_POPUP(player, ABILITY_DROUGHT);
-            }
-        }
     }
 }
 
@@ -616,12 +686,10 @@ SINGLE_BATTLE_TEST("Ability Shield activates a previously suppressed ability whe
             ABILITY_POPUP(player, ABILITY_INTIMIDATE);
         }
         ANIMATION(ANIM_TYPE_MOVE, MOVE_TRICK, player);
-        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_EFFECT, player);
         MESSAGE("Gyarados's Ability is protected by the effects of its Ability Shield!");
         ABILITY_POPUP(player, ABILITY_INTIMIDATE);
         ANIMATION(ANIM_TYPE_MOVE, MOVE_TRICK, opponent);
         ANIMATION(ANIM_TYPE_MOVE, MOVE_TRICK, opponent);
-        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_EFFECT, player);
         MESSAGE("Gyarados's Ability is protected by the effects of its Ability Shield!");
         ABILITY_POPUP(player, ABILITY_INTIMIDATE);
     }
@@ -639,7 +707,6 @@ SINGLE_BATTLE_TEST("Ability Shield doesn't reactivate an ability when receiving 
     } SCENE {
         ABILITY_POPUP(opponent, ABILITY_NEUTRALIZING_GAS);
         MESSAGE("Neutralizing gas filled the area!");
-        ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_EFFECT, player);
         MESSAGE("Gyarados's Ability is protected by the effects of its Ability Shield!");
         ABILITY_POPUP(player, ABILITY_INTIMIDATE);
         ANIMATION(ANIM_TYPE_MOVE, MOVE_TRICK, player);
@@ -712,7 +779,6 @@ SINGLE_BATTLE_TEST("Ability Shield protects against Skill Swap (Items)")
                 ANIMATION(ANIM_TYPE_MOVE, MOVE_SKILL_SWAP, opponent);
                 ABILITY_POPUP(opponent, ABILITY_INTIMIDATE);
             }
-            ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_EFFECT, player);
             MESSAGE("Gyarados's Ability is protected by the effects of its Ability Shield!");
         } else {
             ANIMATION(ANIM_TYPE_MOVE, MOVE_SKILL_SWAP, opponent);
@@ -737,7 +803,6 @@ SINGLE_BATTLE_TEST("Ability Shield protects against Skill Swap even if user has 
     } SCENE {
         if (item == ITEM_ABILITY_SHIELD) {
             NOT ANIMATION(ANIM_TYPE_MOVE, MOVE_SKILL_SWAP, opponent);
-            ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_EFFECT, player);
             MESSAGE("Lopunny's Ability is protected by the effects of its Ability Shield!");
         } else {
             ANIMATION(ANIM_TYPE_MOVE, MOVE_SKILL_SWAP, opponent);
@@ -745,9 +810,82 @@ SINGLE_BATTLE_TEST("Ability Shield protects against Skill Swap even if user has 
     }
 }
 
-// These currently do not activate, but probably should do held item animation + message
-TO_DO_BATTLE_TEST("Ability Shield prevents the user's Trace from changing its ability (Items)");
-TO_DO_BATTLE_TEST("Ability Shield prevents the user's Receiver from changing its ability (Items)");
-TO_DO_BATTLE_TEST("Ability Shield protects against Wandering Spirit (Items)");
-TO_DO_BATTLE_TEST("Ability Shield protects against Mummy/Lingering Aroma (Items)");
+SINGLE_BATTLE_TEST("Ability Shield prevents the user's Trace from changing its ability (Items)")
+{
+    enum Item item;
+
+    PARAMETRIZE { item = ITEM_ABILITY_SHIELD; }
+    PARAMETRIZE { item = ITEM_NONE; }
+
+    GIVEN {
+        ASSUME(!gAbilitiesInfo[ABILITY_BLAZE].cantBeTraced);
+        PLAYER(SPECIES_RALTS) { Ability(ABILITY_TRACE); Items(ITEM_PECHA_BERRY, item); }
+        OPPONENT(SPECIES_TORCHIC) { Ability(ABILITY_BLAZE); }
+    } WHEN {
+        TURN {}
+    } SCENE {
+        if (item == ITEM_ABILITY_SHIELD) {
+            NOT ABILITY_POPUP(player, ABILITY_TRACE);
+        } else {
+            ABILITY_POPUP(player, ABILITY_TRACE);
+            MESSAGE("It traced the opposing Torchic's Blaze!");
+        }
+    } THEN {
+        EXPECT_EQ(player->ability, item == ITEM_ABILITY_SHIELD ? ABILITY_TRACE : ABILITY_BLAZE);
+    }
+}
+
+SINGLE_BATTLE_TEST("Ability Shield protects either holder against Wandering Spirit (Items)")
+{
+    enum Item playerItem, opponentItem;
+
+    PARAMETRIZE { playerItem = ITEM_ABILITY_SHIELD; opponentItem = ITEM_NONE; }
+    PARAMETRIZE { playerItem = ITEM_NONE; opponentItem = ITEM_ABILITY_SHIELD; }
+    PARAMETRIZE { playerItem = ITEM_NONE; opponentItem = ITEM_NONE; }
+
+    GIVEN {
+        ASSUME(MoveMakesContact(MOVE_AQUA_JET));
+        ASSUME(!gAbilitiesInfo[ABILITY_BLAZE].cantBeSwapped);
+        PLAYER(SPECIES_TORCHIC) { Ability(ABILITY_BLAZE); Items(ITEM_PECHA_BERRY, playerItem); }
+        OPPONENT(SPECIES_YAMASK_GALAR) { Ability(ABILITY_WANDERING_SPIRIT); Item(opponentItem); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_AQUA_JET); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_AQUA_JET, player);
+    } THEN {
+        if (playerItem == ITEM_ABILITY_SHIELD || opponentItem == ITEM_ABILITY_SHIELD) {
+            EXPECT_EQ(player->ability, ABILITY_BLAZE);
+            EXPECT_EQ(opponent->ability, ABILITY_WANDERING_SPIRIT);
+        } else {
+            EXPECT_EQ(player->ability, ABILITY_WANDERING_SPIRIT);
+            EXPECT_EQ(opponent->ability, ABILITY_BLAZE);
+        }
+    }
+}
+
+SINGLE_BATTLE_TEST("Ability Shield protects against Mummy and Lingering Aroma (Items)")
+{
+    enum Ability ability;
+    enum Item item;
+    enum Species species;
+
+    PARAMETRIZE { ability = ABILITY_MUMMY; species = SPECIES_YAMASK; item = ITEM_ABILITY_SHIELD; }
+    PARAMETRIZE { ability = ABILITY_MUMMY; species = SPECIES_YAMASK; item = ITEM_NONE; }
+    PARAMETRIZE { ability = ABILITY_LINGERING_AROMA; species = SPECIES_OINKOLOGNE; item = ITEM_ABILITY_SHIELD; }
+    PARAMETRIZE { ability = ABILITY_LINGERING_AROMA; species = SPECIES_OINKOLOGNE; item = ITEM_NONE; }
+
+    GIVEN {
+        ASSUME(MoveMakesContact(MOVE_AQUA_JET));
+        ASSUME(!gAbilitiesInfo[ABILITY_SHADOW_TAG].cantBeSuppressed);
+        PLAYER(SPECIES_WOBBUFFET) { Ability(ABILITY_SHADOW_TAG); Items(ITEM_PECHA_BERRY, item); }
+        OPPONENT(species) { Ability(ability); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_AQUA_JET); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_AQUA_JET, player);
+    } THEN {
+        EXPECT_EQ(player->ability, item == ITEM_ABILITY_SHIELD ? ABILITY_SHADOW_TAG : ability);
+    }
+}
+
 #endif
