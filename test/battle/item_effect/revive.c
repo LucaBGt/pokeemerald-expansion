@@ -1,4 +1,6 @@
 #include "global.h"
+#include "item_use.h"
+#include "party_menu.h"
 #include "test/battle.h"
 
 SINGLE_BATTLE_TEST("Revive restores a fainted battler's HP to half")

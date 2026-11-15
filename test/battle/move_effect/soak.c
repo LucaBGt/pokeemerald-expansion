@@ -7,7 +7,32 @@ ASSUMPTIONS
     ASSUME(GetMoveEffect(MOVE_MAGIC_POWDER) == EFFECT_SOAK);
 }
 
-TO_DO_BATTLE_TEST("Soak/Magic Powder changes the target's type to pure Water/Psychic");
+SINGLE_BATTLE_TEST("Soak/Magic Powder changes the target's type to pure Water/Psychic")
+{
+    enum Move move;
+    enum Type type;
+
+    PARAMETRIZE { move = MOVE_SOAK; type = TYPE_WATER; }
+    PARAMETRIZE { move = MOVE_MAGIC_POWDER; type = TYPE_PSYCHIC; }
+    GIVEN {
+        ASSUME(GetSpeciesType(SPECIES_GOLEM, 0) == TYPE_ROCK);
+        ASSUME(GetSpeciesType(SPECIES_GOLEM, 1) == TYPE_GROUND);
+        PLAYER(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_GOLEM);
+    } WHEN {
+        TURN { MOVE(player, move); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, move, player);
+        switch (move) {
+            case MOVE_SOAK:         MESSAGE("The opposing Golem transformed into the Water type!"); break;
+            case MOVE_MAGIC_POWDER: MESSAGE("The opposing Golem transformed into the Psychic type!"); break;
+            default: break;
+        }
+    } THEN {
+        EXPECT_EQ(opponent->types[0], type);
+        EXPECT_EQ(opponent->types[1], type);
+    }
+}
 
 SINGLE_BATTLE_TEST("Soak/Magic Powder's type change is overwitten if the target changes form")
 {

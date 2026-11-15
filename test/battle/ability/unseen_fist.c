@@ -17,7 +17,7 @@ TO_DO_BATTLE_TEST("TODO: Write Unseen Fist (Ability) test titles")
 
 SINGLE_BATTLE_TEST("Unseen Fist ignores Protect when user has Protective Pads, but not with Punching Glove", s16 damage)
 {
-    u32 item;
+    enum Item item;
 
     PARAMETRIZE { item = ITEM_PROTECTIVE_PADS; }
     PARAMETRIZE { item = ITEM_PUNCHING_GLOVE; }
@@ -40,7 +40,7 @@ SINGLE_BATTLE_TEST("Unseen Fist ignores Protect when user has Protective Pads, b
     }
 }
 
-SINGLE_BATTLE_TEST("Unseen Fist bypasses protect effects without triggering their contact effects")
+SINGLE_BATTLE_TEST("Unseen Fist bypasses protect effects without triggering their contact effects (Gens 8-9)")
 {
     enum Move protectMove = MOVE_NONE;
     u8 loweredStat = 0;
@@ -53,6 +53,7 @@ SINGLE_BATTLE_TEST("Unseen Fist bypasses protect effects without triggering thei
     PARAMETRIZE { protectMove = MOVE_SILK_TRAP;       loweredStat = STAT_SPEED; }
 
     GIVEN {
+        WITH_CONFIG(B_UNSEEN_FIST_PIERCING_DRILL, GEN_9);
         PLAYER(SPECIES_URSHIFU) { Ability(ABILITY_UNSEEN_FIST); }
         OPPONENT(SPECIES_WOBBUFFET);
     } WHEN {

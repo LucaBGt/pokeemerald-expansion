@@ -25,12 +25,13 @@ AI_SINGLE_BATTLE_TEST("AI: Belch has nonzero score after eating a berry")
     }
 }
 
-SINGLE_BATTLE_TEST("Belch cannot be used if the user has not eaten a berry")
+SINGLE_BATTLE_TEST("Belch cannot be used if the user has not eaten a berry (Gen6-9)")
 {
     enum Item item = ITEM_NONE;
     PARAMETRIZE { item = ITEM_NONE; }
     PARAMETRIZE { item = ITEM_ORAN_BERRY; }
     GIVEN {
+        WITH_CONFIG(B_BELCH_SELECTABLE, GEN_9);
         PLAYER(SPECIES_SKWOVET) { Item(item); }
         OPPONENT(SPECIES_WOBBUFFET);
     } WHEN {

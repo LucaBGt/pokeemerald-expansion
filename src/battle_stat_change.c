@@ -29,13 +29,13 @@ static bool32 IsMirrorArmorReflected(struct BattleCalcValues *cv, struct StatCha
 // Utitily
 static void AdjustStatStage(struct BattleCalcValues *cv, struct StatChange *st);
 static bool32 CanAbilityPreventStatLoss(enum BattlerId battler);
-static bool32 AbilityPreventsSpecificStatDrop(enum BattlerId battler, u32 stat);
+static bool32 AbilityPreventsSpecificStatDrop(enum BattlerId battler, enum Stat stat);
 static u32 GetNumPositiveStats(struct StatChange *st);
 static u32 GetNumNegativeStats(struct StatChange *st);
 static void SetAdditionalEffectsOnStatChange(struct BattleCalcValues *cv, struct StatChange *st);
-static void MarkStatsAsDone(struct StatChange *st, u32 stat);
+static void MarkStatsAsDone(struct StatChange *st, enum Stat stat);
 
-u32 const sAccurateStatOrder[NUM_BATTLE_STATS] =
+enum Stat const sAccurateStatOrder[NUM_BATTLE_STATS] =
 {
     STAT_HP,
     STAT_ATK,
@@ -150,7 +150,7 @@ static bool32 CheckSpecificMoveCondition(struct BattleCalcValues *cv, struct Sta
         {
             if (!st->onlyChecking)
             {
-                st->moveScript = BattleScript_OwnTempoPrevents;
+                st->moveScript = BattleScript_SwaggerOwnTempoPrevents;
                 gBattlerAbility = cv->battlerDef;
                 gLastUsedAbility = ABILITY_OWN_TEMPO;
                 PushTraitStack(cv->battlerDef, ABILITY_OWN_TEMPO);
@@ -296,26 +296,6 @@ enum StatChangeResult TryStatChange(struct BattleCalcValues *cv, struct StatChan
         SetAdditionalEffectsOnStatChange(cv, st);
 
         return result;
-}
-
-enum StatChangeResult TrySingleStatChange(struct BattleCalcValues *cv, struct StatChange *st)
-{
-    AdjustStatStage(cv, st);
-
-    if (st->stage < 0)
-    {
-        if (CanDecreaseStat(cv, st) == STAT_CHANGE_DIDNT_WORK)
-            return STAT_CHANGE_DIDNT_WORK;
-
-        if (DecreaseStat(cv, st) == STAT_CHANGE_WORKED)
-            return STAT_CHANGE_WORKED;
-    }
-    else if (IncreaseStat(cv, st) == STAT_CHANGE_WORKED)
-    {
-        return STAT_CHANGE_WORKED;
-    }
-
-    return STAT_CHANGE_DIDNT_WORK;
 }
 
 static enum StatChangeResult CanDecreaseStat(struct BattleCalcValues *cv, struct StatChange *st)
@@ -778,6 +758,7 @@ static bool32 IsMirrorArmorReflected(struct BattleCalcValues *cv, struct StatCha
 
     if (gBattleStruct->moveResultFlags[cv->battlerDef] & MOVE_RESULT_MIRROR_ARMOR_PENDING || !st->ignoreCertainFailure)
     {
+        st->silentFailure = FALSE; // Mirror Armor still deflects damaging move stat drops
         st->script = BattleScript_MirrorArmorReflect;
         gBattlerAbility = cv->battlerDef;
         PushTraitStack(cv->battlerDef, ABILITY_MIRROR_ARMOR);
@@ -785,22 +766,22 @@ static bool32 IsMirrorArmorReflected(struct BattleCalcValues *cv, struct StatCha
 
         if (st->stickyWeb)
         {
-            if (gSideTimers[GetBattlerSide(cv->battlerDef)].stickyWebBattlerId != 0xFF)
-            {
-                gBattleScripting.battler = gSideTimers[GetBattlerSide(cv->battlerDef)].stickyWebBattlerId;
-            }
-            else
+            if (GetConfig(B_MIRROR_ARMOR_STICKY_WEB) >= GEN_9)
             {
                 st->script = BattleScript_AbilityPopUp;
                 return TRUE;
             }
+            else if (gSideTimers[GetBattlerSide(cv->battlerDef)].stickyWebBattlerId != 0xFF)
+            {
+                gBattleScripting.battler = gSideTimers[GetBattlerSide(cv->battlerDef)].stickyWebBattlerId;
+            }
         }
         else
         {
-            if (cv->battlerAtk == cv->battlerDef)
-                gBattleScripting.battler = cv->battlerDef;
-            else
-                gBattleScripting.battler = cv->battlerAtk;
+            gBattleScripting.battler = cv->battlerAtk;
+
+            if (IsBattlerAlly(cv->battlerAtk, cv->battlerDef))
+                gBattleStruct->ignoreDefiant = TRUE;
 
             gBattleStruct->allowPartingShot = TRUE;
         }
@@ -872,7 +853,7 @@ static bool32 CanAbilityPreventStatLoss(enum BattlerId battler)
         return FALSE;
 }
 
-static bool32 AbilityPreventsSpecificStatDrop(enum BattlerId battler, u32 stat)
+static bool32 AbilityPreventsSpecificStatDrop(enum BattlerId battler, enum Stat stat)
 {
     enum Ability battlerAbility = ABILITY_NONE;
     enum Ability battlerTraits[MAX_MON_TRAITS];
@@ -898,6 +879,26 @@ static bool32 AbilityPreventsSpecificStatDrop(enum BattlerId battler, u32 stat)
         return FALSE;
 }
 
+bool32 ShouldDefiantCompetitiveActivate(enum BattlerId battler)
+{
+    enum BattleSide side = GetBattlerSide(battler);
+
+    if (gBattleStruct->ignoreDefiant)
+        return FALSE;
+
+    if ((!BattlerHasTrait(battler, ABILITY_DEFIANT) || gBattleStruct->defiantActivated[battler]
+     || CompareStat(battler, STAT_ATK, MAX_STAT_STAGE, CMP_EQUAL))
+    && (!BattlerHasTrait(battler, ABILITY_COMPETITIVE) || gBattleStruct->competitiveActivated[battler]
+     || CompareStat(battler, STAT_SPATK, MAX_STAT_STAGE, CMP_EQUAL)))
+        return FALSE;
+
+    if (GetConfig(B_DEFIANT_STICKY_WEB) >= GEN_9 || !gBattleScripting.stickyWebStatDrop)
+        return TRUE;
+
+    // only activate Defiant/Competitive if Web was setup by foe
+    return gSideTimers[side].stickyWebBattlerSide != side;
+}
+
 u32 GetStatStage(u32 stat, const struct AdditionalEffect *additionalEffect)
 {
     switch (stat)
@@ -909,9 +910,8 @@ u32 GetStatStage(u32 stat, const struct AdditionalEffect *additionalEffect)
     case STAT_SPDEF:   return additionalEffect->spDef;
     case STAT_ACC:     return additionalEffect->accuracy;
     case STAT_EVASION: return additionalEffect->evasion;
+    default:           return 0;
     }
-
-    return 0;
 }
 
 static u32 GetNumPositiveStats(struct StatChange *st)
@@ -1093,7 +1093,7 @@ static void SetAdditionalEffectsOnStatChange(struct BattleCalcValues *cv, struct
         break;
     case EFFECT_AUTOTOMIZE:
         if (gBattleStruct->moveResultFlags[cv->battlerDef] & MOVE_RESULT_STAT_CHANGED
-         && GetBattlerWeight(cv->battlerDef) > 1)
+         && GetBattlerWeight(cv->battlerDef, cv->abilities[cv->battlerDef], cv->holdEffects[cv->battlerDef]) > 1)
         {
             gBattleMons[cv->battlerDef].volatiles.autotomizeCount++;
             st->moveScript = BattleScript_AutotomizeMessage;
@@ -1110,7 +1110,7 @@ static void SetAdditionalEffectsOnStatChange(struct BattleCalcValues *cv, struct
   1. Multiply failure pop ups
   2. Since we don't mark battlers as doesn't affect foe, they still get a stat drop
 */
-static void MarkStatsAsDone(struct StatChange *st, u32 stat)
+static void MarkStatsAsDone(struct StatChange *st, enum Stat stat)
 {
     for (u32 i = 0; i < st->statStageAmount; i++)
     {
