@@ -12181,9 +12181,9 @@ static const struct LevelUpMove sExcadrillLevelUpLearnset[] = {
 
 #if P_FAMILY_AUDINO
 static const struct LevelUpMove sAudinoLevelUpLearnset[] = {
-    LEVEL_UP_MOVE( 1, MOVE_POUND),
+    //LEVEL_UP_MOVE( 1, MOVE_POUND),
     LEVEL_UP_MOVE( 1, MOVE_PLAY_NICE),
-    LEVEL_UP_MOVE( 4, MOVE_DISARMING_VOICE),
+   // LEVEL_UP_MOVE( 4, MOVE_DISARMING_VOICE),
     LEVEL_UP_MOVE( 9, MOVE_BABY_DOLL_EYES),
     LEVEL_UP_MOVE(12, MOVE_HELPING_HAND),
     LEVEL_UP_MOVE(16, MOVE_GROWL),

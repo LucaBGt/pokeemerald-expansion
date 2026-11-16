@@ -6007,6 +6007,10 @@ enum AIScore BattlerBenefitsFromAbilityScore(enum BattlerId battler, enum Abilit
         if (HasPartner(battler) && aiData->abilities[GetPartnerBattler(battler)] != ability)
             return BEST_EFFECT;
         break;
+    case ABILITY_X_GENE:
+        if (HasPartner(battler) && aiData->abilities[GetPartnerBattler(battler)] == ability)
+            return BEST_EFFECT;   
+        break;
     case ABILITY_GUTS:
         if (HasMoveWithCategory(battler, DAMAGE_CATEGORY_PHYSICAL) && gBattleMons[battler].status1 & (STATUS1_CAN_MOVE))
             return GOOD_EFFECT;

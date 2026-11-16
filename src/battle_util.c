@@ -6969,6 +6969,15 @@ static inline u32 CalcMoveBasePowerAfterModifiers(struct DamageContext *ctx)
         if (SearchTraits(battlerTraits, ABILITY_POWER_SPOT))
             modifier = uq4_12_multiply(modifier, UQ_4_12(1.3));
 
+        if (SearchTraits(battlerTraits, ABILITY_X_GENE)){
+
+            STORE_BATTLER_TRAITS(battlerAtk);
+
+            if (SearchTraits(battlerTraits, ABILITY_X_GENE)){
+                modifier = uq4_12_multiply(modifier, UQ_4_12(1.3));
+            }
+        }
+
         if (SearchTraits(battlerTraits, ABILITY_STEELY_SPIRIT)
          && moveType == TYPE_STEEL)
                 modifier = uq4_12_multiply(modifier, UQ_4_12(1.5));

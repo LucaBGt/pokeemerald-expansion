@@ -1995,6 +1995,13 @@ const struct AbilityInfo gAbilitiesInfo[ABILITIES_COUNT] =
         .aiRating = 2,
     },
 
+    [ABILITY_X_GENE] =
+    {
+        .name = _("X-Gene"),
+        .description = COMPOUND_STRING("Boosts other mutants' ATKs."),
+        .aiRating = 2,
+    },
+
     [ABILITY_MIMICRY] =
     {
         .name = _("Mimicry"),
